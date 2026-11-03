@@ -1,6 +1,6 @@
 # KOIN — Backlog Jira-Ready
-> Épicas 1–10 con DoD global, historias refinadas, subtasks por capa y directivas de diseño estrictas.
-> Sprint 0 → Épicas 1-3 | Sprint 1 → Épicas 4-6 | Sprint 2 → Épicas 7-10
+> Épicas 1–7 con DoD global, historias refinadas, subtasks por capa y directivas de diseño estrictas.
+> Sprint 0 → Épica 1 | Sprint 1 → Épicas 2-4 | Sprint 2 → Épicas 5-7
 
 ---
 
@@ -23,150 +23,30 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-## 🟡 EPIC 1 — Planeación y arquitectura técnica
+## 🟡 EPIC 1 — Configuración técnica, Monorepo y DevOps
 `Sprint 0 · v0.1 · Color Jira: Amarillo`
 
 ---
 
-### PLAN-01 — Definir y documentar arquitectura de la solución
+### SETUP-01 — Inicializar Monorepo con Turborepo, Express y React
 **Tipo:** Story | **SP:** 3 | **Prioridad:** Alta | **Asignado:** Dylan
-**Rama sugerida:** docs/arquitectura-solucion
+**Rama sugerida:** feature/setup-turborepo-monorepo
 
 **Historia de usuario:**
-> "Como equipo de ingeniería, queremos tener la arquitectura técnica documentada sin ambigüedades,
-> para que el desarrollo en Turborepo, Express y React avance de forma alineada desde el primer día."
+> "Como equipo de desarrollo, queremos tener la estructura de Monorepo configurada con Turborepo, Express y React,
+> para compartir contratos TypeScript y esquemas Zod con builds paralelos cacheados."
 
 **Criterios de aceptación:**
-- Diagrama de arquitectura de 4 capas documentado (Cliente Web/Android, Heroku Dyno, Heroku Postgres, Bridge Nativo)
-- Flujo de autenticación en dos niveles (Cuenta Titular JWT + Perfil Context) detallado
-- Arquitectura interna de Express en 3 capas (Controller → Service → Repository) especificada
-- Documento técnico revisado y aprobado por el equipo
+- Turborepo operativo con workspaces: `apps/server`, `apps/web`, `packages/shared`
+- `npm run build` y `npm run dev` ejecutan en paralelo con cache funcional
+- `packages/shared` exporta tipos e interfaces consumidos por cliente y servidor
+- TypeScript estricto configurado en todos los paquetes
 
 **Subtasks:**
-- [ ] [DOCS] Crear diagrama de arquitectura en Mermaid: apps/web (React/Capacitor) → apps/server (Express) → Heroku Postgres
-- [ ] [DOCS] Documentar pipeline de seguridad en Express: Helmet, CORS whitelist, Rate Limit, HPP y Zod
-- [ ] [DOCS] Documentar flujo de conmutación de perfiles y aislamiento de inquilinos (`tenantGuard`)
-- [ ] [DOCS] Documentar motor multidivisa y normalización a moneda base con tipo `NUMERIC(14, 2)`
-- [ ] [DOCS] Publicar documento en `documentation/ARCHITECTURE.md` y fijar link en el repositorio
-
-**DoD adicional para esta US:**
-- Arquitectura aprobada unánimemente por el equipo en reunión técnica
-
----
-
-### PLAN-02 — Diseñar el modelo de datos relacional y DDL PostgreSQL
-**Tipo:** Story | **SP:** 3 | **Prioridad:** Alta | **Asignado:** Dylan
-**Rama sugerida:** docs/modelo-datos-postgres
-
-**Historia de usuario:**
-> "Como desarrollador backend, quiero tener el esquema de base de datos relacional aprobado antes de codear,
-> para estructurar las tablas, constraints financieros e índices de alto rendimiento sin conflictos posteriores."
-
-**Criterios de aceptación:**
-- Diagrama ERD completo aprobado con entidades: users, profiles, accounts, account_members, transactions, categories, exchange_rates, budgets
-- Script SQL DDL ejecuta sin errores en PostgreSQL con UUID y extensiones
-- Precisión numérica para dinero definida estrictamente como `NUMERIC(14, 2)` (cero flotantes)
-- Campo `avatar_icon` de perfiles almacena nombre de icono SVG (cero emojis)
-
-**Subtasks:**
-- [ ] [BD] Diseñar diagrama Entidad-Relación en Mermaid con todas las relaciones y cardinalidades
-- [ ] [BD] Definir tabla `users` con hash Argon2id y campos de auditoría
-- [ ] [BD] Definir tabla `profiles` con `avatar_icon VARCHAR(50)` (identificador de icono Lucide) y `theme_config JSONB`
-- [ ] [BD] Definir tablas `accounts` y `account_members` para soporte de colaboración compartida con RBAC
-- [ ] [BD] Definir tabla `transactions` con `exchange_rate_to_base NUMERIC(18, 6)` y `base_amount NUMERIC(14, 2)`
-- [ ] [BD] Definir índices compuestos críticos: `[profile_id, date DESC]`, `[account_id, date DESC]`
-- [ ] [DOCS] Redactar y publicar especificación en `documentation/DATA_MODEL.md`
-
-**DoD adicional para esta US:**
-- Script SQL probado localmente en contenedor PostgreSQL sin advertencias
-
----
-
-## 🩷 EPIC 2 — Diseño UX/UI minimalista
-`Sprint 0 · v0.1 · Color Jira: Rosa`
-
----
-
-### DESIGN-01 — Definir identidad visual y sistema de diseño sin emojis ni cards
-**Tipo:** Story | **SP:** 3 | **Prioridad:** Alta | **Asignado:** Dylan
-**Rama sugerida:** design/tokens-identidad-minimalista
-
-**Historia de usuario:**
-> "Como diseñador UI/UX, quiero definir el sistema de diseño minimalista con directivas estrictas,
-> para asegurar que la app tenga una estética limpia, profesional, sin emojis, sin badges y sin tarjetas abultadas."
-
-**Criterios de aceptación:**
-- Directiva de **Cero Emojis**: Catálogo oficial de iconos SVG vectoriales de Lucide React definido
-- Directiva de **Cero Badges**: Reemplazados por jerarquía tipográfica limpia y status dots de 4px
-- Directiva de **Diseño Plano**: Eliminación de cards pesadas; uso de líneas divisorias de 1px (`border-border/40`)
-- 6 Paletas HSL dinámicas definidas (Esmeralda, Índigo, Amatista, Coral, Ámbar, Zafiro) con verificación WCAG AA
-
-**Subtasks:**
-- [ ] [DISEÑO] Configurar tokens de color base: fondo claro, fondo oscuro y negro puro `#000000` (AMOLED)
-- [ ] [DISEÑO] Definir variables HSL dinámicas en Tailwind CSS: `--primary`, `--primary-foreground`, `--accent`, `--border`
-- [ ] [DISEÑO] Seleccionar set de 30 iconos SVG Lucide para perfiles, cuentas y categorías (cero emojis)
-- [ ] [DISEÑO] Diseñar sistema de filas de lista planas (list rows) con bordes inferiores finos en lugar de cards
-- [ ] [DISEÑO] Verificar contraste de texto accesible en todas las paletas (ratio mínimo 4.5:1)
-- [ ] [DOCS] Documentar directivas y tokens en `documentation/UI_UX_SPECIFICATION.md`
-
-**DoD adicional para esta US:**
-- Aprobación explícita de las directivas visuales antes de iniciar componentes en código
-
----
-
-### DESIGN-02 — Crear mockups y flujos clave de alta velocidad (<3s) en Figma
-**Tipo:** Story | **SP:** 5 | **Prioridad:** Alta | **Asignado:** Dylan
-**Rama sugerida:** design/mockups-flujos-criticos
-
-**Historia de usuario:**
-> "Como diseñador, quiero tener los wireframes y flujos críticos de interacción aprobados,
-> para que el equipo de frontend construya el registro en <3 segundos y el selector de perfiles sin retrabajo."
-
-**Criterios de aceptación:**
-- Pantalla de Registro Rápido mockeada con teclado táctil integrado (botones 64px) y categorías en 1 toque
-- Bottom Sheet de Conmutador de Perfiles diseñado en filas planas minimalistas
-- Vista de Dashboard plano: balance consolidado tipográfico, lista de cuentas y últimos movimientos sin cards anidadas
-- Todo elemento visual utiliza iconos SVG vectoriales (cero emojis)
-
-**Subtasks:**
-- [ ] [DISEÑO] Mockup: Dashboard principal con balance consolidado tipográfico y filas de cuentas minimalistas
-- [ ] [DISEÑO] Mockup: Modal de registro rápido con teclado táctil en pantalla, chips (+5, +10, +20) y grid de iconos SVG
-- [ ] [DISEÑO] Mockup: Bottom Sheet de perfiles con avatares SVG, nombre y estado tipográfico sobrio
-- [ ] [DISEÑO] Mockup: Detalle de cuenta compartida con indicador de miembros y rol
-- [ ] [DISEÑO] Mockup: Historial cronológico plano con agrupadores por fecha y buscador integrado
-- [ ] [DISEÑO] Mockup: Personalizador de temas con preview en tiempo real y selector Hex
-- [ ] [DOCS] Exportar diagramas de flujo y wireframes a la documentación técnica
-
-**DoD adicional para esta US:**
-- Flujo de registro en 2 toques validado con prototipo interactivo
-
----
-
-## ⚫ EPIC 3 — Configuración técnica, Turborepo y DevOps
-`Sprint 0 · v0.1 · Color Jira: Gris`
-
----
-
-### DEVOPS-01 — Configurar Monorepo con Turborepo y Workspaces
-**Tipo:** Story | **SP:** 3 | **Prioridad:** Alta | **Asignado:** Dylan
-**Rama sugerida:** feature/setup-turborepo
-
-**Historia de usuario:**
-> "Como desarrollador, quiero tener el Monorepo configurado con Turborepo y npm workspaces,
-> para compartir contratos TypeScript y esquemas Zod entre frontend y backend con compilación en paralelo."
-
-**Criterios de aceptación:**
-- Turborepo levantado con workspaces: `apps/server`, `apps/web`, `packages/shared`
-- `npm run build` y `npm run dev` ejecutan en paralelo con cache de Turborepo
-- `packages/shared` exporta tipos TypeScript y esquemas Zod consumidos por ambas apps
-- Configuración de TypeScript estricto en todo el repositorio
-
-**Subtasks:**
-- [ ] [DEVOPS] Inicializar estructura Monorepo con `turbo.json` y `package.json` raíz
-- [ ] [DEVOPS] Crear paquete `packages/shared` con scripts de compilación y exportación de tipos
-- [ ] [DEVOPS] Configurar pipelines en `turbo.json`: build, dev, lint, check-types
-- [ ] [DEVOPS] Configurar `.gitignore` para Node, Turborepo, Android (`android/`), logs y `.env`
-- [ ] [DEVOPS] Crear script raíz para arranque unificado del servidor y cliente
+- [ ] [DEVOPS] Crear `package.json` raíz con configuración de npm workspaces
+- [ ] [DEVOPS] Configurar `turbo.json` con pipelines de build, dev, lint y test
+- [ ] [DEVOPS] Crear paquete `packages/shared` con compilación TypeScript para Zod DTOs
+- [ ] [DEVOPS] Configurar `.gitignore` integral (node_modules, dist, android/, .env)
 - [ ] [DOCS] Documentar comandos de desarrollo en el README principal
 
 **DoD adicional para esta US:**
@@ -174,66 +54,59 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-### DEVOPS-02 — Configurar Backend Express con Drizzle ORM y Swagger
+### SETUP-02 — Configurar Base de Datos Heroku Postgres y Drizzle ORM
 **Tipo:** Story | **SP:** 3 | **Prioridad:** Alta | **Asignado:** Dylan
-**Rama sugerida:** feature/setup-backend-express
+**Rama sugerida:** feature/setup-postgres-drizzle
 
 **Historia de usuario:**
-> "Como desarrollador backend, quiero tener el servidor Express.js conectado a PostgreSQL local y Heroku con Drizzle ORM,
-> para iniciar el desarrollo de endpoints con documentación Swagger interactiva y seguridad base."
+> "Como desarrollador backend, quiero tener la base de datos PostgreSQL conectada mediante Drizzle ORM,
+> para ejecutar migraciones, consultas tipadas y transacciones financieras con precisión exacta."
 
 **Criterios de aceptación:**
-- Express levanta en TypeScript con recarga rápida (`tsx` / `ts-node-dev`)
-- Conexión a PostgreSQL verificada mediante Drizzle ORM
-- Middleware de seguridad activos: Helmet, CORS, Rate Limit y parseo de JSON (límite 100kb)
-- Documentación Swagger UI disponible en `/api/docs`
-- Endpoint GET `/health` retorna `{"status": "ok", "db": "connected"}`
+- Conexión a PostgreSQL verificada mediante `pg.Pool` con soporte de SSL
+- Drizzle ORM configurado con CLI de migraciones (`drizzle-kit`)
+- Precisión monetaria configurada como `NUMERIC(14, 2)` y tasas como `NUMERIC(18, 6)`
+- Campo `avatar_icon` configurado como `VARCHAR(50)` para nombres de iconos SVG
 
 **Subtasks:**
-- [ ] [BACKEND] Inicializar `apps/server` con Express, TypeScript y Drizzle ORM
-- [ ] [BACKEND] Configurar conexión a PostgreSQL usando `pg.Pool` con soporte de SSL para Heroku
-- [ ] [BACKEND] Implementar middleware global de seguridad: `helmet`, `cors` restrictivo, `hpp`, `express.json({ limit: '100kb' })`
-- [ ] [BACKEND] Configurar `express-rate-limit`: 100 req/min global
-- [ ] [BACKEND] Configurar Swagger UI en `/api/docs` con OpenAPI 3.0
-- [ ] [BACKEND] Implementar manejador centralizado de errores (`error.middleware.ts`) que evite fuga de trazas en producción
-- [ ] [BACKEND] Crear archivo `.env.example` con `DATABASE_URL`, `JWT_SECRET`, `PORT`
-- [ ] [DOCS] Documentar endpoints base en Swagger
+- [ ] [BD] Configurar instancia local PostgreSQL y preparar conexión para Heroku Postgres
+- [ ] [BACKEND] Configurar cliente Drizzle en `apps/server/src/db/index.ts`
+- [ ] [BACKEND] Escribir modelos Drizzle en `schema.ts`: users, profiles, accounts, transactions
+- [ ] [BACKEND] Configurar scripts de migración: `npm run db:generate` y `npm run db:migrate`
+- [ ] [TEST] Ejecutar migración inicial y verificar tablas creadas con constraints e índices
 
 **DoD adicional para esta US:**
-- `/health` responde 200 y `/api/docs` carga la interfaz gráfica de Swagger sin errores
+- Migración ejecuta limpiamente y se puede insertar/leer un registro de prueba
 
 ---
 
-### DEVOPS-03 — Configurar Frontend React + Vite + Tailwind y Capacitor
+### SETUP-03 — Configurar Capacitor para Android y Sistema de Iconos SVG
 **Tipo:** Story | **SP:** 3 | **Prioridad:** Alta | **Asignado:** Dylan
-**Rama sugerida:** feature/setup-frontend-capacitor
+**Rama sugerida:** feature/setup-capacitor-svg
 
 **Historia de usuario:**
-> "Como desarrollador frontend, quiero tener la aplicación React + Vite con Tailwind CSS y Capacitor configurada,
-> para disponer de la SPA web y el contenedor Android nativo compartiendo el 100% de la interfaz."
+> "Como desarrollador frontend, quiero inicializar Capacitor con Android y la librería Lucide SVG,
+> para disponer del contenedor móvil nativo y la iconografía vectorial sin ningún emoji."
 
 **Criterios de aceptación:**
-- Vite levanta React con HMR ultra veloz (<50ms)
-- Tailwind CSS configurado con variables CSS dinámicas HSL
-- TanStack React Query v5 y Zustand configurados
-- Capacitor inicializado con plataforma Android (`apps/web/android/`)
-- Librería de iconos Lucide React lista para uso exclusivo de SVGs
+- Capacitor configurado en `apps/web` con plataforma Android (`apps/web/android/`)
+- Librería `lucide-react` instalada y configurada para uso exclusivo de SVGs
+- Directiva de cero emojis y diseño plano establecida en tokens de Tailwind
+- Sincronización exitosa con Android Studio vía `npx cap sync android`
 
 **Subtasks:**
-- [ ] [FRONTEND] Inicializar `apps/web` con Vite, React 19/18 y TypeScript estricto
-- [ ] [FRONTEND] Configurar Tailwind CSS con soporte de variables CSS (`--primary`, `--accent`) en `index.css`
-- [ ] [FRONTEND] Instalar y configurar `lucide-react` para iconografía SVG
-- [ ] [FRONTEND] Configurar `QueryClient` de TanStack React Query con cache optimista
-- [ ] [FRONTEND] Configurar store global de UI con Zustand
-- [ ] [FRONTEND] Inicializar Capacitor: `npx cap init Koin com.koin.finance` y ejecutar `npx cap add android`
-- [ ] [FRONTEND] Crear cliente HTTP tipado (`api.client.ts`) con inyección automática de Bearer token y `X-Profile-ID`
+- [ ] [FRONTEND] Instalar `@capacitor/core`, `@capacitor/cli` y `@capacitor/android`
+- [ ] [FRONTEND] Crear archivo `capacitor.config.ts` con appId `com.koin.finance`
+- [ ] [FRONTEND] Ejecutar `npx cap add android` y verificar proyecto Gradle
+- [ ] [FRONTEND] Instalar `lucide-react` y crear diccionario de iconos SVG reutilizables
+- [ ] [FRONTEND] Configurar variables CSS HSL dinámicas en `index.css` de Tailwind
 
 **DoD adicional para esta US:**
-- Proyecto compila a web y se sincroniza con Android Studio (`npx cap sync android`) sin errores
+- Compilar la app web y verificar que `npx cap sync android` no arroja advertencias
 
 ---
 
-## 🟣 EPIC 4 — Autenticación y cuentas titulares
+## 🟣 EPIC 2 — Autenticación y gestión de cuentas titulares
 `Sprint 1 · v1.0 · Color Jira: Morado`
 
 ---
@@ -244,30 +117,27 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 **Historia de usuario:**
 > "Como usuario nuevo, quiero registrar una cuenta titular con mi nombre, email y contraseña segura,
-> para tener mi espacio en la nube donde administrar mis finanzas con un perfil inicial listo para usar."
+> para tener mi espacio en la nube con un perfil inicial y cuentas listas para usar."
 
 **Criterios de aceptación:**
 - Contraseña hasheada en backend con Argon2id (mínimo 8 caracteres, mayúscula, número y símbolo)
-- Correo normalizado; error 409 Conflict si ya está registrado sin filtrar detalles internos
+- Correo normalizado; error 409 Conflict si ya está registrado
 - Creación transaccional (`db.transaction`): Usuario + Perfil "Personal" + Cuentas "Efectivo" y "Banco" + 9 Categorías estándar con iconos SVG
-- Retorna JWT de sesión válido por 7 días y datos del usuario
+- Retorna JWT de sesión válido por 7 días
 
 **Subtasks:**
-- [ ] [BD] Ejecutar migraciones Drizzle de la tabla `users` en PostgreSQL
 - [ ] [BACKEND] Implementar `auth.schema.ts` en `packages/shared` con validación Zod
-- [ ] [BACKEND] `auth.service.ts`: función de hashing con `argon2` y orquestación transaccional de semilla
-- [ ] [BACKEND] `auth.controller.ts`: endpoint `POST /api/v1/auth/register` con retorno 201 y JWT
-- [ ] [FRONTEND] Formulario de registro en React con medidor de entropía de contraseña (estilo plano sin cards abultadas)
-- [ ] [FRONTEND] Manejo de errores de validación en vivo con texto sutil
-- [ ] [FRONTEND] Guardar JWT en storage seguro y redirigir al selector de perfiles tras registro exitoso
-- [ ] [TEST] Test unitario: hashing Argon2id y rechazo de contraseñas débiles
+- [ ] [BACKEND] `auth.service.ts`: función de hashing con `argon2` y creación transaccional
+- [ ] [BACKEND] `auth.controller.ts`: endpoint `POST /api/v1/auth/register` (código 201)
+- [ ] [FRONTEND] Formulario plano de registro en React con medidor de entropía de contraseña
+- [ ] [FRONTEND] Almacenar JWT en storage seguro y redirigir al selector de perfiles
 
 **DoD adicional para esta US:**
 - Registro completo verificado en base de datos: usuario, perfil inicial y cuentas creadas en 1 sola transacción
 
 ---
 
-### AUTH-02 — Inicio de Sesión con JWT y Protección Antifuerza Bruta
+### AUTH-02 — Inicio de Sesión Seguro con JWT y Protección Antifuerza Bruta
 **Tipo:** Story | **SP:** 3 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** feature/auth-login-ratelimit
 
@@ -277,21 +147,20 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 **Criterios de aceptación:**
 - Validación de credenciales con tiempo constante (`crypto.timingSafeEqual`) contra hash de Argon2id
-- Limitación estricta de tasa: máximo 5 intentos fallidos cada 15 minutos por IP (retorna 429)
+- Limitación de tasa: máximo 5 intentos fallidos cada 15 minutos por IP (código 429)
 - Emite JWT firmado con `userId` y `email`
 - Persistencia de sesión en cliente al recargar la app
 
 **Subtasks:**
-- [ ] [BACKEND] Configurar `loginRateLimiter` específico para `POST /api/v1/auth/login` (5 intentos / 15 min)
+- [ ] [BACKEND] Configurar `loginRateLimiter` para `POST /api/v1/auth/login` (5 intentos / 15 min)
 - [ ] [BACKEND] `auth.service.ts`: verificación de contraseña con Argon2id y firma de JWT
 - [ ] [BACKEND] `auth.middleware.ts`: verificación de token Bearer en rutas protegidas
 - [ ] [FRONTEND] Formulario de login limpio con inputs minimalistas y botón primario
-- [ ] [FRONTEND] Almacenar token en `@capacitor/preferences` en Android y `localStorage` en Web
-- [ ] [FRONTEND] Interceptor HTTP: adjuntar automáticamente `Authorization: Bearer <token>` en cada llamada
-- [ ] [FRONTEND] Si el token es válido al arrancar la app, redirigir automáticamente al dashboard/perfiles
+- [ ] [FRONTEND] Interceptor HTTP: adjuntar automáticamente `Authorization: Bearer <token>`
+- [ ] [FRONTEND] Redirección automática si el token es válido al arrancar la app
 
 **DoD adicional para esta US:**
-- Intentar 6 logins fallidos desde Postman y verificar que el 6to responde código `429 Too Many Requests`
+- Intentar 6 logins fallidos seguidos y verificar que el 6to responde código `429 Too Many Requests`
 
 ---
 
@@ -310,24 +179,23 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Redirección inmediata a la pantalla de login
 
 **Subtasks:**
-- [ ] [BACKEND] Endpoint `POST /api/v1/auth/logout` que registra el token en lista de revocación (opcional en memoria/redis)
+- [ ] [BACKEND] Endpoint `POST /api/v1/auth/logout`: registro de revocación de sesión
 - [ ] [FRONTEND] Botón "Cerrar sesión" en menú de ajustes (fila plana con icono SVG `LogOut`)
 - [ ] [FRONTEND] Eliminar token de `@capacitor/preferences` y `localStorage`
-- [ ] [FRONTEND] Ejecutar `queryClient.clear()` eliminando todo rastro de saldos y transacciones de la memoria RAM
-- [ ] [FRONTEND] Resetear `useProfileStore` y `useAuthStore` a estado inicial
-- [ ] [FRONTEND] Redirigir a `/login`
+- [ ] [FRONTEND] Ejecutar `queryClient.clear()` eliminando todo dato de la memoria RAM
+- [ ] [FRONTEND] Resetear stores Zustand y redirigir a `/login`
 
 **DoD adicional para esta US:**
 - Verificar que tras cerrar sesión, presionar el botón "Atrás" del navegador no muestra datos en cache
 
 ---
 
-## 🟠 EPIC 5 — Perfiles independientes y personalización visual
+## 🟠 EPIC 3 — Perfiles independientes y personalización visual
 `Sprint 1 · v1.0 · Color Jira: Naranja`
 
 ---
 
-### PROF-01 — Creación y Gestión de Perfiles Independientes
+### PROF-01 — Creación y Gestión de Perfiles Independientes (Estilo Streaming)
 **Tipo:** Story | **SP:** 5 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** feature/profiles-crud
 
@@ -346,16 +214,15 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [ ] [BACKEND] Endpoint `GET /api/v1/profiles`: listar perfiles del usuario en sesión
 - [ ] [BACKEND] Endpoint `POST /api/v1/profiles`: crear perfil + cuentas/categorías base en transacción PostgreSQL
 - [ ] [BACKEND] Endpoint `PATCH /api/v1/profiles/:id`: editar nombre, icono SVG o moneda base
-- [ ] [FRONTEND] Vista de perfiles: lista plana de perfiles con divisores sutiles de 1px (sin cards flotantes)
+- [ ] [FRONTEND] Vista de perfiles: lista plana con divisores sutiles de 1px (sin cards flotantes)
 - [ ] [FRONTEND] Modal de creación de perfil: selector visual de iconos SVG Lucide y selector de moneda ISO
-- [ ] [TEST] Test de integración: verificar que las transacciones del perfil A no son accesibles desde el perfil B
 
 **DoD adicional para esta US:**
 - Confirmar que ningún perfil nuevo tiene acceso a las cuentas de los otros perfiles existentes
 
 ---
 
-### PROF-02 — Conmutador Rápido de Perfiles (Profile Switcher <100ms)
+### PROF-02 — Conmutador Rápido de Perfiles (Bottom Sheet <100ms)
 **Tipo:** Story | **SP:** 3 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** feature/profile-switcher
 
@@ -376,14 +243,13 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [ ] [FRONTEND] Al seleccionar perfil sin PIN: actualizar `activeProfileId` en Zustand e inyectar tema visual
 - [ ] [FRONTEND] Llamar `queryClient.invalidateQueries()` refrescando el dashboard con los datos del nuevo perfil
 - [ ] [FRONTEND] Al seleccionar perfil con PIN: abrir modal numérico de desbloqueo sin cambiar el contexto previo
-- [ ] [TEST] Verificar en consola que la conmutación de contexto se ejecuta en <100ms
 
 **DoD adicional para esta US:**
-- Conmutar de Perfil 1 a Perfil 2 en un teléfono Android real y verificar fluidez absoluta
+- Conmutar de Perfil 1 a Perfil 2 en un teléfono Android real y verificar fluidez absoluta (<100ms)
 
 ---
 
-### PROF-03 — Motor Dinámico de Colores HSL y Contraste WCAG
+### PROF-03 — Motor Dinámico de Colores HSL (Presets, Hex libre, AMOLED y WCAG)
 **Tipo:** Story | **SP:** 5 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** feature/theming-engine-hsl
 
@@ -394,7 +260,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 **Criterios de aceptación:**
 - Inyección en vivo de variables CSS HSL (`--primary`, `--accent`) en el elemento `:root` sin re-renderizar React
 - 6 Presets disponibles: Esmeralda (`#10B981`), Índigo (`#6366F1`), Amatista (`#8B5CF6`), Coral (`#F43F5E`), Ámbar (`#F59E0B`), Zafiro (`#3B82F6`)
-- Selector libre de color Hexadecimal `#RRGGBB` con cálculo matemático automático de contraste WCAG AA (mínimo 4.5:1)
+- Selector libre de color Hexadecimal `#RRGGBB` con cálculo matemático de contraste WCAG AA (mínimo 4.5:1)
 - Modo Negro AMOLED (`#000000`) para ahorro de energía en pantallas OLED
 - Persistencia de la paleta en `theme_config JSONB` en PostgreSQL
 
@@ -404,14 +270,13 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [ ] [FRONTEND] Pantalla "Ajustes > Apariencia": selector de presets, input Hex libre y selector Claro/Oscuro/AMOLED
 - [ ] [FRONTEND] Aplicar cambios en vivo en el DOM: `document.documentElement.style.setProperty('--primary', hsl)`
 - [ ] [BACKEND] Endpoint `PATCH /api/v1/profiles/:id/theme`: persistir objeto `themeConfig` en la base de datos
-- [ ] [TEST] Test unitario: verificar que cualquier Hex genera un ratio de contraste ≥ 4.5:1
 
 **DoD adicional para esta US:**
 - Probar un color primario claro (amarillo) y oscuro (azul marino); el texto debe cambiar dinámicamente entre negro y blanco garantizando legibilidad
 
 ---
 
-### PROF-04 — Bloqueo de Perfil con PIN Criptográfico y Bloqueo por Fuerza Bruta
+### PROF-04 — Bloqueo de Perfil con PIN Criptográfico y Bloqueo Exponencial
 **Tipo:** Story | **SP:** 5 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** feature/profile-pin-security
 
@@ -426,20 +291,19 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Verificación en tiempo constante con `crypto.timingSafeEqual`
 
 **Subtasks:**
-- [ ] [BD] Columnas `has_pin BOOLEAN`, `pin_hash VARCHAR(255)`, `failed_attempts INT`, `locked_until TIMESTAMP` en tabla `profiles`
+- [ ] [BD] Columnas `has_pin`, `pin_hash`, `failed_attempts`, `locked_until` en tabla `profiles`
 - [ ] [BACKEND] Endpoint `POST /api/v1/profiles/:id/pin`: configurar o actualizar PIN (hasheo con Argon2id)
 - [ ] [BACKEND] Endpoint `POST /api/v1/profiles/:id/unlock`: validar PIN con comparación segura `timingSafeEqual`
 - [ ] [BACKEND] Contador de reintentos fallidos en servidor con bloqueo a los 5 intentos
 - [ ] [FRONTEND] Componente `PinPadModal`: teclado numérico táctil plano en pantalla
 - [ ] [FRONTEND] Respuesta visual de error: vibración háptica suave y mensaje sutil indicando intentos restantes
-- [ ] [TEST] Test unitario de seguridad: simular 5 PINs incorrectos y verificar respuesta 429 en el 5to intento
 
 **DoD adicional para esta US:**
 - Bloqueo verificado contra ataques de fuerza bruta en pruebas automatizadas
 
 ---
 
-## 🔵 EPIC 6 — Cuentas financieras y colaboración compartida (RBAC)
+## 🔵 EPIC 4 — Cuentas financieras y colaboración compartida (RBAC)
 `Sprint 1 · v1.0 · Color Jira: Celeste`
 
 ---
@@ -465,7 +329,6 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [ ] [BACKEND] Endpoint `PATCH /api/v1/accounts/:id`: editar nombre, icono SVG o color
 - [ ] [FRONTEND] Formulario plano para creación de cuenta con selector de tipo e icono SVG
 - [ ] [FRONTEND] Vista de Cuentas: listado plano de filas con icono SVG, nombre, divisa y saldo en texto grande
-- [ ] [TEST] Test: verificar cálculo correcto del balance tras registrar transacciones
 
 **DoD adicional para esta US:**
 - Crear una cuenta con saldo inicial de $500 y verificar que el balance en el listado es exactamente $500.00
@@ -492,8 +355,6 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [ ] [BACKEND] Endpoint `POST /api/v1/accounts/:id/invite`: genera enlace de invitación con rol asignado
 - [ ] [BACKEND] Middleware `rbac.middleware.ts`: validar permisos antes de mutar cuentas o transacciones compartidas
 - [ ] [FRONTEND] Diálogo plano "Compartir Cuenta": selector de rol (`Editor` u `Observador`) y botón para copiar enlace
-- [ ] [FRONTEND] Toast plano de confirmación al copiar enlace en el portapapeles
-- [ ] [TEST] Test de seguridad: verificar que un miembro con rol `viewer` recibe error 403 al intentar crear un gasto
 
 **DoD adicional para esta US:**
 - Verificar que el token de invitación expira exactamente a los 7 días y no puede reutilizarse una vez aceptado
@@ -512,21 +373,21 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Validación del token de invitación en backend; error 400 si expiró o fue usado
 - Si el usuario no ha iniciado sesión, se redirige a login preservando la URL de retorno
 - Pantalla limpia que muestra anfitrión, nombre de la cuenta y rol asignado
-- Al aceptar, la cuenta compartida aparece inmediatamente en la lista de cuentas del perfil seleccionado con distintivo sutil de texto: "Compartida (Rol)"
+- Al aceptar, la cuenta compartida aparece inmediatamente en la lista de cuentas del perfil seleccionado con distintivo sutil de texto: "Compartida (Rol)" (sin badges)
 
 **Subtasks:**
 - [ ] [BACKEND] Endpoint `GET /api/v1/invitations/validate?token=...`: valida token y retorna info de la cuenta
 - [ ] [BACKEND] Endpoint `POST /api/v1/invitations/accept`: asocia `profile_id` a `account_members` en transacción PostgreSQL
 - [ ] [FRONTEND] Ruta `/invite`: pantalla de aceptación con selector del perfil al que se desea unir la cuenta
 - [ ] [FRONTEND] Botón "Unirse a la Cuenta": despacha mutación y redirige al dashboard del perfil elegido
-- [ ] [FRONTEND] Renderizado en listado de cuentas con icono SVG de usuarios compartidos y rol en texto atenuado (sin badges)
+- [ ] [FRONTEND] Renderizado en listado de cuentas con icono SVG de usuarios compartidos y rol en texto atenuado
 
 **DoD adicional para esta US:**
 - Flujo completo verificado: Usuario A invita por link → Usuario B abre enlace en incógnito → Inicia sesión → Selecciona perfil → Cuenta compartida visible
 
 ---
 
-### ACC-04 — Administración de Membresías y Revocación de Accesos
+### ACC-04 — Gestión de Miembros y Control de Accesos RBAC
 **Tipo:** Story | **SP:** 2 | **Prioridad:** Media | **Asignado:** Dylan
 **Rama sugerida:** feature/accounts-members-management
 
@@ -551,12 +412,12 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-## 🔵 EPIC 7 — Registro financiero ultrarrápido (<3s) y multidivisa
-`Sprint 2 · v1.0 · Color Jira: Azul`
+## 🟢 EPIC 5 — Registro financiero ultrarrápido (<3s) y motor multidivisa
+`Sprint 2 · v1.0 · Color Jira: Verde`
 
 ---
 
-### TXN-01 — Modal de Entrada Rápida con Teclado Numérico Integrado y Chips
+### TXN-01 — Modal de Entrada Rápida con Teclado Táctil Integrado y Chips
 **Tipo:** Story | **SP:** 5 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** feature/quick-entry-pad
 
@@ -585,7 +446,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-### TXN-02 — Guardado en 2 Toques con Categorías Frecuentes y Deshacer
+### TXN-02 — Guardado en 2 Toques con Categorías Frecuentes y Acción Deshacer
 **Tipo:** Story | **SP:** 5 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** feature/two-tap-transaction-save
 
@@ -693,12 +554,12 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-## 🟢 EPIC 8 — Categorías y presupuestos
-`Sprint 2 · v1.0 · Color Jira: Verde`
+## 🟣 EPIC 6 — Presupuestos, analíticas y exportación de datos
+`Sprint 2 · v1.0 · Color Jira: Índigo`
 
 ---
 
-### BUD-01 — Gestión de Categorías Personalizadas con Iconos Lucide
+### BUD-01 — Gestión de Categorías Personalizadas con Iconos SVG Lucide
 **Tipo:** Story | **SP:** 3 | **Prioridad:** Media | **Asignado:** Dylan
 **Rama sugerida:** feature/categories-crud
 
@@ -723,7 +584,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-### BUD-02 — Presupuestos Mensuales con Alertas Visuales al 80% y 100%
+### BUD-02 — Presupuestos Mensuales con Barras de Progreso y Alertas
 **Tipo:** Story | **SP:** 5 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** feature/monthly-budgets-alerts
 
@@ -750,12 +611,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-## 🟣 EPIC 9 — Analíticas y exportación de datos
-`Sprint 2 · v1.0 · Color Jira: Índigo`
-
----
-
-### ANL-01 — Gráfico de Distribución de Gastos por Categoría (Dona Recharts)
+### ANL-01 — Gráfico Interactivo de Distribución de Gastos por Categoría (Dona Recharts)
 **Tipo:** Story | **SP:** 3 | **Prioridad:** Media | **Asignado:** Dylan
 **Rama sugerida:** feature/analytics-donut-chart
 
@@ -805,7 +661,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-### ANL-03 — Exportación Soberana a CSV y Copia de Seguridad Relacional JSON
+### ANL-03 — Exportación Soberana a CSV y Copia de Seguridad JSON
 **Tipo:** Story | **SP:** 2 | **Prioridad:** Baja | **Asignado:** Dylan
 **Rama sugerida:** feature/export-csv-json
 
@@ -829,12 +685,12 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-## 🔴 EPIC 10 — Experiencia nativa Android, despliegue y sustentación
+## 🔴 EPIC 7 — Experiencia nativa Android y despliegue en Heroku
 `Sprint 2 · v1.0 · Color Jira: Rojo`
 
 ---
 
-### MOB-01 — Integración de Feedback Háptico (@capacitor/haptics)
+### MOB-01 — Integración de Feedback Háptico en Android (@capacitor/haptics)
 **Tipo:** Story | **SP:** 2 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** feature/mobile-haptics
 
@@ -905,7 +761,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-### DEPLOY-01 — Despliegue Continuo de Koin en Heroku (Dyno Unificado + Postgres)
+### DEPLOY-01 — Despliegue en Heroku (Dyno Unificado Express/SPA + Heroku Postgres)
 **Tipo:** Story | **SP:** 3 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** feature/deploy-heroku
 
@@ -932,7 +788,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-### DEPLOY-02 — Documentar Casos de Prueba y Evidencias Funcionales
+### DEPLOY-02 — Documentación de Casos de Prueba y Métricas de Rendimiento
 **Tipo:** Story | **SP:** 3 | **Prioridad:** Alta | **Asignado:** Dylan
 **Rama sugerida:** docs/casos-prueba-evidencias
 
@@ -941,14 +797,14 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 > para validar la estabilidad de la plataforma y sustentar técnicamente el proyecto."
 
 **Criterios de aceptación:**
-- Tabla con al menos 1 caso de prueba por cada una de las 24 Stories
+- Tabla con al menos 1 caso de prueba por cada Story del proyecto
 - Bugs identificados y resueltos documentados
 - Evidencias de pruebas de velocidad (<3 segundos en registro) incluidas
 
 **Subtasks:**
 - [ ] [TEST] Elaborar matriz de pruebas con columnas: ID, Historia, Datos de Entrada, Resultado Esperado, Resultado Obtenido, Estado
 - [ ] [TEST] Validar flujos de autenticación, conmutación de perfiles, RBAC y motor multidivisa
-- [ ] [TEST] Registrar tiempos de respuesta y tiempos de registro de transacciones
+- [ ] [TEST] Registrar tiempos de respuesta y tiempos de registro de transacciones (<3s)
 - [ ] [DOCS] Consolidar evidencias fotográficas y métricas en la documentación técnica
 
 **DoD adicional para esta US:**
@@ -956,18 +812,15 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 ---
 
-## 📊 Resumen del Backlog Jira-Ready
+## 📊 Resumen del Backlog Jira-Ready de Koin
 
 | Épica | Sprint | Stories | SP Total | Color Jira |
 |---|---|:---:|:---:|---|
-| **Epic 1 — Planeación y arquitectura técnica** | Sprint 0 | 2 | 6 | Amarillo |
-| **Epic 2 — Diseño UX/UI minimalista** | Sprint 0 | 2 | 8 | Rosa |
-| **Epic 3 — Configuración técnica, Turborepo y DevOps** | Sprint 0 | 3 | 9 | Gris |
-| **Epic 4 — Autenticación y cuentas titulares** | Sprint 1 | 3 | 8 | Morado |
-| **Epic 5 — Perfiles independientes y personalización visual** | Sprint 1 | 4 | 18 | Naranja |
-| **Epic 6 — Cuentas financieras y colaboración (RBAC)** | Sprint 1 | 4 | 13 | Celeste |
-| **Epic 7 — Registro financiero ultrarrápido (<3s) y multidivisa** | Sprint 2 | 5 | 21 | Azul |
-| **Epic 8 — Categorías y presupuestos** | Sprint 2 | 2 | 8 | Verde |
-| **Epic 9 — Analíticas y exportación de datos** | Sprint 2 | 3 | 8 | Índigo |
-| **Epic 10 — Android nativo, despliegue y sustentación** | Sprint 2 | 5 | 13 | Rojo |
-| **TOTAL GENERAL** | | **33** | **112** | |
+| **Epic 1 — Configuración técnica, Monorepo y DevOps** | Sprint 0 | 3 | 9 | Amarillo |
+| **Epic 2 — Autenticación y cuentas titulares** | Sprint 1 | 3 | 8 | Morado |
+| **Epic 3 — Perfiles independientes y personalización visual** | Sprint 1 | 4 | 18 | Naranja |
+| **Epic 4 — Cuentas financieras y colaboración (RBAC)** | Sprint 1 | 4 | 13 | Celeste |
+| **Epic 5 — Registro financiero ultrarrápido (<3s) y multidivisa** | Sprint 2 | 5 | 21 | Verde |
+| **Epic 6 — Presupuestos, analíticas y exportación de datos** | Sprint 2 | 5 | 16 | Índigo |
+| **Epic 7 — Experiencia nativa Android y despliegue en Heroku** | Sprint 2 | 5 | 13 | Rojo |
+| **TOTAL GENERAL** | | **29** | **98** | |
