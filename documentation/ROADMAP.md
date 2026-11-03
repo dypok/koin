@@ -29,21 +29,22 @@ gantt
 
 ## 🛠️ Detalle de Fases y Entregables
 
-### Fase 1: Andamiaje del Proyecto, Backend en Heroku y Motor Dinámico de Temas
+### Fase 1: Andamiaje del Proyecto, Backend en Express (Heroku) y Motor Dinámico de Temas
 - [ ] Configuración del Monorepo / Proyecto unificado:
   - Frontend: **Vite + React + TypeScript + Tailwind CSS** con soporte de variables CSS HSL dinámicas.
-  - Backend: **Fastify / Node.js + TypeScript + Drizzle ORM**.
+  - Backend: **Express.js + TypeScript + Drizzle ORM**.
+  - Pipeline de Seguridad en Express: `helmet`, `cors`, `express-rate-limit`, `hpp` y parseador seguro de JSON (límite 100kb).
   - Configuración para Heroku: `Procfile`, scripts de build (`npm run build:all`) y manejo de `process.env.DATABASE_URL`.
 - [ ] Creación de `ThemeEngine`: convertidor Hex-a-HSL, verificador de contraste WCAG y selector de modo (Dark / Light / AMOLED).
-- [ ] Configuración de la base de datos **Heroku Postgres** y cliente local **Dexie.js (IndexedDB)** para cache offline.
+- [ ] Configuración de la base de datos **Heroku Postgres** (conexión SSL) y cliente local **Dexie.js (IndexedDB)** para cache offline.
 
-### Fase 2: Módulo Multi-Perfil con Aislamiento Estricto
+### Fase 2: Módulo Multi-Perfil con Aislamiento Estricto y Seguridad
 - [ ] Modelos PostgreSQL y esquemas Drizzle para `profiles`.
 - [ ] Endpoints RESTful para gestión de perfiles (`GET /api/profiles`, `POST /api/profiles`).
-- [ ] Middleware en servidor para aislamiento estricto: inyección de `profileId` en todas las transacciones.
+- [ ] Middleware en servidor para aislamiento estricto (`tenantGuard`): inyección y verificación forzada de `profileId`.
+- [ ] Autenticación segura de perfiles: Hashing de PIN con **Argon2id/Bcrypt**, protección contra ataques de tiempo y bloqueo antifuerza bruta tras 5 intentos.
 - [ ] Implementación de `ProfileStore` con Zustand en el cliente.
 - [ ] Selector visual de perfiles (Bottom Sheet) y conmutación instantánea de contexto.
-- [ ] Capa de seguridad opcional: Bloqueo por PIN de 4/6 dígitos por perfil y validación de hash en backend.
 
 ### Fase 3: Núcleo Financiero Ultrarrápido (Core Finance)
 - [ ] Esquemas Drizzle y tablas PostgreSQL para `accounts`, `categories` y `transactions` con índices compuestos.

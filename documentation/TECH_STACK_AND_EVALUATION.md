@@ -55,11 +55,18 @@ Para tomar la decisión correcta, evaluamos ambas tecnologías bajo cuatro crite
 - **ORM / Query Builder**: [Drizzle ORM](https://orm.drizzle.team/) (o Prisma). Drizzle ofrece tipado estricto TypeScript de extremo a extremo, cero sobrecarga en runtime, arranques instantáneos y migraciones automáticas.
 - **Capa Local/Cache Offline (Cliente Móvil/Web)**: Dexie.js (IndexedDB) para cache reactivo y cola de sincronización offline (offline-first sync queue).
 
-### Backend & API en Heroku
-- **Servidor API**: Node.js con [Fastify](https://fastify.dev/) o [Express](https://expressjs.com/) en TypeScript.
+### Backend & API en Heroku (Express.js)
+- **Servidor API**: Node.js con [Express.js](https://expressjs.com/) en TypeScript estricto.
+- **Suite de Seguridad en Express**:
+  - `helmet`: Protección integral de cabeceras HTTP (HSTS, CSP, X-Frame-Options, noSniff).
+  - `cors`: Lista blanca estricta para web de producción y orígenes nativos de Capacitor (`capacitor://localhost`).
+  - `express-rate-limit`: Prevención de DoS y bloqueo antifuerza bruta específico en endpoints de PIN (máx 5 intentos).
+  - `hpp`: Mitigación contra polución de parámetros HTTP.
+  - `zod`: Validación y tipado estricto de todos los payloads, parámetros y queries con descarte de campos desconocidos.
+  - `argon2` / `bcrypt`: Hashing criptográfico unidireccional de PINs con salt dinámico y comparación segura contra ataques de tiempo (`timingSafeEqual`).
 - **Arquitectura de Despliegue en Dyno**:
-  - Servidor unificado: El backend expone la API RESTful bajo `/api/*` y sirve los archivos estáticos de la SPA de React (`dist/`) en la misma instancia de Heroku.
-  - Ventajas: Cero problemas de CORS en Web, despliegue simple con `git push heroku main` o GitHub Actions, y uso eficiente de un solo Dyno.
+  - Servidor unificado: Express expone la API RESTful bajo `/api/*` y sirve los archivos estáticos de la SPA de React (`dist/`) en la misma instancia de Heroku.
+  - Ventajas: Cero problemas de CORS en Web, despliegue simple con `git push heroku main` y uso eficiente de un solo Dyno.
 - **Conexión Android (Capacitor)**: La app en Android consume la API en `https://koin-finance.herokuapp.com/api` con persistencia local/cola de sincronización para que registrar un gasto nunca falle, incluso sin internet.
 
 ### Capa Móvil Nativa (Android)

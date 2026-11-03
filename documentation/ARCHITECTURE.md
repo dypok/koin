@@ -12,9 +12,10 @@ flowchart TD
         ClientCache["Cache Local & Cola Offline (Dexie.js / IndexedDB)"]
     end
 
-    subgraph HerokuDyno ["Capa 2: Heroku Dyno (Node.js API & Static Assets)"]
+    subgraph HerokuDyno ["Capa 2: Heroku Dyno (Node.js + Express.js API & Static Assets)"]
         StaticServer["Servidor de Estáticos (Sirve la SPA de React)"]
-        APIServer["API RESTful (Fastify / Express en TypeScript)"]
+        APIServer["API RESTful (Express.js en TypeScript)"]
+        SecurityStack["Security Pipeline (Helmet, CORS, RateLimit, HPP, Zod)"]
         AuthGuard["Auth & Tenant Isolation Middleware (profileId Scoper)"]
     end
 
@@ -119,17 +120,17 @@ Koin/
 │   ├── ROADMAP.md                   # Fases de desarrollo e hitos
 │   ├── TECH_STACK_AND_EVALUATION.md # Justificación Capacitor vs React Native
 │   └── UI_UX_SPECIFICATION.md       # Flujos de pantalla y diseño
-├── server/                          # Backend API en Node.js / Fastify para Heroku
+├── server/                          # Backend API en Node.js + Express.js para Heroku
 │   ├── src/
 │   │   ├── config/                  # Conexión DATABASE_URL a Heroku Postgres
 │   │   ├── db/                      # Esquemas Drizzle ORM y migraciones SQL
 │   │   │   ├── schema.ts            # Tablas PostgreSQL (profiles, accounts, etc.)
 │   │   │   └── migrations/          # Archivos de migración de Drizzle
-│   │   ├── middleware/              # Scoper de perfil activo y validación de PIN
+│   │   ├── middleware/              # Security Stack (Helmet, CORS, RateLimit), Scoper y PIN
 │   │   ├── routes/                  # Endpoints RESTful (/api/profiles, /api/transactions)
-│   │   └── index.ts                 # Servidor Fastify + servicio de archivos estáticos
+│   │   └── index.ts                 # Servidor Express + servicio de archivos estáticos
 │   ├── tsconfig.json                # Configuración TypeScript del servidor
-│   └── package.json                 # Dependencias del backend
+│   └── package.json                 # Dependencias del backend (express, helmet, cors, etc.)
 ├── src/                             # Frontend React + Vite (Web SPA & Capacitor)
 │   ├── assets/                      # Iconos, logos y sonidos táctiles
 │   ├── components/                  # Componentes reutilizables (Radix / Tailwind)
