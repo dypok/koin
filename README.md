@@ -12,7 +12,8 @@ Toda la arquitectura, decisiones de diseño, modelo de datos y planificación es
 4. **[Modelo de Datos y Esquemas](file:///home/dypok/Projects/Koin/documentation/DATA_MODEL.md)**: DDL SQL de PostgreSQL, esquemas Drizzle ORM, tablas de membresías y tasas de cambio.
 5. **[Directrices y Políticas de Seguridad](file:///home/dypok/Projects/Koin/documentation/SECURITY_GUIDELINES.md)**: Seguridad en Express (Helmet, CORS, Rate Limit, HPP, Zod), hash Argon2id, RBAC y protección de pantalla en Android (`FLAG_SECURE`).
 6. **[Especificación UI/UX y Sistema de Diseño](file:///home/dypok/Projects/Koin/documentation/UI_UX_SPECIFICATION.md)**: Flujos críticos (<3 segundos para registrar gasto), conmutador de perfiles estilo streaming y personalizador de color.
-7. **[Hoja de Ruta (Roadmap)](file:///home/dypok/Projects/Koin/documentation/ROADMAP.md)**: Fases de desarrollo detalladas con Turborepo hasta el despliegue en producción en Heroku.
+7. **[Historias de Usuario del Proyecto](file:///home/dypok/Projects/Koin/documentation/USER_STORIES.md)**: Especificación de las 24 Historias de Usuario (US-001 a US-024) divididas en 7 épicas con criterios Gherkin y MoSCoW.
+8. **[Hoja de Ruta (Roadmap)](file:///home/dypok/Projects/Koin/documentation/ROADMAP.md)**: Fases de desarrollo detalladas con Turborepo hasta el despliegue en producción en Heroku.
 
 ---
 **Fecha de inicio**: 03/11/2026  
