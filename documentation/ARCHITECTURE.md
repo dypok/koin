@@ -175,3 +175,81 @@ Koin/
 ├── package.json                     # Raíz del Monorepo con workspaces
 └── tsconfig.json                    # Referencias de compilación
 ```
+
+---
+
+## 6. Arquitectura Interna del Backend (Patrón Modular Controller-Service-Repository)
+
+El backend de Express en `apps/server` implementa una **Arquitectura en Capas Modular orientada a Dominio (Domain-Driven Modular 3-Tier Layered Architecture)** combinada con el **Patrón Repositorio**. 
+
+### 6.1 Diagrama del Ciclo de Vida de una Petición
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Cliente (Web / Android)
+    participant Sec as Security Pipeline (Helmet/CORS/RateLimit)
+    participant Auth as Auth & TenantGuard
+    participant Ctrl as TransactionController
+    participant Zod as Zod Validation
+    participant Svc as TransactionService
+    participant Curr as CurrencyEngine
+    participant Repo as TransactionRepository
+    participant DB as Heroku Postgres (Drizzle)
+
+    Client->>Sec: POST /api/transactions (Bearer Token + X-Profile-ID)
+    Sec->>Auth: Petición limpia y segura
+    Auth->>Auth: Valida JWT y verifica permisos del perfil sobre la cuenta
+    Auth->>Ctrl: Pasa req con usuario y activeProfileId inyectados
+    Ctrl->>Zod: Parsea y valida req.body con CreateTransactionSchema
+    Zod-->>Ctrl: Payload tipado y sanitizado
+    Ctrl->>Svc: createTransaction(activeProfileId, dto)
+    Svc->>Curr: Obtiene tasa de cambio a la moneda base
+    Curr-->>Svc: exchangeRateToBase & baseAmount
+    Svc->>Repo: create(transactionDataWithBase)
+    Repo->>DB: INSERT INTO transactions ... (Parametrizado con Drizzle)
+    DB-->>Repo: Registro insertado
+    Repo-->>Svc: Transaction Entity
+    Svc->>Svc: Actualiza saldo de cuenta (atómico en transacción)
+    Svc-->>Ctrl: Resultado de negocio consolidado
+    Ctrl-->>Client: 201 Created { data: transaction }
+```
+
+### 6.2 Responsabilidades Estrictas de Cada Capa
+
+```
+apps/server/src/modules/transactions/
+├── transactions.routes.ts      # Enrutador Express con middlewares de ruta
+├── transactions.controller.ts  # Capa 1: Transporte HTTP y códigos de estado
+├── transactions.service.ts     # Capa 2: Lógica de negocio pura y casos de uso
+├── transactions.repository.ts  # Capa 3: Consultas Drizzle ORM a PostgreSQL
+└── transactions.dto.ts         # Contratos Zod exportados a @koin/shared
+```
+
+1. **Capa de Rutas y Controlador (`Controller`)**:
+   - **Responsabilidad**: Atiende exclusivamente el protocolo HTTP.
+   - Lee `req.body`, `req.params`, `req.query`, y extrae el `activeProfileId`.
+   - Llama a la validación Zod.
+   - Invoca el método correspondiente del servicio.
+   - Responde con el código HTTP apropiado (`200`, `201`, `204`).
+   - **Prohibición**: Jamás contiene consultas SQL directas ni lógica de cálculo de saldos.
+
+2. **Capa de Servicios (`Service`)**:
+   - **Responsabilidad**: Alberga todas las reglas de negocio y casos de uso del sistema.
+   - Es completamente agnóstico de Express: no conoce `req` ni `res`.
+   - Realiza validaciones de negocio: "¿Tiene la cuenta suficiente saldo?", "¿Está permitido gastar en esta categoría?", "¿Cuál es la tasa de cambio hoy para convertir USD a COP?".
+   - Orquesta múltiples repositorios bajo transacciones atómicas (`db.transaction`).
+   - Lanza excepciones de negocio tipadas (`InsufficientFundsError`, `NotFoundError`, `UnauthorizedError`) que son interceptadas por el manejador global.
+
+3. **Capa de Repositorio (`Repository`)**:
+   - **Responsabilidad**: Aislamiento total del acceso a datos mediante Drizzle ORM.
+   - Ejecuta consultas SQL parametrizadas.
+   - Inyecta la cláusula de seguridad obligatoria: `where(eq(transactions.profileId, activeProfileId))`.
+   - Encapsula las funciones CRUD y consultas analíticas complejas con agregaciones (`SUM`, `AVG`, `GROUP BY`).
+
+4. **Capa Transversal (Cross-Cutting Infrastructure)**:
+   - `src/middleware/auth.middleware.ts`: Verifica firma JWT y extrae `userId`.
+   - `src/middleware/tenant.middleware.ts`: Verifica que el `X-Profile-ID` pertenezca al usuario y comprueba si tiene bloqueo por PIN.
+   - `src/middleware/rbac.middleware.ts`: Verifica si el perfil tiene rol `owner`, `editor` o `viewer` en cuentas compartidas.
+   - `src/middleware/error.middleware.ts`: Capturador centralizado que mapea errores a respuestas JSON uniformes (`status`, `code`, `message`).
+
