@@ -204,39 +204,175 @@ export interface Budget {
 
 ---
 
-## 3. Esquema de Base de Datos IndexedDB (Dexie.js)
+## 3. Esquema Relacional PostgreSQL (Heroku Postgres DDL & Drizzle ORM)
 
-Para garantizar velocidad instantánea en consultas (sin retrasos al filtrar meses o buscar transacciones), se definen índices compuestos optimizados:
+Dado que la aplicación se montará en **Heroku**, la base de datos principal es **PostgreSQL**. Todos los montos financieros se almacenan con tipo `NUMERIC(12, 2)` para evitar pérdidas de precisión de punto flotante.
+
+### 3.1 DDL SQL para PostgreSQL
+```sql
+-- Habilitar extensión UUID
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 1. Tabla de Perfiles
+CREATE TABLE profiles (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    avatar_emoji VARCHAR(10) NOT NULL DEFAULT '👤',
+    theme_config JSONB NOT NULL DEFAULT '{"preset":"emerald","primaryHex":"#10B981","accentHex":"#F59E0B","baseMode":"dark"}',
+    currency_code VARCHAR(3) NOT NULL DEFAULT 'USD',
+    currency_symbol VARCHAR(5) NOT NULL DEFAULT '$',
+    has_pin BOOLEAN NOT NULL DEFAULT FALSE,
+    pin_hash VARCHAR(255),
+    use_biometrics BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. Tabla de Cuentas Financieras
+CREATE TABLE accounts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('cash', 'bank', 'credit', 'savings', 'investment')),
+    initial_balance NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
+    current_balance NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
+    currency VARCHAR(3) NOT NULL DEFAULT 'USD',
+    color VARCHAR(20) NOT NULL DEFAULT '#10B981',
+    icon VARCHAR(50) NOT NULL DEFAULT 'Wallet',
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX idx_accounts_profile ON accounts(profile_id, is_archived);
+
+-- 3. Tabla de Categorías
+CREATE TABLE categories (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('expense', 'income')),
+    icon VARCHAR(50) NOT NULL DEFAULT 'Tag',
+    color VARCHAR(20) NOT NULL DEFAULT '#6B7280',
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX idx_categories_profile_type ON categories(profile_id, type);
+
+-- 4. Tabla de Transacciones
+CREATE TABLE transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE RESTRICT,
+    to_account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT,
+    category_id UUID NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('expense', 'income', 'transfer')),
+    amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
+    date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    note TEXT,
+    tags TEXT[],
+    is_recurring BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX idx_transactions_profile_date ON transactions(profile_id, date DESC);
+CREATE INDEX idx_transactions_profile_type ON transactions(profile_id, type);
+CREATE INDEX idx_transactions_profile_category ON transactions(profile_id, category_id);
+
+-- 5. Tabla de Presupuestos
+CREATE TABLE budgets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    period VARCHAR(20) NOT NULL DEFAULT 'monthly' CHECK (period IN ('monthly', 'weekly')),
+    limit_amount NUMERIC(12, 2) NOT NULL CHECK (limit_amount > 0),
+    alert_threshold_percent INT NOT NULL DEFAULT 80,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT uq_profile_category_budget UNIQUE (profile_id, category_id, period)
+);
+```
+
+### 3.2 Esquema Drizzle ORM (`server/src/db/schema.ts`)
+```typescript
+import { pgTable, uuid, varchar, numeric, boolean, timestamp, jsonb, text } from 'drizzle-orm/pg-core';
+
+export const profiles = pgTable('profiles', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  avatarEmoji: varchar('avatar_emoji', { length: 10 }).default('👤').notNull(),
+  themeConfig: jsonb('theme_config').notNull(),
+  currencyCode: varchar('currency_code', { length: 3 }).default('USD').notNull(),
+  currencySymbol: varchar('currency_symbol', { length: 5 }).default('$').notNull(),
+  hasPin: boolean('has_pin').default(false).notNull(),
+  pinHash: varchar('pin_hash', { length: 255 }),
+  useBiometrics: boolean('use_biometrics').default(false).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const accounts = pgTable('accounts', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  profileId: uuid('profile_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  name: varchar('name', { length: 100 }).notNull(),
+  type: varchar('type', { length: 20 }).notNull(),
+  initialBalance: numeric('initial_balance', { precision: 12, scale: 2 }).default('0.00').notNull(),
+  currentBalance: numeric('current_balance', { precision: 12, scale: 2 }).default('0.00').notNull(),
+  currency: varchar('currency', { length: 3 }).default('USD').notNull(),
+  color: varchar('color', { length: 20 }).default('#10B981').notNull(),
+  icon: varchar('icon', { length: 50 }).default('Wallet').notNull(),
+  isArchived: boolean('is_archived').default(false).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const transactions = pgTable('transactions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  profileId: uuid('profile_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  accountId: uuid('account_id').references(() => accounts.id).notNull(),
+  toAccountId: uuid('to_account_id').references(() => accounts.id),
+  categoryId: uuid('category_id').references(() => categories.id).notNull(),
+  type: varchar('type', { length: 20 }).notNull(),
+  amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+  date: timestamp('date', { withTimezone: true }).defaultNow().notNull(),
+  note: text('note'),
+  tags: text('tags').array(),
+  isRecurring: boolean('is_recurring').default(false).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+```
+
+---
+
+## 4. Esquema de Cache Local en Cliente (Dexie.js / IndexedDB)
+
+Para mantener la velocidad de registro (<3 segundos) e inmunidad a cortes de red en móviles, el cliente mantiene una copia local sincronizable mediante Dexie.js:
 
 ```typescript
 import Dexie, { Table } from 'dexie';
 
-export class KoinDatabase extends Dexie {
+export class KoinClientDatabase extends Dexie {
   profiles!: Table<Profile, string>;
   accounts!: Table<Account, string>;
   categories!: Table<Category, string>;
   transactions!: Table<Transaction, string>;
   budgets!: Table<Budget, string>;
+  syncQueue!: Table<{ id: string; action: string; entity: string; payload: any; timestamp: number }, string>;
 
   constructor() {
-    super('KoinDB');
+    super('KoinClientDB');
     this.version(1).stores({
       profiles: 'id, name, createdAt',
       accounts: 'id, profileId, type, isArchived, [profileId+isArchived]',
       categories: 'id, profileId, type, sortOrder, [profileId+type]',
-      transactions: 'id, profileId, accountId, categoryId, type, date, [profileId+date], [profileId+type], [profileId+categoryId]',
-      budgets: 'id, profileId, categoryId, [profileId+categoryId]'
+      transactions: 'id, profileId, accountId, categoryId, type, date, [profileId+date], [profileId+type]',
+      budgets: 'id, profileId, categoryId, [profileId+categoryId]',
+      syncQueue: 'id, action, timestamp'
     });
   }
 }
 
-export const db = new KoinDatabase();
+export const clientDb = new KoinClientDatabase();
 ```
-
-### Índices Críticos para Rendimiento
-- `[profileId+date]`: Permite cargar el historial del mes del perfil activo en **< 5 milisegundos** sin recorrer toda la base de datos.
-- `[profileId+type]`: Permite calcular el total de ingresos o gastos acumulados del perfil de forma indexada.
-- `[profileId+isArchived]`: Filtra al instante las cuentas activas para el conmutador de cuentas.
 
 ---
 

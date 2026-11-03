@@ -2,45 +2,44 @@
 
 ## 1. Visión General de la Arquitectura
 
-Koin sigue una **Arquitectura Local-First Desacoplada** dividida en 4 capas concéntricas, asegurando que la interfaz de usuario, la lógica de negocio, el aislamiento multi-inquilino (multi-perfil) y la persistencia local funcionen de manera fluida tanto en Web como en Android.
+Koin sigue una **Arquitectura Cliente-Servidor Híbrida (Cloud + Offline-First)** adaptada para despliegue en **Heroku** con base de datos **Heroku Postgres**, dividida en 4 capas operativas:
 
 ```mermaid
 flowchart TD
-    subgraph UI ["Capa 1: Presentación & Sistema de Diseño"]
-        Views["Vistas (Dashboard, Transacciones, Perfiles, Presupuestos)"]
-        Components["Componentes UI (Radix / Tailwind / Recharts)"]
-        ThemeEngine["🎨 Dynamic Theming Engine (CSS Variables & Status Bar)"]
+    subgraph Clients ["Capa 1: Clientes (Web SPA & Android Native)"]
+        WebBrowser["Navegador Web (PWA / Desktop)"]
+        AndroidApp["App Android (Capacitor WebView + Native Plugins)"]
+        ClientCache["Cache Local & Cola Offline (Dexie.js / IndexedDB)"]
     end
 
-    subgraph StateLayer ["Capa 2: Estado Global & Orquestación"]
-        ProfileStore["Profile Store (Perfil Activo, PIN, Paleta)"]
-        FinanceStore["Finance Store (Cuentas, Gastos, Ingresos, Filtros)"]
-        BudgetStore["Budget Store (Límites, Progresos, Alertas)"]
+    subgraph HerokuDyno ["Capa 2: Heroku Dyno (Node.js API & Static Assets)"]
+        StaticServer["Servidor de Estáticos (Sirve la SPA de React)"]
+        APIServer["API RESTful (Fastify / Express en TypeScript)"]
+        AuthGuard["Auth & Tenant Isolation Middleware (profileId Scoper)"]
     end
 
-    subgraph IsolationLayer ["Capa 3: Motor de Aislamiento Multi-Perfil (Tenant Guard)"]
-        ProfileGuard["Profile Context & Scoped Interceptor"]
-        SecurityGate["PIN & Biometric Validator"]
+    subgraph DataLayer ["Capa 3: Base de Datos Relacional (Heroku Postgres)"]
+        PostgresDB[(Heroku Postgres)]
+        DrizzleORM["Drizzle ORM (Modelos, Migraciones, Connection Pool)"]
     end
 
-    subgraph StorageLayer ["Capa 4: Persistencia Local-First & Bridge Nativo"]
-        IndexedDB["Dexie.js / IndexedDB (Cuentas, Transacciones, Categorías)"]
-        CapacitorPreferences["Capacitor Preferences (Claves cifradas, Última sesión)"]
-        CapacitorBridge["Capacitor Native Bridge (Android Status Bar, Haptics, Filesystem)"]
+    subgraph NativeBridge ["Capa 4: Servicios Nativos en Android"]
+        CapHaptics["@capacitor/haptics"]
+        CapStatusBar["@capacitor/status-bar"]
+        CapBiometrics["@capacitor/biometrics"]
     end
 
-    Views --> ThemeEngine
-    Views --> FinanceStore
-    Views --> ProfileStore
-    Views --> BudgetStore
+    WebBrowser --> StaticServer
+    WebBrowser --> APIServer
+    AndroidApp --> APIServer
+    AndroidApp --> NativeBridge
+    AndroidApp <--> ClientCache
+    WebBrowser <--> ClientCache
 
-    FinanceStore --> ProfileGuard
-    BudgetStore --> ProfileGuard
-    ProfileStore --> SecurityGate
-
-    ProfileGuard --> IndexedDB
-    SecurityGate --> CapacitorPreferences
-    ThemeEngine --> CapacitorBridge
+    StaticServer -.-> WebBrowser
+    APIServer --> AuthGuard
+    AuthGuard --> DrizzleORM
+    DrizzleORM --> PostgresDB
 ```
 
 ---
@@ -120,40 +119,32 @@ Koin/
 │   ├── ROADMAP.md                   # Fases de desarrollo e hitos
 │   ├── TECH_STACK_AND_EVALUATION.md # Justificación Capacitor vs React Native
 │   └── UI_UX_SPECIFICATION.md       # Flujos de pantalla y diseño
-├── public/                          # Activos estáticos, iconos y manifest PWA
-├── src/
+├── server/                          # Backend API en Node.js / Fastify para Heroku
+│   ├── src/
+│   │   ├── config/                  # Conexión DATABASE_URL a Heroku Postgres
+│   │   ├── db/                      # Esquemas Drizzle ORM y migraciones SQL
+│   │   │   ├── schema.ts            # Tablas PostgreSQL (profiles, accounts, etc.)
+│   │   │   └── migrations/          # Archivos de migración de Drizzle
+│   │   ├── middleware/              # Scoper de perfil activo y validación de PIN
+│   │   ├── routes/                  # Endpoints RESTful (/api/profiles, /api/transactions)
+│   │   └── index.ts                 # Servidor Fastify + servicio de archivos estáticos
+│   ├── tsconfig.json                # Configuración TypeScript del servidor
+│   └── package.json                 # Dependencias del backend
+├── src/                             # Frontend React + Vite (Web SPA & Capacitor)
 │   ├── assets/                      # Iconos, logos y sonidos táctiles
-│   ├── components/                  # Componentes reutilizables
-│   │   ├── common/                  # Botones, modales, inputs, badges
-│   │   ├── finance/                 # Tarjetas de cuentas, lista de transacciones
-│   │   ├── forms/                   # Teclado rápido de gastos, selector de categoría
-│   │   └── layout/                  # Barra de navegación, Header, Switcher de perfil
-│   ├── config/                      # Constantes globales, paletas predefinidas
-│   ├── db/                          # Esquemas Dexie.js / IndexedDB, migraciones y seeds
-│   │   ├── index.ts                 # Instancia principal de la base de datos
-│   │   └── repositories/            # Repositorios con filtro automático por perfil
-│   │       ├── account.repo.ts
-│   │       ├── category.repo.ts
-│   │       ├── profile.repo.ts
-│   │       └── transaction.repo.ts
-│   ├── hooks/                       # Hooks personalizados (useTheme, useProfile, useHaptics)
-│   ├── services/                    # Puentes nativos (Capacitor StatusBar, Haptics, Backup)
-│   ├── stores/                      # Estados Zustand (profileStore, financeStore, themeStore)
+│   ├── components/                  # Componentes reutilizables (Radix / Tailwind)
+│   ├── config/                      # Paletas predefinidas y constantes
+│   ├── hooks/                       # useTheme, useProfile, useSync
+│   ├── services/                    # Cliente API HTTP (Axios/Ky) y Capacitor Bridge
+│   ├── stores/                      # Estados Zustand (profileStore, financeStore)
 │   ├── types/                       # Interfaces TypeScript compartidas
-│   ├── views/                       # Vistas principales de la app
-│   │   ├── DashboardView.tsx        # Resumen de saldo, flujo del mes y accesos rápidos
-│   │   ├── TransactionsView.tsx     # Historial detallado con filtros y búsqueda
-│   │   ├── AccountsView.tsx         # Gestión de billeteras, bancos y tarjetas
-│   │   ├── BudgetsView.tsx          # Presupuestos por categoría y alertas
-│   │   ├── AnalyticsView.tsx        # Gráficos de gastos e ingresos
-│   │   ├── ProfilesView.tsx         # Administración y cambio de perfiles
-│   │   └── SettingsView.tsx         # Personalización de colores, moneda y exportación
-│   ├── App.tsx                      # Enrutador principal y contenedor de tema
+│   ├── views/                       # Vistas (Dashboard, Transactions, Accounts, etc.)
+│   ├── App.tsx                      # Enrutador principal
 │   ├── index.css                    # Definición de tokens Tailwind y variables CSS
 │   └── main.tsx                     # Punto de entrada Vite
 ├── capacitor.config.ts              # Configuración oficial de Capacitor para Android
-├── index.html                       # HTML5 Shell
-├── package.json                     # Dependencias y scripts de construcción
+├── Procfile                         # Definición de proceso web para Heroku Dyno (`web: npm start`)
+├── package.json                     # Monorepo / Scripts raíz (build:client, build:server, start)
 ├── tailwind.config.js               # Configuración de Tailwind CSS con temas dinámicos
 ├── tsconfig.json                    # Configuración estricta de TypeScript
 └── vite.config.ts                   # Configuración del bundler Vite

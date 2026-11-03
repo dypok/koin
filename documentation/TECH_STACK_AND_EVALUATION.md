@@ -49,16 +49,24 @@ Para tomar la decisión correcta, evaluamos ambas tecnologías bajo cuatro crite
 - **Animaciones fluidas**: [Framer Motion](https://www.framer.com/motion/) o transiciones CSS aceleradas por GPU.
 - **Gráficos y Visualización**: [Recharts](https://recharts.org/) (optimizado para dashboards de ingresos vs gastos).
 
-### Almacenamiento & Offline-First
-- **Motor Local Web**: [Dexie.js](https://dexie.org/) (Wrapper de alto rendimiento sobre IndexedDB con soporte para consultas relacionales y reactividad) o [Pglite / SQLite WASM].
-- **Motor Local Android**: Dexie.js (vía Chromium WebView IndexedDB) con opción de replicación/puente con `@capacitor-community/sqlite` para persistencia a prueba de borrado de caché.
-- **Gestión de Estado Global**: [Zustand](https://github.com/pmndrs/zustand) (ultraligero, sin boilerplate, persistente en storage local).
+### Almacenamiento & Base de Datos
+- **Base de Datos Principal**: **PostgreSQL (Heroku Postgres)**.
+  - Justificación: Los dynos de Heroku tienen un sistema de archivos efímero (ephemeral filesystem), lo que descarta bases de datos basadas en archivos locales como SQLite en el servidor. PostgreSQL es el estándar dorado en Heroku, con transacciones ACID, integridad referencial estricta para finanzas y soporte de JSONB para paletas de colores dinámicas.
+- **ORM / Query Builder**: [Drizzle ORM](https://orm.drizzle.team/) (o Prisma). Drizzle ofrece tipado estricto TypeScript de extremo a extremo, cero sobrecarga en runtime, arranques instantáneos y migraciones automáticas.
+- **Capa Local/Cache Offline (Cliente Móvil/Web)**: Dexie.js (IndexedDB) para cache reactivo y cola de sincronización offline (offline-first sync queue).
+
+### Backend & API en Heroku
+- **Servidor API**: Node.js con [Fastify](https://fastify.dev/) o [Express](https://expressjs.com/) en TypeScript.
+- **Arquitectura de Despliegue en Dyno**:
+  - Servidor unificado: El backend expone la API RESTful bajo `/api/*` y sirve los archivos estáticos de la SPA de React (`dist/`) en la misma instancia de Heroku.
+  - Ventajas: Cero problemas de CORS en Web, despliegue simple con `git push heroku main` o GitHub Actions, y uso eficiente de un solo Dyno.
+- **Conexión Android (Capacitor)**: La app en Android consume la API en `https://koin-finance.herokuapp.com/api` con persistencia local/cola de sincronización para que registrar un gasto nunca falle, incluso sin internet.
 
 ### Capa Móvil Nativa (Android)
 - **Runtime Nativo**: `@capacitor/core` y `@capacitor/android`.
 - **Plugins Nativos**:
   - `@capacitor/status-bar`: Sincronización del color de la barra de estado de Android con el color activo del perfil.
   - `@capacitor/haptics`: Vibración sutil táctil al teclear cantidades o confirmar transacciones ("tactile feedback").
-  - `@capacitor/preferences`: Almacenamiento seguro de configuraciones de sesión y PIN.
+  - `@capacitor/preferences`: Almacenamiento seguro de tokens de sesión y PIN.
   - `@capacitor/keyboard`: Control inteligente del teclado numérico nativo.
   - `@capacitor/local-notifications`: Recordatorios diarios de registro de gastos.
