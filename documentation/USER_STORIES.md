@@ -2,6 +2,11 @@
 
 Este documento estructura el backlog de producto e ingeniería bajo la jerarquía estándar de desarrollo de software: **Épicas** → **Features (Características / Capacidades del Sistema)** → **Historias de Usuario (US)** con especificación de funcionalidades entregadas, contratos técnicos de API, reglas de negocio y criterios Gherkin.
 
+### ⚠️ Directivas UI Obligatorias para Todas las Historias de Usuario
+1. **Cero Emojis (100% SVG Icons)**: Prohibido terminantemente el uso de emojis en cualquier vista o modelo de datos. Se emplean exclusivamente iconos SVG vectoriales (Lucide React).
+2. **Cero Badges**: Prohibido el uso de componentes Badge o etiquetas pastilla de colores. La información se comunica mediante tipografía limpia, texto atenuado (`text-muted-foreground`) o indicadores de estado discretos.
+3. **Diseño Plano sin Exceso de Cards**: Erradicación del antipatrón de tarjetas dentro de tarjetas con sombras y bordes pesados. Se utilizan filas de lista planas con líneas divisorias sutiles (`border-b border-border/40`) y espaciado minimalista.
+
 ---
 
 ## 🗺️ Mapa Jerárquico: Épicas y Features
@@ -151,12 +156,12 @@ KOIN PRODUCT BACKLOG
   - **Quiero**: Crear perfiles independientes (ej. "Dylan", "María", "Negocio Freelance") definiendo su nombre, avatar, tema y moneda base.
   - **Para**: Llevar contabilidades y finanzas completamente segregadas en la misma aplicación.
 - **Funcionalidades / Features Específicas Entregadas en esta US**:
-  1. *Selector de Avatar*: Cuadrícula de emojis financieros y personales (🦁, 🌸, 💼, 🚀, 🏠, 🎮).
+  1. *Selector de Avatar SVG (Cero Emojis)*: Cuadrícula de iconos vectoriales SVG de Lucide (ej: `User`, `Briefcase`, `Shield`, `Heart`, `Sparkles`, `Zap`).
   2. *Selector de Moneda Base*: Selector ISO 4217 (USD, COP, EUR, MXN, etc.) que regirá los cálculos del perfil.
   3. *Aislamiento Estricto de Base de Datos*: Asignación de UUID único y generación automática de cuentas y categorías base para ese perfil.
 - **Contrato de API**:
   - `POST /api/v1/profiles`
-  - Payload: `{ "name": "María", "avatarEmoji": "🌸", "baseCurrency": "COP", "themeConfig": {...}, "hasPin": false }`
+  - Payload: `{ "name": "María", "avatarIcon": "Heart", "baseCurrency": "COP", "themeConfig": {...}, "hasPin": false }`
   - Respuestas: `201 Created` con la entidad Profile creada.
 
 ##### US-005: Conmutador Instantáneo de Perfiles (<100ms)
@@ -403,7 +408,7 @@ KOIN PRODUCT BACKLOG
   - **Para**: No excederme en mis presupuestos antes de finalizar el mes.
 - **Funcionalidades / Features Específicas Entregadas en esta US**:
   1. *Barra de Progreso Dinámica*: Código de color semafórico (Verde <70%, Amarillo 70-99%, Rojo >=100%).
-  2. *Alertas Preventivas*: Notificación Toast y badge de advertencia al alcanzar el 80% y 100% del presupuesto asignado.
+  2. *Alertas Preventivas (Sin Badges)*: Notificación Toast y texto de advertencia en color semafórico al alcanzar el 80% y 100% del presupuesto asignado.
 
 ---
 
