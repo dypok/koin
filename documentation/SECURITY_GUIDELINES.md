@@ -85,25 +85,38 @@ Se bloquean todas las peticiones con orígenes no autorizados antes de procesar 
 
 ---
 
-## 3. Seguridad de Perfiles y Criptografía
+## 3. Seguridad de Acceso, Perfiles y Colaboración Compartida
 
-### 3.1 Hashing de PIN de Perfil
+### 3.1 Autenticación de Dos Niveles (Two-Tier Authentication)
+1. **Nivel Usuario / Cuenta Titular**:
+   - Autenticación con email y contraseña hasheada con **Argon2id**.
+   - Emisión de JWT firmado con clave secreta rotatoria (`JWT_SECRET` en Heroku Config Vars) para identificar al usuario titular.
+2. **Nivel Perfil (Contexto Activo)**:
+   - Al seleccionar un perfil, se emite un token de contexto efímero con el `profileId`.
+   - Si el perfil tiene PIN activo, este token solo se emite tras verificar exitosamente el PIN.
+   - Cada petición a la API lleva los encabezados: `Authorization: Bearer <userToken>` y `X-Profile-ID: <profileId>`.
+
+### 3.2 Hashing de PIN y Prevención de Ataques de Tiempo
 - Los PINs numéricos **jamás se guardan en texto plano**.
 - Algoritmo: **Argon2id** (o **Bcrypt** con factor de costo 12) con salt criptográfico único por perfil.
-- Comparación segura contra ataques de tiempo:
+- Comparación segura contra ataques de canal lateral:
   ```typescript
   import crypto from 'node:crypto';
   // Evita ataques de canal lateral por análisis de tiempo (Timing Attacks)
   crypto.timingSafeEqual(inputBuffer, targetBuffer);
   ```
 
-### 3.2 Aislamiento de Inquilinos en el Servidor (`tenantGuard`)
-- Toda petición autenticada debe incluir el encabezado `X-Profile-ID` y el token de sesión verificado.
-- El middleware `profileGuard` valida:
-  1. Que el `profileId` exista en la base de datos.
-  2. Que el perfil no esté bloqueado por reintentos de PIN.
-  3. Que cualquier recurso solicitado (`accountId`, `transactionId`, `categoryId`) pertenezca a ese `profileId`.
-- **Filtro forzado en base de datos**: Todas las consultas Drizzle inyectan obligatoriamente `eq(table.profileId, activeProfileId)`. Si un atacante intenta enviar un `accountId` ajeno, la consulta devuelve `404 Not Found` o `403 Forbidden`.
+### 3.3 Aislamiento de Inquilinos y Control de Acceso Basado en Roles (RBAC en Cuentas Compartidas)
+- **Cuentas Privadas**: Solo accesibles si `account.createdByProfileId === activeProfileId`.
+- **Cuentas Compartidas**: Validadas contra la tabla `account_members`.
+  - `owner`: Control administrativo absoluto (editar cuenta, agregar o revocar miembros, eliminarla).
+  - `editor`: Puede registrar transacciones, consultar saldos y configurar presupuestos.
+  - `viewer`: Solo lectura (no puede crear ni editar transacciones).
+- **Filtro Forzado en Middleware (`tenantGuard`)**: Antes de mutar cualquier transacción, el middleware verifica que el `profileId` activo tenga rol `owner` o `editor` sobre la cuenta objetivo.
+
+### 3.4 Seguridad en Enlaces e Invitaciones
+- Las invitaciones a otros perfiles o usuarios se generan con tokens firmados con HMAC-SHA256 con tiempo de expiración estricto de **7 días**.
+- Un token de invitación solo puede ser reclamado una única vez (`status = 'accepted'`) y queda invalidado tras su uso.
 
 ---
 

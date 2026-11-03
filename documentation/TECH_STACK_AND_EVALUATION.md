@@ -40,9 +40,17 @@ Para tomar la decisión correcta, evaluamos ambas tecnologías bajo cuatro crite
 
 ## 4. Stack Tecnológico Seleccionado
 
-### Frontend Core & UI
+### Monorepo & Orquestación
+- **Herramienta Monorepo**: [Turborepo](https://turbo.build/repo) con npm workspaces.
+  - `apps/server`: Backend Express.js
+  - `apps/web`: Frontend React + Vite + Capacitor
+  - `packages/shared`: Tipos compartidos, esquemas Zod y contratos de API
+
+### Frontend Core & UI (`apps/web`)
 - **Runtime & Build Tool**: [Vite](https://vitejs.dev/) (para arranque instantáneo y HMR).
 - **Framework UI**: [React 19 / 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) (estricto).
+- **Gestión de Estado Servidor & Cache**: [TanStack React Query v5](https://tanstack.com/query/latest) (cache reactivo, mutaciones optimistas y background sync).
+- **Gestión de Estado UI**: [Zustand](https://github.com/pmndrs/zustand) (perfil activo y estados locales de vista).
 - **Estilos & Diseño**: [Tailwind CSS](https://tailwindcss.com/) + variables CSS dinámicas (soporte completo de paletas custom y Dark/Light/AMOLED).
 - **Sistema de Componentes**: [Radix UI](https://www.radix-ui.com/) / [shadcn/ui](https://ui.shadcn.com/) (accesible, ligero y sin dependencias pesadas).
 - **Iconografía**: [Lucide React](https://lucide.dev/) (iconos modernos y personalizables).
@@ -52,11 +60,12 @@ Para tomar la decisión correcta, evaluamos ambas tecnologías bajo cuatro crite
 ### Almacenamiento & Base de Datos
 - **Base de Datos Principal**: **PostgreSQL (Heroku Postgres)**.
   - Justificación: Los dynos de Heroku tienen un sistema de archivos efímero (ephemeral filesystem), lo que descarta bases de datos basadas en archivos locales como SQLite en el servidor. PostgreSQL es el estándar dorado en Heroku, con transacciones ACID, integridad referencial estricta para finanzas y soporte de JSONB para paletas de colores dinámicas.
-- **ORM / Query Builder**: [Drizzle ORM](https://orm.drizzle.team/) (o Prisma). Drizzle ofrece tipado estricto TypeScript de extremo a extremo, cero sobrecarga en runtime, arranques instantáneos y migraciones automáticas.
-- **Capa Local/Cache Offline (Cliente Móvil/Web)**: Dexie.js (IndexedDB) para cache reactivo y cola de sincronización offline (offline-first sync queue).
+- **ORM / Query Builder**: [Drizzle ORM](https://orm.drizzle.team/). Drizzle ofrece tipado estricto TypeScript de extremo a extremo, cero sobrecarga en runtime, arranques instantáneos y migraciones automáticas.
+- **Capa Local/Cache Offline**: TanStack Query + persistencia en IndexedDB (Dexie.js) para permitir registros inmediatos sin conexión.
 
-### Backend & API en Heroku (Express.js)
+### Backend & API en Heroku (`apps/server`)
 - **Servidor API**: Node.js con [Express.js](https://expressjs.com/) en TypeScript estricto.
+- **Documentación de API**: [Swagger UI / OpenAPI 3.0](https://swagger.io/tools/swagger-ui/) disponible en `/api/docs`.
 - **Suite de Seguridad en Express**:
   - `helmet`: Protección integral de cabeceras HTTP (HSTS, CSP, X-Frame-Options, noSniff).
   - `cors`: Lista blanca estricta para web de producción y orígenes nativos de Capacitor (`capacitor://localhost`).

@@ -1,152 +1,177 @@
-# 03. Arquitectura del Sistema y Mecanismos de Aislamiento
+# 03. Arquitectura del Sistema: Koin (Monorepo Turborepo + Heroku)
 
 ## 1. Visión General de la Arquitectura
 
-Koin sigue una **Arquitectura Cliente-Servidor Híbrida (Cloud + Offline-First)** adaptada para despliegue en **Heroku** con base de datos **Heroku Postgres**, dividida en 4 capas operativas:
+Koin está diseñado bajo una arquitectura de **Monorepo con Turborepo**, dividida en servicios y paquetes compartidos con tipado estricto de extremo a extremo, desplegable en **Heroku** sobre un dyno Node.js unificado y conectado a **Heroku Postgres**.
 
 ```mermaid
 flowchart TD
-    subgraph Clients ["Capa 1: Clientes (Web SPA & Android Native)"]
-        WebBrowser["Navegador Web (PWA / Desktop)"]
-        AndroidApp["App Android (Capacitor WebView + Native Plugins)"]
-        ClientCache["Cache Local & Cola Offline (Dexie.js / IndexedDB)"]
+    subgraph Clients ["Capa Cliente (apps/web)"]
+        WebBrowser["Navegador Web (Desktop / Mobile PWA)"]
+        AndroidApp["App Nativa Android (Capacitor WebView)"]
+        ReactQuery["TanStack React Query (Cache reactivo & sync)"]
+        ThemeEngine["🎨 Dynamic Theming Engine (CSS HSL Variables)"]
     end
 
-    subgraph HerokuDyno ["Capa 2: Heroku Dyno (Node.js + Express.js API & Static Assets)"]
-        StaticServer["Servidor de Estáticos (Sirve la SPA de React)"]
-        APIServer["API RESTful (Express.js en TypeScript)"]
-        SecurityStack["Security Pipeline (Helmet, CORS, RateLimit, HPP, Zod)"]
-        AuthGuard["Auth & Tenant Isolation Middleware (profileId Scoper)"]
+    subgraph SharedPkg ["Capa Compartida (packages/shared)"]
+        ZodSchemas["Esquemas de Validación Zod"]
+        SharedTypes["Tipos e Interfaces TypeScript"]
+        APIContracts["Contratos de Endpoints RESTful"]
     end
 
-    subgraph DataLayer ["Capa 3: Base de Datos Relacional (Heroku Postgres)"]
-        PostgresDB[(Heroku Postgres)]
-        DrizzleORM["Drizzle ORM (Modelos, Migraciones, Connection Pool)"]
+    subgraph HerokuDyno ["Backend Express (apps/server en Heroku Dyno)"]
+        ExpressApp["Servidor Express.js (TypeScript)"]
+        SecurityStack["Security Middleware (Helmet, CORS, RateLimiter, HPP)"]
+        AuthModule["Módulo Auth (JWT de Usuario + Session de Perfil)"]
+        InvitationService["Servidor de Invitaciones y Roles Compartidos"]
+        CurrencyEngine["Motor Multidivisa y Conversión de Tasas"]
+        SwaggerDocs["Documentación OpenAPI / Swagger (/api/docs)"]
     end
 
-    subgraph NativeBridge ["Capa 4: Servicios Nativos en Android"]
-        CapHaptics["@capacitor/haptics"]
-        CapStatusBar["@capacitor/status-bar"]
-        CapBiometrics["@capacitor/biometrics"]
+    subgraph DataLayer ["Persistencia (Heroku Postgres)"]
+        PostgresDB[(Heroku Postgres con SSL)]
+        DrizzleORM["Drizzle ORM (Pool de Conexiones & Migraciones)"]
     end
 
-    WebBrowser --> StaticServer
-    WebBrowser --> APIServer
-    AndroidApp --> APIServer
-    AndroidApp --> NativeBridge
-    AndroidApp <--> ClientCache
-    WebBrowser <--> ClientCache
+    WebBrowser --> ExpressApp
+    AndroidApp --> ExpressApp
+    WebBrowser --> ReactQuery
+    AndroidApp --> ReactQuery
+    ReactQuery --> ThemeEngine
 
-    StaticServer -.-> WebBrowser
-    APIServer --> AuthGuard
-    AuthGuard --> DrizzleORM
+    ExpressApp --> SecurityStack
+    SecurityStack --> AuthModule
+    AuthModule --> InvitationService
+    ExpressApp --> CurrencyEngine
+    ExpressApp --> SwaggerDocs
+
+    apps/web -.-> SharedPkg
+    apps/server -.-> SharedPkg
+
+    ExpressApp --> DrizzleORM
     DrizzleORM --> PostgresDB
 ```
 
 ---
 
-## 2. Aislamiento Multi-Perfil (Tenant Isolation)
+## 2. Jerarquía de Autenticación, Perfiles y Colaboración (Estilo Streaming)
 
-Para cumplir con el requisito estricto: *"lo usarán diferentes personas o sea cada perfil tiene que estar por separado"*:
+El modelo de acceso resuelve la necesidad de cuentas centrales e invitaciones entre perfiles:
 
-### 2.1 Principios de Aislamiento
-1. **Identificador Global Único (`profileId`)**: Toda entidad persistida en el sistema (`Account`, `Transaction`, `Category`, `Budget`, `RecurringRule`) contiene obligatoriamente una clave foránea `profileId`.
-2. **Repositorio con Ámbito Automático (Scoped Repositories)**: Ninguna vista o componente consulta la base de datos de manera directa. Todas las consultas pasan por repositorios interceptados que inyectan automáticamente la cláusula `WHERE profileId = activeProfileId`.
-3. **Imposibilidad de Cruce Accidental**:
-   - Las cuentas bancarias de la Persona A jamás aparecen en el selector de cuentas de la Persona B.
-   - Las categorías personalizadas de la Persona A pertenecen exclusivamente a su perfil.
-   - Las estadísticas y gráficos de flujo de caja se calculan estrictamente sobre el subconjunto de transacciones del perfil activo.
+```mermaid
+graph TD
+    UserAdmin["Usuario Cuenta (Email & Password / Admin)"] --> Profile1["Perfil 1: Dylan (Personal)"]
+    UserAdmin --> Profile2["Perfil 2: Casa / Hogar (Familiar)"]
+    UserAdmin --> Profile3["Perfil 3: Freelance (Negocio)"]
 
-### 2.2 Seguridad y Protección de Privacidad por Perfil
-- Cada perfil puede configurarse con o sin seguridad:
-  - **Sin PIN**: Acceso directo con un solo toque (ideal para perfiles rápidos propios, ej. Personal vs Trabajo).
-  - **Con PIN numérico (4 o 6 dígitos)**: Bloqueo inmediato al conmutar hacia ese perfil.
-  - **Biometría en Android**: Huella dactilar o reconocimiento facial disponible mediante Capacitor Biometrics.
-- Al cambiar de perfil:
-  1. Se bloquea el perfil saliente si tiene PIN activo.
-  2. Si el perfil entrante requiere credenciales, se despliega la pantalla de desbloqueo ("Lock Screen").
-  3. Una vez validado, se actualiza `activeProfileId` en el estado global.
-  4. Se limpian de memoria los datos del perfil anterior y se cargan los registros del nuevo perfil.
-  5. Se dispara el cambio de variables CSS para adaptar instantáneamente la paleta del perfil.
+    OtherUser["Otro Usuario Registrado (Email B)"] --> ProfileB["Perfil: María"]
 
----
+    Profile1 --> PrivAcc1["Cuenta Privada: Billetera Efectivo"]
+    Profile1 --> PrivAcc2["Cuenta Privada: Tarjeta Visa"]
 
-## 3. Motor Dinámico de Colores y Temas (Dynamic Theming Engine)
-
-### 3.1 Funcionamiento Técnico
-El diseño visual se rige mediante **Variables CSS HSL** inyectadas en tiempo de ejecución en el elemento raíz `<html>` o en el contenedor de la aplicación.
-
-```css
-:root {
-  /* Variables dinámicas modificables en vivo */
-  --primary: 158 64% 42%;        /* Color principal HSL */
-  --primary-foreground: 0 0% 100%;
-  --primary-hover: 158 64% 36%;
-  --accent: 38 92% 50%;
-  --background: 220 18% 10%;
-  --surface: 220 18% 14%;
-  --border: 220 14% 20%;
-}
+    SharedAcc["💰 Cuenta Compartida: Gastos Comunes Hogar"]
+    Profile2 -->|Propietario / Admin| SharedAcc
+    ProfileB -->|Perfil Invitado (Editor)| SharedAcc
 ```
 
-### 3.2 Paletas Preconfiguradas y Selector Libre (Color Picker)
-Cada perfil almacena un objeto `themeConfig`:
-- **Modo de Base**: `dark` (Oscuro profundo), `light` (Claro limpio), `amoled` (Negro puro `#000000` para ahorrar batería en pantallas OLED).
-- **Color Primario (Hex o Preset)**:
-  - 🌲 **Esmeralda / Menta**: `#10B981` (Finanzas clásicas / Crecimiento)
-  - 💎 **Azul Zafiro / Índigo**: `#3B82F6` o `#6366F1` (Corporativo / Confianza)
-  - 🍇 **Púrpura / Amatista**: `#8B5CF6` (Moderno / Exclusivo)
-  - 🌅 **Atardecer Coral / Rosa**: `#F43F5E` o `#EC4899` (Creativo / Dinámico)
-  - ⚡ **Ámbar / Neón Solar**: `#F59E0B` (Alerta / Vitalidad)
-  - 🎨 **Personalizado (Hex Libre)**: El usuario puede elegir cualquier color `#RRGGBB`.
-- **Cálculo Automático de Contraste**: El motor calcula automáticamente el tono óptimo de texto (`foreground`) con contraste WCAG AA/AAA para garantizar accesibilidad independientemente del color elegido.
-- **Sincronización con Android**: Cuando se conmuta el tema o perfil en Android, `@capacitor/status-bar` y `@capacitor/navigation-bar` actualizan el color del sistema nativo del teléfono para una inmersión completa.
+### 2.1 Niveles de Acceso
+1. **Cuenta de Usuario (`User`)**:
+   - Registro mediante Email y Contraseña (con opción Sign-In / Sign-Up).
+   - Actúa como la cuenta administradora o titular del espacio.
+   - Emite un JWT seguro de usuario.
+2. **Perfiles (`Profile`)**:
+   - Una cuenta puede tener múltiples perfiles (ej. Dylan, María, Finanzas Hogar, Negocio).
+   - Cada perfil tiene su nombre, avatar, tema visual independiente (colores configurables), moneda base y **PIN de seguridad opcional**.
+   - Conmutación rápida entre perfiles sin cerrar la sesión de la cuenta principal.
+3. **Cuentas Financieras Privadas vs Compartidas**:
+   - **Privadas**: Visibles y operables únicamente por el perfil que las creó.
+   - **Compartidas**: Cuentas donde el perfil propietario puede **invitar a otros perfiles** (de su misma cuenta o perfiles de otros usuarios por email/enlace) asignándoles roles:
+     - `owner`: Control total, agregar/remover miembros, eliminar cuenta.
+     - `editor`: Registrar gastos e ingresos, ver transacciones y presupuestos.
+     - `viewer`: Solo lectura para consultar saldos y reportes.
 
 ---
 
-## 4. Estructura de Directorios del Proyecto
+## 3. Motor Multidivisa y Conversión de Tasas
 
-El código base se organiza bajo una arquitectura modular limpia y escalable:
+1. **Moneda Base por Perfil**:
+   - Cada perfil define su moneda principal de consolidación (ej. USD, EUR, COP, MXN).
+2. **Cuentas en Diferentes Divisas**:
+   - Una cuenta puede estar en USD (ej. Cuenta extranjera/Paypal), otra en EUR y otra en moneda local (ej. COP).
+3. **Manejo de Transacciones**:
+   - Toda transacción guarda el monto original, la divisa de origen y la tasa de cambio a la moneda base en la fecha del registro (`exchangeRateToBase`).
+   - El sistema calcula el equivalente en moneda base para presentar reportes consolidados sin distorsión.
+4. **Tabla de Tasas (`exchange_rates`)**:
+   - Módulo que almacena tasas de cambio diarias con cache en PostgreSQL y consulta a API pública de divisas (con fallback manual por si no hay conexión).
+
+---
+
+## 4. Comunicación: REST API + Zod + TanStack React Query
+
+- **Contratos Compartidos**: Los esquemas Zod en `packages/shared` definen la forma de las peticiones y respuestas. Si el servidor cambia un campo, el frontend falla en tiempo de compilación.
+- **TanStack React Query (`apps/web`)**:
+  - Manejo de cache reactivo en memoria y persistente.
+  - Sincronización en segundo plano con reintentos automáticos (*background refetching*).
+  - Mutaciones optimistas (*optimistic updates*) para que el registro de un gasto sea visualmente instantáneo (<100ms) mientras se valida en el servidor.
+- **Documentación Swagger / OpenAPI**:
+  - El backend expone en `/api/docs` una interfaz interactiva Swagger UI generada automáticamente para probar endpoints y validar contratos.
+
+---
+
+## 5. Estructura del Monorepo con Turborepo
 
 ```
 Koin/
-├── android/                         # Proyecto nativo Android generado por Capacitor
-│   └── app/
+├── .github/                         # Workflows de CI/CD
+├── apps/
+│   ├── server/                      # Backend API en Node.js + Express.js
+│   │   ├── src/
+│   │   │   ├── config/              # Variables de entorno y pool Heroku Postgres
+│   │   │   ├── db/                  # Drizzle ORM (schema.ts, migrations/)
+│   │   │   ├── middleware/          # Security (Helmet, CORS, RateLimit), Auth, TenantGuard
+│   │   │   ├── modules/             # Arquitectura modular por dominio
+│   │   │   │   ├── auth/            # Login, registro, JWT
+│   │   │   │   ├── profiles/        # CRUD de perfiles, PIN unlock
+│   │   │   │   ├── accounts/        # Cuentas privadas y compartidas
+│   │   │   │   ├── invitations/     # Invitaciones entre perfiles
+│   │   │   │   ├── transactions/    # Registro de gastos/ingresos
+│   │   │   │   ├── categories/      # Categorías de gastos/ingresos
+│   │   │   │   ├── currencies/      # Tasas de cambio y conversión
+│   │   │   │   └── budgets/         # Presupuestos y límites
+│   │   │   └── index.ts             # Punto de entrada Express y servicio de dist SPA
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   └── web/                         # Frontend React + Vite + Tailwind + Capacitor
+│       ├── android/                 # Proyecto nativo Android generado por Capacitor
+│       ├── public/                  # Assets estáticos y favicon
+│       ├── src/
+│       │   ├── api/                 # Cliente Axios/Ky tipado con TanStack Query
+│       │   ├── components/          # Componentes UI (Radix, Tailwind, Recharts)
+│       │   ├── hooks/               # useTheme, useAuth, useActiveProfile, useCurrencies
+│       │   ├── stores/              # Zustand (estado de UI y perfil activo)
+│       │   ├── views/               # Pantallas (Dashboard, Login, Profiles, etc.)
+│       │   ├── App.tsx              # Router y contenedor de temas
+│       │   └── main.tsx             # Entrypoint React
+│       ├── capacitor.config.ts      # Configuración de Capacitor Android
+│       ├── package.json
+│       ├── tailwind.config.js
+│       └── vite.config.ts
+│
+├── packages/                        # Paquetes compartidos
+│   ├── shared/                      # Tipos, validadores Zod y utilidades
+│   │   ├── src/
+│   │   │   ├── schemas/             # auth.schema, profile.schema, transaction.schema
+│   │   │   ├── types/               # interfaces TypeScript
+│   │   │   └── index.ts
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   ├── tsconfig/                    # Configuraciones base de TypeScript
+│   └── eslint-config/               # Reglas de linting unificadas
+│
 ├── documentation/                   # Documentación oficial del proyecto
-│   ├── changelog/                   # Registro diario de cambios
-│   ├── ARCHITECTURE.md              # Este documento
-│   ├── DATA_MODEL.md                # Esquema de base de datos y tipos
-│   ├── PROJECT_OVERVIEW.md          # Visión, objetivos y KPIs
-│   ├── ROADMAP.md                   # Fases de desarrollo e hitos
-│   ├── TECH_STACK_AND_EVALUATION.md # Justificación Capacitor vs React Native
-│   └── UI_UX_SPECIFICATION.md       # Flujos de pantalla y diseño
-├── server/                          # Backend API en Node.js + Express.js para Heroku
-│   ├── src/
-│   │   ├── config/                  # Conexión DATABASE_URL a Heroku Postgres
-│   │   ├── db/                      # Esquemas Drizzle ORM y migraciones SQL
-│   │   │   ├── schema.ts            # Tablas PostgreSQL (profiles, accounts, etc.)
-│   │   │   └── migrations/          # Archivos de migración de Drizzle
-│   │   ├── middleware/              # Security Stack (Helmet, CORS, RateLimit), Scoper y PIN
-│   │   ├── routes/                  # Endpoints RESTful (/api/profiles, /api/transactions)
-│   │   └── index.ts                 # Servidor Express + servicio de archivos estáticos
-│   ├── tsconfig.json                # Configuración TypeScript del servidor
-│   └── package.json                 # Dependencias del backend (express, helmet, cors, etc.)
-├── src/                             # Frontend React + Vite (Web SPA & Capacitor)
-│   ├── assets/                      # Iconos, logos y sonidos táctiles
-│   ├── components/                  # Componentes reutilizables (Radix / Tailwind)
-│   ├── config/                      # Paletas predefinidas y constantes
-│   ├── hooks/                       # useTheme, useProfile, useSync
-│   ├── services/                    # Cliente API HTTP (Axios/Ky) y Capacitor Bridge
-│   ├── stores/                      # Estados Zustand (profileStore, financeStore)
-│   ├── types/                       # Interfaces TypeScript compartidas
-│   ├── views/                       # Vistas (Dashboard, Transactions, Accounts, etc.)
-│   ├── App.tsx                      # Enrutador principal
-│   ├── index.css                    # Definición de tokens Tailwind y variables CSS
-│   └── main.tsx                     # Punto de entrada Vite
-├── capacitor.config.ts              # Configuración oficial de Capacitor para Android
-├── Procfile                         # Definición de proceso web para Heroku Dyno (`web: npm start`)
-├── package.json                     # Monorepo / Scripts raíz (build:client, build:server, start)
-├── tailwind.config.js               # Configuración de Tailwind CSS con temas dinámicos
-├── tsconfig.json                    # Configuración estricta de TypeScript
-└── vite.config.ts                   # Configuración del bundler Vite
+├── Procfile                         # Heroku Dyno: `web: npm run start --filter=@koin/server`
+├── turbo.json                       # Pipelines de compilación y cache de Turborepo
+├── package.json                     # Raíz del Monorepo con workspaces
+└── tsconfig.json                    # Referencias de compilación
 ```

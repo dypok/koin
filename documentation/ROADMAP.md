@@ -1,6 +1,6 @@
 # 06. Hoja de Ruta de Desarrollo (Roadmap de Implementación)
 
-Este documento estructura el plan de ejecución por fases para desarrollar **Koin** de forma ágil, modular y verificable.
+Este documento estructura el plan de ejecución por fases para desarrollar **Koin** utilizando **Turborepo**, **Express.js**, **React + Vite**, **Capacitor** y **Heroku Postgres**.
 
 ---
 
@@ -8,79 +8,81 @@ Este documento estructura el plan de ejecución por fases para desarrollar **Koi
 
 ```mermaid
 gantt
-    title Plan de Desarrollo Koin (Web + Android)
+    title Plan de Desarrollo Koin (Turborepo + Web + Android)
     dateFormat  X
     axisFormat %d
     section Fase 1
-    Scaffolding y Motor de Temas        :active, p1, 0, 3
+    Monorepo Turborepo, Backend Express & Temas  :active, p1, 0, 3
     section Fase 2
-    Multi-Perfil y Aislamiento          :p2, after p1, 3
+    Auth Usuarios, Perfiles & Cuentas Compartidas :p2, after p1, 4
     section Fase 3
-    Núcleo Financiero Ultrarrápido      :p3, after p2, 4
+    Motor Multidivisa y Núcleo Financiero       :p3, after p2, 4
     section Fase 4
-    Presupuestos y Analíticas Visuales  :p4, after p3, 3
+    Presupuestos, Analíticas & Swagger Docs      :p4, after p3, 3
     section Fase 5
-    Empaquetado Android con Capacitor   :p5, after p4, 3
+    Empaquetado Android con Capacitor           :p5, after p4, 3
     section Fase 6
-    Backups, PWA y Pulido Final         :p6, after p5, 2
+    Despliegue en Heroku & Pruebas E2E           :p6, after p5, 2
 ```
 
 ---
 
 ## 🛠️ Detalle de Fases y Entregables
 
-### Fase 1: Andamiaje del Proyecto, Backend en Express (Heroku) y Motor Dinámico de Temas
-- [ ] Configuración del Monorepo / Proyecto unificado:
-  - Frontend: **Vite + React + TypeScript + Tailwind CSS** con soporte de variables CSS HSL dinámicas.
-  - Backend: **Express.js + TypeScript + Drizzle ORM**.
-  - Pipeline de Seguridad en Express: `helmet`, `cors`, `express-rate-limit`, `hpp` y parseador seguro de JSON (límite 100kb).
-  - Configuración para Heroku: `Procfile`, scripts de build (`npm run build:all`) y manejo de `process.env.DATABASE_URL`.
-- [ ] Creación de `ThemeEngine`: convertidor Hex-a-HSL, verificador de contraste WCAG y selector de modo (Dark / Light / AMOLED).
-- [ ] Configuración de la base de datos **Heroku Postgres** (conexión SSL) y cliente local **Dexie.js (IndexedDB)** para cache offline.
+### Fase 1: Andamiaje del Monorepo con Turborepo, Express y Motor de Temas
+- [ ] Inicialización del Monorepo con **Turborepo** y npm workspaces:
+  - `apps/server`: Express.js + TypeScript + Drizzle ORM.
+  - `apps/web`: React + Vite + Tailwind CSS + TanStack Query.
+  - `packages/shared`: Tipos comunes TypeScript y esquemas de validación Zod.
+- [ ] Configuración del pipeline de seguridad en Express (`helmet`, `cors`, `express-rate-limit`, `hpp`).
+- [ ] Configuración de la base de datos **Heroku Postgres** (conexión SSL con pool de conexiones).
+- [ ] Implementación del `ThemeEngine` en frontend con variables CSS HSL dinámicas y soporte de paletas por perfil.
 
-### Fase 2: Módulo Multi-Perfil con Aislamiento Estricto y Seguridad
-- [ ] Modelos PostgreSQL y esquemas Drizzle para `profiles`.
-- [ ] Endpoints RESTful para gestión de perfiles (`GET /api/profiles`, `POST /api/profiles`).
-- [ ] Middleware en servidor para aislamiento estricto (`tenantGuard`): inyección y verificación forzada de `profileId`.
-- [ ] Autenticación segura de perfiles: Hashing de PIN con **Argon2id/Bcrypt**, protección contra ataques de tiempo y bloqueo antifuerza bruta tras 5 intentos.
-- [ ] Implementación de `ProfileStore` con Zustand en el cliente.
-- [ ] Selector visual de perfiles (Bottom Sheet) y conmutación instantánea de contexto.
+### Fase 2: Autenticación de Cuentas, Perfiles Estilo Streaming y Cuentas Compartidas
+- [ ] **Módulo de Usuarios**:
+  - Registro (Sign-Up) e Inicio de Sesión (Sign-In) con email y contraseña hasheada con **Argon2id**.
+  - Emisión y verificación de JWT seguro.
+- [ ] **Módulo de Múltiples Perfiles**:
+  - Creación de perfiles dentro de la cuenta del usuario (Avatar, Nombre, Paleta de Color, Moneda Base).
+  - PIN de seguridad opcional por perfil con protección contra ataques de tiempo y bloqueo tras 5 intentos.
+  - Selector visual de perfiles (estilo streaming) y conmutación instantánea.
+- [ ] **Cuentas Financieras Privadas vs Compartidas**:
+  - Creación de cuentas (Efectivo, Bancos, Tarjetas).
+  - Sistema de invitaciones a otros perfiles/usuarios para co-administrar cuentas compartidas.
+  - Roles de membresía: `owner`, `editor` y `viewer` con middleware de autorización RBAC.
 
-### Fase 3: Núcleo Financiero Ultrarrápido (Core Finance)
-- [ ] Esquemas Drizzle y tablas PostgreSQL para `accounts`, `categories` y `transactions` con índices compuestos.
-- [ ] **Modal de Registro en < 3 Segundos**:
-  - Teclado numérico táctil optimizado en pantalla.
-  - Chips de montos rápidos ($5, $10, $20, $50).
-  - Selector de categorías más frecuentes con guardado en 1 toque.
-- [ ] Gestión de Cuentas / Billeteras (Efectivo, Cuentas Bancarias, Tarjetas de Crédito).
+### Fase 3: Motor Multidivisa y Registro Ultrarrápido (< 3 Segundos)
+- [ ] **Motor Multidivisa**:
+  - Tabla de tasas de cambio (`exchange_rates`) con actualización periódica y fallback local.
+  - Cálculo automático de `base_amount` en cada transacción según la moneda base del perfil.
+- [ ] **Modal de Registro Rápido**:
+  - Teclado numérico táctil optimizado con chips de montos ($5, $10, $20, $50).
+  - Categorías más frecuentes mostradas en primer plano para guardar en **2 toques**.
+  - Mutaciones optimistas en TanStack Query para respuesta visual inmediata (<100 ms).
 - [ ] Gestión de Categorías personalizadas con iconos de Lucide.
-- [ ] Historial de Transacciones con búsqueda instantánea, paginación virtual y filtros.
+- [ ] Historial de Transacciones con filtros por cuenta, categoría, fecha y buscador de texto.
 
-### Fase 4: Presupuestos y Analíticas Visuales
-- [ ] Tablas y endpoints para `budgets` mensuales por categoría con alertas visuales de exceso.
-- [ ] Integración de **Recharts**:
-  - Gráfico de dona de distribución de gastos por categoría.
-  - Gráfico de barras de flujo de caja neto mensual (Ingresos vs Gastos).
-- [ ] Balance acumulado y proyección de ahorros del perfil activo.
+### Fase 4: Presupuestos, Analíticas y Documentación Swagger
+- [ ] Módulo de Presupuestos mensuales por categoría con alertas de umbral (80% / 100%).
+- [ ] Integración de gráficos con **Recharts**:
+  - Desglose de gastos por categoría (gráfico de dona interactivo).
+  - Flujo de caja neto mensual consolidado (Ingresos vs Gastos).
+- [ ] Configuración de documentación interactiva **Swagger UI / OpenAPI** en `/api/docs`.
 
 ### Fase 5: Integración Nativa Android con Capacitor
-- [ ] Inicialización de Capacitor: `npx cap init Koin com.koin.finance`.
-- [ ] Adición de plataforma Android: `npx cap add android`.
-- [ ] Configuración de plugins nativos:
+- [ ] Inicialización de Capacitor dentro de `apps/web`:
+  - `npx cap init Koin com.koin.finance` y adición de plataforma Android.
+- [ ] Plugins nativos integrados:
   - `@capacitor/status-bar`: Sincronización del color de la barra del sistema con el tema activo.
-  - `@capacitor/haptics`: Vibraciones táctiles al teclear y guardar movimientos.
-  - `@capacitor/keyboard`: Ajuste automático de scroll al desplegar teclado.
-- [ ] Configuración del endpoint de producción de Heroku (`https://<app>.herokuapp.com/api`) en la app Android con fallback offline.
-- [ ] Generación y prueba del APK de depuración para Android.
+  - `@capacitor/haptics`: Vibraciones táctiles al teclear montos y guardar transacciones.
+  - `@capacitor-community/privacy-screen`: `FLAG_SECURE` para evitar capturas de pantalla y proteger datos en multitarea.
+- [ ] Compilación y prueba del APK de depuración para Android conectado a la API de Heroku.
 
-### Fase 6: Despliegue en Heroku, Respaldos y Pulido Final
-- [ ] Despliegue continuo a Heroku Dyno (`git push heroku main`).
+### Fase 6: Despliegue en Heroku, Backups y Pulido Final
+- [ ] Configuración de despliegue en Heroku con `Procfile`:
+  - Compilación automática del frontend (`apps/web`) y backend (`apps/server`) con Turborepo.
+  - Servidor Express sirve tanto la API RESTful como la SPA de React en producción.
 - [ ] Aprovisionamiento del Add-on de base de datos: `heroku addons:create heroku-postgresql:essential-0`.
-- [ ] Ejecución de migraciones automáticas (`npm run db:migrate` en release phase).
-- [ ] Exportación e importación de datos en formato JSON (por perfil o base completa).
-- [ ] Exportación de transacciones a formato CSV para Excel/Sheets.
-- [ ] Pruebas finales de estrés de memoria y tiempos de respuesta.
-- [ ] Exportación e importación de datos en formato JSON (por perfil o base completa).
-- [ ] Exportación de transacciones a formato CSV para Excel/Sheets.
-- [ ] Configuración del Web App Manifest y Service Worker para funcionamiento como PWA instalable en escritorio y navegadores móviles.
+- [ ] Ejecución de migraciones automáticas (`npm run db:migrate`).
+- [ ] Exportación e importación de datos en formato JSON y CSV.
 - [ ] Pruebas finales de estrés de memoria y tiempos de respuesta.
