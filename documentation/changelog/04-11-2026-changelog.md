@@ -1,3 +1,4 @@
 # Changelog: 04-11-2026
 
 - [Wednesday]-[04/11/2026]-[06:55]-[Dylan Gamero] : Completed Sprint 0 setup (SETUP-01, SETUP-02, SETUP-03): resolved pnpm lifecycle builds with approve-builds, fixed Zod DTO partial inference for transactions, compiled Monorepo with Turborepo (pnpm build and check-types 100% passing), generated PostgreSQL Drizzle migration, integrated Capacitor Android platform, and verified Express API security and Swagger docs.
+- [Wednesday]-[04/11/2026]-[07:03]-[Dylan Gamero] : Implemented Epic 2 Authentication suite (AUTH-01, AUTH-02, AUTH-03): Argon2id password hashing with transactional seeding of default profile and accounts, brute-force rate-limiting (5 attempts / 15m), JWT authentication middleware, Zustand authStore, and flat minimalist React Register and Login forms with password entropy meter.

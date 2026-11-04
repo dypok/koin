@@ -60,7 +60,11 @@ const globalLimiter = rateLimit({
 });
 app.use('/api/', globalLimiter);
 
-// 6. Base Health Check
+// 6. Mount API Routes
+import authRoutes from './modules/auth/auth.routes';
+app.use('/api/v1/auth', authRoutes);
+
+// Base Health Check
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'healthy',
@@ -71,7 +75,7 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
-// 7. Minimal Swagger Document Specification
+// 7. Swagger Document Specification
 const swaggerDocument = {
   openapi: '3.0.0',
   info: {
@@ -82,7 +86,7 @@ const swaggerDocument = {
   servers: [
     {
       url: '/api',
-      description: 'Current Environment API',
+      description: 'Current Environment API Base',
     },
   ],
   paths: {
@@ -93,6 +97,68 @@ const swaggerDocument = {
           '200': {
             description: 'Servicio en estado saludable',
           },
+        },
+      },
+    },
+    '/v1/auth/register': {
+      post: {
+        summary: 'Registro de Cuenta Titular con Semilla Base (Argon2id)',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email', 'password', 'fullName'],
+                properties: {
+                  email: { type: 'string', example: 'dylan@koin.app' },
+                  password: { type: 'string', example: 'Password123' },
+                  fullName: { type: 'string', example: 'Dylan Gamero' },
+                  baseCurrency: { type: 'string', example: 'USD' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': { description: 'Usuario y perfil inicial creados exitosamente' },
+          '400': { description: 'Datos de entrada inválidos' },
+          '409': { description: 'Correo electrónico ya registrado' },
+        },
+      },
+    },
+    '/v1/auth/login': {
+      post: {
+        summary: 'Inicio de Sesión Seguro (Protección Anti-Fuerza Bruta)',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email', 'password'],
+                properties: {
+                  email: { type: 'string', example: 'dylan@koin.app' },
+                  password: { type: 'string', example: 'Password123' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Sesión iniciada con éxito y JWT emitido' },
+          '401': { description: 'Credenciales inválidas' },
+          '429': { description: 'Límite de intentos excedido (5 intentos / 15 min)' },
+        },
+      },
+    },
+    '/v1/auth/me': {
+      get: {
+        summary: 'Obtener información de usuario y perfiles de la sesión',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          '200': { description: 'Datos del usuario autenticado' },
+          '401': { description: 'No autenticado' },
         },
       },
     },

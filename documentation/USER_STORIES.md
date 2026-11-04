@@ -126,11 +126,11 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Retorna JWT de sesión válido por 7 días
 
 **Subtasks:**
-- [ ] [BACKEND] Implementar `auth.schema.ts` en `packages/shared` con validación Zod
-- [ ] [BACKEND] `auth.service.ts`: función de hashing con `argon2` y creación transaccional
-- [ ] [BACKEND] `auth.controller.ts`: endpoint `POST /api/v1/auth/register` (código 201)
-- [ ] [FRONTEND] Formulario plano de registro en React con medidor de entropía de contraseña
-- [ ] [FRONTEND] Almacenar JWT en storage seguro y redirigir al selector de perfiles
+- [x] [BACKEND] Implementar `auth.schema.ts` en `packages/shared` con validación Zod
+- [x] [BACKEND] `auth.service.ts`: función de hashing con `argon2` y creación transaccional
+- [x] [BACKEND] `auth.controller.ts`: endpoint `POST /api/v1/auth/register` (código 201)
+- [x] [FRONTEND] Formulario plano de registro en React con medidor de entropía de contraseña
+- [x] [FRONTEND] Almacenar JWT en storage seguro y redirigir al selector de perfiles
 
 **DoD adicional para esta US:**
 - Registro completo verificado en base de datos: usuario, perfil inicial y cuentas creadas en 1 sola transacción
@@ -152,12 +152,12 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Persistencia de sesión en cliente al recargar la app
 
 **Subtasks:**
-- [ ] [BACKEND] Configurar `loginRateLimiter` para `POST /api/v1/auth/login` (5 intentos / 15 min)
-- [ ] [BACKEND] `auth.service.ts`: verificación de contraseña con Argon2id y firma de JWT
-- [ ] [BACKEND] `auth.middleware.ts`: verificación de token Bearer en rutas protegidas
-- [ ] [FRONTEND] Formulario de login limpio con inputs minimalistas y botón primario
-- [ ] [FRONTEND] Interceptor HTTP: adjuntar automáticamente `Authorization: Bearer <token>`
-- [ ] [FRONTEND] Redirección automática si el token es válido al arrancar la app
+- [x] [BACKEND] Configurar `loginRateLimiter` para `POST /api/v1/auth/login` (5 intentos / 15 min)
+- [x] [BACKEND] `auth.service.ts`: verificación de contraseña con Argon2id y firma de JWT
+- [x] [BACKEND] `auth.middleware.ts`: verificación de token Bearer en rutas protegidas
+- [x] [FRONTEND] Formulario de login limpio con inputs minimalistas y botón primario
+- [x] [FRONTEND] Interceptor HTTP: adjuntar automáticamente `Authorization: Bearer <token>`
+- [x] [FRONTEND] Redirección automática si el token es válido al arrancar la app
 
 **DoD adicional para esta US:**
 - Intentar 6 logins fallidos seguidos y verificar que el 6to responde código `429 Too Many Requests`
@@ -179,11 +179,11 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Redirección inmediata a la pantalla de login
 
 **Subtasks:**
-- [ ] [BACKEND] Endpoint `POST /api/v1/auth/logout`: registro de revocación de sesión
-- [ ] [FRONTEND] Botón "Cerrar sesión" en menú de ajustes (fila plana con icono SVG `LogOut`)
-- [ ] [FRONTEND] Eliminar token de `@capacitor/preferences` y `localStorage`
-- [ ] [FRONTEND] Ejecutar `queryClient.clear()` eliminando todo dato de la memoria RAM
-- [ ] [FRONTEND] Resetear stores Zustand y redirigir a `/login`
+- [x] [BACKEND] Endpoint `POST /api/v1/auth/logout`: registro de revocación de sesión
+- [x] [FRONTEND] Botón "Cerrar sesión" en menú de ajustes (fila plana con icono SVG `LogOut`)
+- [x] [FRONTEND] Eliminar token de `@capacitor/preferences` y `localStorage`
+- [x] [FRONTEND] Ejecutar `queryClient.clear()` eliminando todo dato de la memoria RAM
+- [x] [FRONTEND] Resetear stores Zustand y redirigir a `/login`
 
 **DoD adicional para esta US:**
 - Verificar que tras cerrar sesión, presionar el botón "Atrás" del navegador no muestra datos en cache
