@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="koinEmeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="50%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left Vertical Stem (3 Coins) -->
+  <!-- Top Left Coin (27, 24) -->
+  <g>
+    <circle cx="27" cy="24" r="14" fill="url(#koinEmeraldGrad)" stroke="#09090b" stroke-width="2.5" />
+    <circle cx="27" cy="24" r="10.5" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-dasharray="2 1.5" />
+    <circle cx="27" cy="24" r="5" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" />
+    <circle cx="27" cy="24" r="2" fill="rgba(255,255,255,0.7)" />
+  </g>
+
+  <!-- Bottom Left Coin (27, 76) -->
+  <g>
+    <circle cx="27" cy="76" r="14" fill="url(#koinEmeraldGrad)" stroke="#09090b" stroke-width="2.5" />
+    <circle cx="27" cy="76" r="10.5" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-dasharray="2 1.5" />
+    <circle cx="27" cy="76" r="5" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" />
+    <circle cx="27" cy="76" r="2" fill="rgba(255,255,255,0.7)" />
+  </g>
+
+  <!-- Middle Left Coin (27, 50) -->
+  <g>
+    <circle cx="27" cy="50" r="14" fill="url(#koinEmeraldGrad)" stroke="#09090b" stroke-width="2.5" />
+    <circle cx="27" cy="50" r="10.5" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-dasharray="2 1.5" />
+    <circle cx="27" cy="50" r="5" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" />
+    <circle cx="27" cy="50" r="2" fill="rgba(255,255,255,0.7)" />
+  </g>
+
+  <!-- Upper Diagonal Branch (2 Coins) -->
+  <!-- Upper Mid Coin (51, 39) -->
+  <g>
+    <circle cx="51" cy="39" r="14" fill="url(#koinEmeraldGrad)" stroke="#09090b" stroke-width="2.5" />
+    <circle cx="51" cy="39" r="10.5" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-dasharray="2 1.5" />
+    <circle cx="51" cy="39" r="5" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" />
+    <circle cx="51" cy="39" r="2" fill="rgba(255,255,255,0.7)" />
+  </g>
+
+  <!-- Upper Tip Coin (73, 22) -->
+  <g>
+    <circle cx="73" cy="22" r="14" fill="url(#koinEmeraldGrad)" stroke="#09090b" stroke-width="2.5" />
+    <circle cx="73" cy="22" r="10.5" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-dasharray="2 1.5" />
+    <circle cx="73" cy="22" r="5" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" />
+    <circle cx="73" cy="22" r="2" fill="rgba(255,255,255,0.7)" />
+  </g>
+
+  <!-- Lower Diagonal Branch (2 Coins) -->
+  <!-- Lower Mid Coin (51, 61) -->
+  <g>
+    <circle cx="51" cy="61" r="14" fill="url(#koinEmeraldGrad)" stroke="#09090b" stroke-width="2.5" />
+    <circle cx="51" cy="61" r="10.5" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-dasharray="2 1.5" />
+    <circle cx="51" cy="61" r="5" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" />
+    <circle cx="51" cy="61" r="2" fill="rgba(255,255,255,0.7)" />
+  </g>
+
+  <!-- Lower Tip Coin (73, 78) -->
+  <g>
+    <circle cx="73" cy="78" r="14" fill="url(#koinEmeraldGrad)" stroke="#09090b" stroke-width="2.5" />
+    <circle cx="73" cy="78" r="10.5" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-dasharray="2 1.5" />
+    <circle cx="73" cy="78" r="5" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" />
+    <circle cx="73" cy="78" r="2" fill="rgba(255,255,255,0.7)" />
+  </g>
+</svg>

@@ -11,7 +11,6 @@ import {
   Layers,
   LogOut,
   ChevronDown,
-  Coins,
   Search,
   Filter,
   CreditCard,
@@ -22,6 +21,7 @@ import {
 import { useAuthStore } from './stores/authStore';
 import { AuthPage } from './components/auth/AuthPage';
 import { KoinIcon } from './lib/icons';
+import { KoinLogo } from './components/common/KoinLogo';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'history' | 'budgets' | 'accounts' | 'settings'>('home');
@@ -69,9 +69,7 @@ export default function App() {
         <div className="space-y-6">
           {/* Logo */}
           <div className="flex items-center gap-3 pb-3 border-b border-border/30">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Coins className="w-5 h-5 stroke-[2.2]" />
-            </div>
+            <KoinLogo size={36} />
             <div>
               <span className="text-lg font-bold tracking-tight">Koin</span>
               <p className="text-[11px] text-muted-foreground font-mono">Desktop &amp; Cloud</p>

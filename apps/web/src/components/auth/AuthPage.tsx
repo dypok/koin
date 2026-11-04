@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Coins, ShieldCheck, Layers, Globe, Zap } from 'lucide-react';
+import { ShieldCheck, Layers, Globe, Zap } from 'lucide-react';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
+import { KoinLogo } from '../common/KoinLogo';
 
 export function AuthPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -12,9 +13,7 @@ export function AuthPage() {
       <div className="hidden md:flex md:w-1/2 lg:w-5/12 bg-muted/20 border-r border-border/40 p-8 lg:p-12 flex-col justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Coins className="w-6 h-6 stroke-[2.2]" />
-            </div>
+            <KoinLogo size={40} />
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Koin</h1>
               <p className="text-xs text-muted-foreground">Finanzas Personales Soberanas</p>
@@ -93,9 +92,7 @@ export function AuthPage() {
       <div className="flex-1 flex flex-col justify-center items-center p-6 md:p-12 lg:p-16">
         {/* Mobile Header (Hidden on Desktop) */}
         <div className="md:hidden flex items-center gap-3 border-b border-border/40 pb-5 mb-8 w-full max-w-md">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-            <Coins className="w-5 h-5 stroke-[2.2]" />
-          </div>
+          <KoinLogo size={36} />
           <div>
             <h1 className="text-xl font-bold tracking-tight">Koin</h1>
             <p className="text-xs text-muted-foreground">Finanzas Personales Soberanas</p>
