@@ -121,3 +121,25 @@ type MeResponseData struct {
 	User     User      `json:"user"`
 	Profiles []Profile `json:"profiles"`
 }
+
+type CreateProfileRequest struct {
+	Name          string       `json:"name"`
+	AvatarIcon    string       `json:"avatarIcon"`
+	ThemeConfig   *ThemeConfig `json:"themeConfig,omitempty"`
+	BaseCurrency  string       `json:"baseCurrency"`
+	PIN           *string      `json:"pin,omitempty"`
+	UseBiometrics bool         `json:"useBiometrics"`
+}
+
+type UpdateProfileRequest struct {
+	Name          *string      `json:"name,omitempty"`
+	AvatarIcon    *string      `json:"avatarIcon,omitempty"`
+	ThemeConfig   *ThemeConfig `json:"themeConfig,omitempty"`
+	BaseCurrency  *string      `json:"baseCurrency,omitempty"`
+	PIN           *string      `json:"pin,omitempty"`
+	UseBiometrics *bool        `json:"useBiometrics,omitempty"`
+}
+
+type VerifyPINRequest struct {
+	PIN string `json:"pin"`
+}
