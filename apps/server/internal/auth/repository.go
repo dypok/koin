@@ -158,9 +158,9 @@ func (r *Repository) CreateUserWithSeedData(ctx context.Context, data CreateUser
 
 	// 2. Insert Default Profile ("Personal")
 	defaultTheme := models.ThemeConfig{
-		Preset:     "emerald",
-		PrimaryHex: "#10B981",
-		AccentHex:  "#F59E0B",
+		Preset:     "gold",
+		PrimaryHex: "#F59E0B",
+		AccentHex:  "#FCD34D",
 		BaseMode:   "dark",
 	}
 
@@ -194,7 +194,7 @@ func (r *Repository) CreateUserWithSeedData(ctx context.Context, data CreateUser
 		color string
 		icon  string
 	}{
-		{name: "Billetera Efectivo", accType: "cash", color: "#10B981", icon: "Wallet"},
+		{name: "Billetera Efectivo", accType: "cash", color: "#F59E0B", icon: "Wallet"},
 		{name: "Cuenta Bancaria", accType: "bank", color: "#3B82F6", icon: "Building2"},
 	}
 

@@ -8,13 +8,14 @@ export interface ThemePreset {
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
-  { id: 'emerald', name: 'Esmeralda', primaryHex: '#10B981', accentHex: '#F59E0B' },
+  { id: 'gold', name: 'Oro Soberano', primaryHex: '#F59E0B', accentHex: '#FCD34D' },
+  { id: 'emerald', name: 'Esmeralda', primaryHex: '#10B981', accentHex: '#34D399' },
   { id: 'titanium', name: 'Titanium Natural', primaryHex: '#EDF0F5', accentHex: '#282A32' },
   { id: 'obsidian', name: 'Obsidian Negro', primaryHex: '#F4F4F5', accentHex: '#18181B' },
   { id: 'indigo', name: 'Índigo Eléctrico', primaryHex: '#6366F1', accentHex: '#818CF8' },
   { id: 'amethyst', name: 'Amatista', primaryHex: '#8B5CF6', accentHex: '#A78BFA' },
   { id: 'coral', name: 'Coral', primaryHex: '#F43F5E', accentHex: '#FB7185' },
-  { id: 'amber', name: 'Ámbar', primaryHex: '#F59E0B', accentHex: '#FBBF24' },
+  { id: 'amber', name: 'Ámbar Cálido', primaryHex: '#D97706', accentHex: '#F59E0B' },
 ];
 
 /**

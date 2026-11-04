@@ -49,9 +49,9 @@ export class AuthRepository {
           name: 'Personal',
           avatarIcon: 'User',
           themeConfig: {
-            preset: 'emerald',
-            primaryHex: '#10B981',
-            accentHex: '#F59E0B',
+            preset: 'gold',
+            primaryHex: '#F59E0B',
+            accentHex: '#FCD34D',
             baseMode: 'dark',
           },
           baseCurrency: data.baseCurrency || 'USD',
@@ -70,7 +70,7 @@ export class AuthRepository {
           initialBalance: '0.00',
           currentBalance: '0.00',
           isShared: false,
-          color: '#10B981',
+          color: '#F59E0B',
           icon: 'Wallet',
         },
         {

@@ -29,9 +29,9 @@ export type LoginUserInput = z.infer<typeof LoginUserSchema>;
 // ------------------------------------------------------
 
 export const ThemeConfigSchema = z.object({
-  preset: z.string().default('emerald'),
-  primaryHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color hexadecimal inválido').default('#10B981'),
-  accentHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color hexadecimal inválido').default('#F59E0B'),
+  preset: z.string().default('gold'),
+  primaryHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color hexadecimal inválido').default('#F59E0B'),
+  accentHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color hexadecimal inválido').default('#FCD34D'),
   baseMode: z.enum(['dark', 'light']).default('dark'),
 });
 
@@ -39,9 +39,9 @@ export const CreateProfileSchema = z.object({
   name: z.string().min(1, 'El nombre del perfil es requerido').max(100).trim(),
   avatarIcon: z.enum(ALLOWED_AVATAR_ICONS as unknown as [string, ...string[]]).default('User'),
   themeConfig: ThemeConfigSchema.default({
-    preset: 'emerald',
-    primaryHex: '#10B981',
-    accentHex: '#F59E0B',
+    preset: 'gold',
+    primaryHex: '#F59E0B',
+    accentHex: '#FCD34D',
     baseMode: 'dark',
   }),
   baseCurrency: z.string().length(3).default('USD'),

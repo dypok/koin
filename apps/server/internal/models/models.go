@@ -24,9 +24,9 @@ func (t ThemeConfig) Value() (driver.Value, error) {
 func (t *ThemeConfig) Scan(value interface{}) error {
 	if value == nil {
 		*t = ThemeConfig{
-			Preset:     "emerald",
-			PrimaryHex: "#10B981",
-			AccentHex:  "#F59E0B",
+			Preset:     "gold",
+			PrimaryHex: "#F59E0B",
+			AccentHex:  "#FCD34D",
 			BaseMode:   "dark",
 		}
 		return nil
