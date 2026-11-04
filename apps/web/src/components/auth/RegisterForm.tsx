@@ -53,10 +53,10 @@ export function RegisterForm({ onToggleLogin }: RegisterFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full">
+    <form onSubmit={handleSubmit} className="space-y-2.5 sm:space-y-3 w-full">
       <div>
-        <h2 className="text-xl font-bold tracking-tight">Crear Cuenta Titular</h2>
-        <p className="text-xs text-muted-foreground mt-1">
+        <h2 className="text-lg sm:text-xl font-bold tracking-tight">Crear Cuenta Titular</h2>
+        <p className="text-xs text-muted-foreground">
           Configura tu espacio soberano en Koin con perfil y cuentas iniciales.
         </p>
       </div>
@@ -78,7 +78,7 @@ export function RegisterForm({ onToggleLogin }: RegisterFormProps) {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Dylan Gamero"
-            className="w-full bg-background border border-border/50 py-2 pl-9 pr-3 text-sm focus:outline-none focus:border-primary transition-colors"
+            className="w-full bg-background border border-border/50 py-1.5 pl-9 pr-3 text-sm focus:outline-none focus:border-primary transition-colors"
           />
         </div>
       </div>
@@ -94,7 +94,7 @@ export function RegisterForm({ onToggleLogin }: RegisterFormProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="dylan@ejemplo.com"
-            className="w-full bg-background border border-border/50 py-2 pl-9 pr-3 text-sm focus:outline-none focus:border-primary transition-colors"
+            className="w-full bg-background border border-border/50 py-1.5 pl-9 pr-3 text-sm focus:outline-none focus:border-primary transition-colors"
           />
         </div>
       </div>
@@ -110,26 +110,26 @@ export function RegisterForm({ onToggleLogin }: RegisterFormProps) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full bg-background border border-border/50 py-2 pl-9 pr-3 text-sm focus:outline-none focus:border-primary transition-colors"
+            className="w-full bg-background border border-border/50 py-1.5 pl-9 pr-3 text-sm focus:outline-none focus:border-primary transition-colors"
           />
         </div>
 
-        {/* Entropy / Security Criteria Checkers (No Badges - Flat Typographic Indicators) */}
-        <div className="grid grid-cols-2 gap-1.5 pt-2 text-[11px]">
+        {/* Entropy / Security Criteria Checkers */}
+        <div className="grid grid-cols-2 gap-1 pt-1 text-[11px]">
           <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-primary' : 'text-muted-foreground'}`}>
-            {hasMinLength ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 opacity-40" />}
+            {hasMinLength ? <Check className="w-3 h-3" /> : <X className="w-3 h-3 opacity-40" />}
             <span>Mínimo 8 caracteres</span>
           </div>
           <div className={`flex items-center gap-1.5 ${hasUppercase ? 'text-primary' : 'text-muted-foreground'}`}>
-            {hasUppercase ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 opacity-40" />}
+            {hasUppercase ? <Check className="w-3 h-3" /> : <X className="w-3 h-3 opacity-40" />}
             <span>Una letra mayúscula</span>
           </div>
           <div className={`flex items-center gap-1.5 ${hasLowercase ? 'text-primary' : 'text-muted-foreground'}`}>
-            {hasLowercase ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 opacity-40" />}
+            {hasLowercase ? <Check className="w-3 h-3" /> : <X className="w-3 h-3 opacity-40" />}
             <span>Una letra minúscula</span>
           </div>
           <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-primary' : 'text-muted-foreground'}`}>
-            {hasNumber ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 opacity-40" />}
+            {hasNumber ? <Check className="w-3 h-3" /> : <X className="w-3 h-3 opacity-40" />}
             <span>Al menos un número</span>
           </div>
         </div>
@@ -141,7 +141,7 @@ export function RegisterForm({ onToggleLogin }: RegisterFormProps) {
         <select
           value={baseCurrency}
           onChange={(e) => setBaseCurrency(e.target.value)}
-          className="w-full bg-background border border-border/50 py-2 px-3 text-sm focus:outline-none focus:border-primary transition-colors"
+          className="w-full bg-background border border-border/50 py-1.5 px-3 text-sm focus:outline-none focus:border-primary transition-colors"
         >
           {Object.values(SUPPORTED_CURRENCIES).map((c) => (
             <option key={c.code} value={c.code}>
@@ -155,7 +155,7 @@ export function RegisterForm({ onToggleLogin }: RegisterFormProps) {
       <button
         type="submit"
         disabled={!isPasswordValid || !fullName || !email || isSubmitting}
-        className="w-full py-2.5 px-4 bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 transition-opacity disabled:opacity-50 active:scale-[0.99]"
+        className="w-full py-2 px-4 bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 transition-opacity disabled:opacity-50 active:scale-[0.99] mt-1"
       >
         {isSubmitting ? (
           <>

@@ -38,10 +38,10 @@ export function LoginForm({ onToggleRegister }: LoginFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full">
+    <form onSubmit={handleSubmit} className="space-y-3.5 w-full">
       <div>
         <h2 className="text-xl font-bold tracking-tight">Iniciar Sesión</h2>
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-xs text-muted-foreground mt-0.5">
           Ingresa tus credenciales maestras para acceder a tus perfiles y finanzas.
         </p>
       </div>
