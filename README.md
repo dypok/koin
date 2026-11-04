@@ -15,6 +15,51 @@ Toda la arquitectura, decisiones de diseño, modelo de datos y planificación es
 7. **[Historias de Usuario del Proyecto](file:///home/dypok/Projects/Koin/documentation/USER_STORIES.md)**: Especificación de las 24 Historias de Usuario (US-001 a US-024) divididas en 7 épicas con criterios Gherkin y MoSCoW.
 8. **[Hoja de Ruta (Roadmap)](file:///home/dypok/Projects/Koin/documentation/ROADMAP.md)**: Fases de desarrollo detalladas con Turborepo hasta el despliegue en producción en Heroku.
 
+## 💻 Estructura del Monorepo
+
+```
+.
+├── apps/
+│   ├── server/           # API REST con Express, TypeScript y Drizzle ORM
+│   └── web/              # Frontend React 19 + Vite + Tailwind CSS + Capacitor
+├── packages/
+│   └── shared/           # Contratos DTO Zod, interfaces TypeScript y constantes compartidas
+├── documentation/        # Suite completa de documentación técnica y de diseño
+├── package.json          # Root npm workspaces y scripts de Turborepo
+└── turbo.json            # Configuración de pipelines cacheados
+```
+
+## 🛠️ Comandos de Desarrollo
+
+```bash
+# Instalar todas las dependencias del Monorepo con pnpm
+pnpm install
+
+# Iniciar servidor y cliente web en modo desarrollo en paralelo
+pnpm dev
+
+# Compilar todos los paquetes y aplicaciones (con caché de Turborepo)
+pnpm build
+
+# Verificación estricta de tipos TypeScript en todo el proyecto
+pnpm check-types
+
+# Generar migraciones de base de datos con Drizzle Kit
+pnpm db:generate
+
+# Aplicar migraciones a la base de datos PostgreSQL
+pnpm db:migrate
+
+# Iniciar el servidor en producción (Dyno unificado)
+pnpm start
+```
+
+## 🚀 Despliegue en Heroku
+
+El proyecto está preparado para desplegarse en un **Dyno Unificado** en Heroku:
+- El backend Express sirve tanto la API REST (`/api/*`), la documentación Swagger (`/api/docs`), como los archivos estáticos de la aplicación React (`apps/web/dist`).
+- Las variables de entorno se configuran mediante `heroku config:set`.
+
 ---
 **Fecha de inicio**: 03/11/2026  
 **Autor**: Dylan Gamero

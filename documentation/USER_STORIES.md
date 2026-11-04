@@ -38,19 +38,19 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 **Criterios de aceptación:**
 - Turborepo operativo con workspaces: `apps/server`, `apps/web`, `packages/shared`
-- `npm run build` y `npm run dev` ejecutan en paralelo con cache funcional
+- `pnpm build` y `pnpm dev` ejecutan en paralelo con cache funcional
 - `packages/shared` exporta tipos e interfaces consumidos por cliente y servidor
 - TypeScript estricto configurado en todos los paquetes
 
 **Subtasks:**
-- [ ] [DEVOPS] Crear `package.json` raíz con configuración de npm workspaces
-- [ ] [DEVOPS] Configurar `turbo.json` con pipelines de build, dev, lint y test
-- [ ] [DEVOPS] Crear paquete `packages/shared` con compilación TypeScript para Zod DTOs
-- [ ] [DEVOPS] Configurar `.gitignore` integral (node_modules, dist, android/, .env)
-- [ ] [DOCS] Documentar comandos de desarrollo en el README principal
+- [x] [DEVOPS] Crear `package.json` raíz con configuración de pnpm workspaces
+- [x] [DEVOPS] Configurar `turbo.json` con pipelines de build, dev, lint y test
+- [x] [DEVOPS] Crear paquete `packages/shared` con compilación TypeScript para Zod DTOs
+- [x] [DEVOPS] Configurar `.gitignore` integral (node_modules, dist, android/, .env)
+- [x] [DOCS] Documentar comandos de desarrollo en el README principal
 
 **DoD adicional para esta US:**
-- `npm run check-types` pasa sin errores en todo el Monorepo
+- `pnpm check-types` pasa sin errores en todo el Monorepo
 
 ---
 
@@ -69,11 +69,11 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Campo `avatar_icon` configurado como `VARCHAR(50)` para nombres de iconos SVG
 
 **Subtasks:**
-- [ ] [BD] Configurar instancia local PostgreSQL y preparar conexión para Heroku Postgres
-- [ ] [BACKEND] Configurar cliente Drizzle en `apps/server/src/db/index.ts`
-- [ ] [BACKEND] Escribir modelos Drizzle en `schema.ts`: users, profiles, accounts, transactions
-- [ ] [BACKEND] Configurar scripts de migración: `npm run db:generate` y `npm run db:migrate`
-- [ ] [TEST] Ejecutar migración inicial y verificar tablas creadas con constraints e índices
+- [x] [BD] Configurar instancia local PostgreSQL y preparar conexión para Heroku Postgres
+- [x] [BACKEND] Configurar cliente Drizzle en `apps/server/src/db/index.ts`
+- [x] [BACKEND] Escribir modelos Drizzle en `schema.ts`: users, profiles, accounts, transactions
+- [x] [BACKEND] Configurar scripts de migración: `pnpm db:generate` y `pnpm db:migrate`
+- [x] [TEST] Ejecutar migración inicial y verificar tablas creadas con constraints e índices
 
 **DoD adicional para esta US:**
 - Migración ejecuta limpiamente y se puede insertar/leer un registro de prueba
@@ -95,11 +95,11 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Sincronización exitosa con Android Studio vía `npx cap sync android`
 
 **Subtasks:**
-- [ ] [FRONTEND] Instalar `@capacitor/core`, `@capacitor/cli` y `@capacitor/android`
-- [ ] [FRONTEND] Crear archivo `capacitor.config.ts` con appId `com.koin.finance`
-- [ ] [FRONTEND] Ejecutar `npx cap add android` y verificar proyecto Gradle
-- [ ] [FRONTEND] Instalar `lucide-react` y crear diccionario de iconos SVG reutilizables
-- [ ] [FRONTEND] Configurar variables CSS HSL dinámicas en `index.css` de Tailwind
+- [x] [FRONTEND] Instalar `@capacitor/core`, `@capacitor/cli` y `@capacitor/android`
+- [x] [FRONTEND] Crear archivo `capacitor.config.ts` con appId `com.koin.finance`
+- [x] [FRONTEND] Ejecutar `npx cap add android` y verificar proyecto Gradle
+- [x] [FRONTEND] Instalar `lucide-react` y crear diccionario de iconos SVG reutilizables
+- [x] [FRONTEND] Configurar variables CSS HSL dinámicas en `index.css` de Tailwind
 
 **DoD adicional para esta US:**
 - Compilar la app web y verificar que `npx cap sync android` no arroja advertencias

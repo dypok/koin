@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode (Base) */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 4%;
+    --primary: 160 84% 39%; /* Emerald #10B981 */
+    --primary-foreground: 0 0% 100%;
+    --accent: 38 92% 50%; /* Amber #F59E0B */
+    --accent-foreground: 0 0% 100%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --border: 240 6% 90%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    /* Dark Mode (Default) */
+    --background: 240 10% 4%; /* #09090b */
+    --foreground: 0 0% 98%;
+    --primary: 160 84% 39%; /* Emerald #10B981 */
+    --primary-foreground: 240 10% 4%;
+    --accent: 38 92% 50%; /* Amber #F59E0B */
+    --accent-foreground: 240 10% 4%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+    --border: 240 4% 16%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+  }
+
+  .amoled {
+    /* AMOLED Pure Black */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --border: 0 0% 14%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
+  }
+}
+
+/* Minimalist Flat Layout Directives */
+* {
+  border-color: hsl(var(--border) / 0.4);
+}
+
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbars for clean minimal horizontal lists */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
