@@ -49,9 +49,9 @@ export class AuthRepository {
           name: 'Personal',
           avatarIcon: 'User',
           themeConfig: {
-            preset: 'obsidian',
-            primaryHex: '#F4F4F5',
-            accentHex: '#27272A',
+            preset: 'titanium',
+            primaryHex: '#EDF0F5',
+            accentHex: '#282A32',
             baseMode: 'dark',
           },
           baseCurrency: data.baseCurrency || 'USD',

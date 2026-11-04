@@ -8,7 +8,8 @@ export interface ThemePreset {
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
-  { id: 'obsidian', name: 'Obsidian Titanium', primaryHex: '#F4F4F5', accentHex: '#27272A' },
+  { id: 'titanium', name: 'Titanium Natural', primaryHex: '#EDF0F5', accentHex: '#282A32' },
+  { id: 'obsidian', name: 'Obsidian Negro', primaryHex: '#F4F4F5', accentHex: '#18181B' },
   { id: 'indigo', name: 'Índigo Eléctrico', primaryHex: '#6366F1', accentHex: '#818CF8' },
   { id: 'emerald', name: 'Esmeralda Clásico', primaryHex: '#10B981', accentHex: '#34D399' },
   { id: 'amethyst', name: 'Amatista', primaryHex: '#8B5CF6', accentHex: '#A78BFA' },
