@@ -22,6 +22,11 @@ func Connect(databaseURL string) (*DB, error) {
 		return nil, fmt.Errorf("failed to parse database configuration: %w", err)
 	}
 
+	if config.ConnConfig.RuntimeParams == nil {
+		config.ConnConfig.RuntimeParams = make(map[string]string)
+	}
+	config.ConnConfig.RuntimeParams["search_path"] = "finance,auth,analytics,system,public"
+
 	config.MaxConns = 25
 	config.MinConns = 2
 	config.MaxConnLifetime = 1 * time.Hour
