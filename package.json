@@ -11,7 +11,7 @@
     "test": "turbo run test",
     "db:generate": "turbo run db:generate --filter=@koin/server",
     "db:migrate": "turbo run db:migrate --filter=@koin/server",
-    "start": "node apps/server/dist/index.js"
+    "start": "./apps/server/bin/api"
   },
   "devDependencies": {
     "turbo": "^2.11.10",

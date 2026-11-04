@@ -4,11 +4,12 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
-    "check-types": "tsc --noEmit",
-    "lint": "echo '@koin/server lint OK'",
+    "build": "go build -o bin/api ./cmd/api",
+    "dev": "go run ./cmd/api",
+    "start": "./bin/api",
+    "check-types": "go vet ./...",
+    "lint": "go vet ./...",
+    "test": "go test ./...",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts"
   },
