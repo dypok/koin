@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "build": "go build -o bin/api ./cmd/api",
+    "build": "CGO_ENABLED=0 go build -ldflags=\"-s -w\" -o bin/api ./cmd/api",
     "dev": "go run ./cmd/api",
     "start": "./bin/api",
     "check-types": "go vet ./...",
