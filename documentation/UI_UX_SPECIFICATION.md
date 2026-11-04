@@ -131,27 +131,32 @@ Cada perfil cuenta con su propio menú de personalización dentro de **Ajustes >
 
 ---
 
-## 5. Arquitectura de Pantallas Principales (Diseño Plano y Minimalista)
+## 5. Arquitectura de Pantallas Principales (Escritorio Responsive y Minimalista)
 
-1. **Dashboard (Inicio)**:
-   - **Header plano**: Selector de perfil con icono SVG de usuario, nombre y botón de ajustes.
-   - **Balance Consolidado**: Tipografía grande y limpia sin tarjeta envolvente (`$ 14,820.50`).
-   - **Resumen del Mes (Filas Planas)**:
-     - Ingresos: `+$ 4,200.00` (texto en verde sutil).
-     - Gastos: `-$ 1,850.00` (texto en rojo/naranja sutil).
-     - Ahorro Neto: `+$ 2,350.00`.
-   - **Cuentas (Lista Horizontal Minimalista)**: Fila desplazable con icono SVG de cuenta y saldo, sin tarjetas flotantes con sombras pesadas.
-   - **Últimos Movimientos**: Filas simples separadas por una línea sutil de 1px.
-   - **Botón Flotante Central (+)**: Botón circular con icono SVG `Plus`.
+Koin está concebida como una aplicación **Desktop-First Responsive**: aprovecha al máximo el espacio visual en monitores de escritorio y portátiles (1080p, 1440p, 4K) sin confinarse a columnas estrechas tipo móvil, adaptándose de forma fluida a tablets y teléfonos móviles.
 
-2. **Transacciones (Historial)**:
-   - Barra de búsqueda plana integrada en el encabezado.
-   - Selector horizontal de filtros de texto (Todo / Gastos / Ingresos / Cuentas).
-   - Filas limpias: Icono SVG a la izquierda, título de transacción y fecha en texto regular, monto a la derecha.
+### 5.1. Estructura para Escritorio (`md:` y `lg:`)
+- **Sidebar Izquierdo Fijo (`w-64` a `w-72`)**:
+  - Encabezado con isotipo vectorial (`Coins` SVG) y versión.
+  - Selector plano de perfil con avatar SVG, divisa base y dropdown de conmutación rápida.
+  - Navegación vertical plana (`Inicio`, `Movimientos`, `Presupuestos`, `Cuentas`, `Ajustes`) con indicador de borde activo `border-l-2 border-primary`.
+  - Zona inferior con datos del titular y botón de cierre de sesión (`LogOut`).
+- **Barra Superior de Escritorio**:
+  - Título dinámico de la vista activa y divisa base del perfil en tipografía monospace.
+  - Botón primario de acción rápida: `+ Nuevo Movimiento (<3s)`.
+- **Canvas Central Multi-Columna (`max-w-7xl mx-auto grid grid-cols-12 gap-8`)**:
+  - **Hero Métrico (Ancho Total)**:
+    - Balance total consolidado en tipografía grande (`$ 14,820.50`).
+    - Barra de 3 métricas planas con divisores de 1px (`Ingresos Mes`, `Gastos Mes`, `Ahorro Neto Proyectado`).
+  - **Columna Principal (`lg:col-span-8`)**:
+    - Pestañas planas de filtrado (`Todos`, `Gastos`, `Ingresos`).
+    - Listado plano de transacciones con separadores `divide-y divide-border/30` e iconos vectoriales SVG Lucide.
+  - **Columna Secundaria (`lg:col-span-4`)**:
+    - Bloque de Cuentas Financieras con saldos actuales e iconos específicos.
+    - Bloque de Presupuestos del Mes con líneas de progreso sutiles de 4px (sin tarjetas abultadas).
 
-3. **Presupuestos**:
-   - Filas por categoría con línea de progreso delgada (4px de alto) directamente debajo del nombre y monto restante en texto gris. Cero badges o tarjetas contenedoras.
-
-4. **Estadísticas**:
-   - Gráfico de dona vectorial sin marcos ni bordes innecesarios.
-   - Lista desglosada con porcentaje en texto plano.
+### 5.2. Adaptabilidad para Dispositivos Móviles (`< md`)
+- El sidebar se colapsa automáticamente (`hidden md:flex`).
+- Se activa la barra de navegación inferior compacta (`md:hidden`).
+- El botón de acción rápida se transforma en un botón flotante circular (+) en la esquina inferior derecha.
+- Las columnas de escritorio se reorganizan fluidamente en un flujo vertical apilado de una sola columna.
