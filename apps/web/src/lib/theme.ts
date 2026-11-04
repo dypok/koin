@@ -8,12 +8,12 @@ export interface ThemePreset {
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
-  { id: 'emerald', name: 'Esmeralda', primaryHex: '#10B981', accentHex: '#F59E0B' },
-  { id: 'indigo', name: 'Índigo', primaryHex: '#6366F1', accentHex: '#EC4899' },
-  { id: 'amethyst', name: 'Amatista', primaryHex: '#8B5CF6', accentHex: '#06B6D4' },
-  { id: 'coral', name: 'Coral', primaryHex: '#F43F5E', accentHex: '#3B82F6' },
-  { id: 'amber', name: 'Ámbar', primaryHex: '#F59E0B', accentHex: '#10B981' },
-  { id: 'sapphire', name: 'Zafiro', primaryHex: '#0EA5E9', accentHex: '#F97316' },
+  { id: 'obsidian', name: 'Obsidian Titanium', primaryHex: '#F4F4F5', accentHex: '#27272A' },
+  { id: 'indigo', name: 'Índigo Eléctrico', primaryHex: '#6366F1', accentHex: '#818CF8' },
+  { id: 'emerald', name: 'Esmeralda Clásico', primaryHex: '#10B981', accentHex: '#34D399' },
+  { id: 'amethyst', name: 'Amatista', primaryHex: '#8B5CF6', accentHex: '#A78BFA' },
+  { id: 'coral', name: 'Coral', primaryHex: '#F43F5E', accentHex: '#FB7185' },
+  { id: 'amber', name: 'Ámbar', primaryHex: '#F59E0B', accentHex: '#FBBF24' },
 ];
 
 /**

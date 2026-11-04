@@ -4,57 +4,63 @@
 
 @layer base {
   :root {
-    /* Light Mode (Base) */
+    /* Light Mode */
     --background: 0 0% 100%;
     --foreground: 240 10% 4%;
-    --primary: 160 84% 39%; /* Emerald #10B981 */
-    --primary-foreground: 0 0% 100%;
-    --accent: 38 92% 50%; /* Amber #F59E0B */
-    --accent-foreground: 0 0% 100%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --border: 240 6% 90%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --primary: 240 5.9% 10%; /* Obsidian Black */
+    --primary-foreground: 0 0% 98%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --border: 240 5.9% 90%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 98%;
   }
 
   .dark {
-    /* Dark Mode (Default) */
-    --background: 240 10% 4%; /* #09090b */
-    --foreground: 0 0% 98%;
-    --primary: 160 84% 39%; /* Emerald #10B981 */
-    --primary-foreground: 240 10% 4%;
-    --accent: 38 92% 50%; /* Amber #F59E0B */
-    --accent-foreground: 240 10% 4%;
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
-    --border: 240 4% 16%;
-    --destructive: 0 62% 30%;
+    /* Obsidian Dark Mode (Default) - Linear / Vercel Fintech Aesthetic */
+    --background: 240 10% 3.9%;       /* #09090b Pure Obsidian */
+    --foreground: 0 0% 98%;            /* #fafafa Crisp Off-White */
+    --primary: 0 0% 96%;               /* #f4f4f5 Titanium Silver Primary */
+    --primary-foreground: 240 5.9% 10%;/* #18181b Dark Core */
+    --accent: 240 3.7% 15.9%;          /* #27272a Hairline Slate */
+    --accent-foreground: 0 0% 98%;
+    --muted: 240 3.7% 11%;            /* #1a1a1e Deep Muted */
+    --muted-foreground: 240 5% 65%;   /* #a1a1aa Neutral Muted Text */
+    --border: 240 3.7% 16%;           /* #27272a 1px Border Hairlines */
+    --destructive: 350 89% 60%;        /* #f43f5e Financial Expense Coral */
     --destructive-foreground: 0 0% 98%;
   }
 
   .amoled {
-    /* AMOLED Pure Black */
+    /* AMOLED Pure Black Mode */
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
-    --border: 0 0% 14%;
-    --muted: 0 0% 10%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --border: 0 0% 12%;
+    --muted: 0 0% 8%;
     --muted-foreground: 0 0% 60%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
   }
 }
 
 /* Minimalist Flat Layout Directives */
 * {
-  border-color: hsl(var(--border) / 0.4);
+  border-color: hsl(var(--border) / 0.5);
 }
 
 body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
-/* Hide scrollbars for clean minimal horizontal lists */
+/* Hide scrollbars for clean minimal lists */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
