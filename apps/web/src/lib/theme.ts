@@ -10,26 +10,47 @@ export interface ThemePreset {
 export const THEME_PRESETS: ThemePreset[] = [
   { id: 'gold', name: 'Oro Soberano', primaryHex: '#F59E0B', accentHex: '#FCD34D' },
   { id: 'emerald', name: 'Esmeralda', primaryHex: '#10B981', accentHex: '#34D399' },
-  { id: 'titanium', name: 'Titanium Natural', primaryHex: '#EDF0F5', accentHex: '#282A32' },
-  { id: 'obsidian', name: 'Obsidian Negro', primaryHex: '#F4F4F5', accentHex: '#18181B' },
   { id: 'indigo', name: 'Índigo Eléctrico', primaryHex: '#6366F1', accentHex: '#818CF8' },
+  { id: 'sapphire', name: 'Zafiro Soberano', primaryHex: '#3B82F6', accentHex: '#60A5FA' },
   { id: 'amethyst', name: 'Amatista', primaryHex: '#8B5CF6', accentHex: '#A78BFA' },
   { id: 'coral', name: 'Coral', primaryHex: '#F43F5E', accentHex: '#FB7185' },
   { id: 'amber', name: 'Ámbar Cálido', primaryHex: '#D97706', accentHex: '#F59E0B' },
+  { id: 'titanium', name: 'Titanium Natural', primaryHex: '#EDF0F5', accentHex: '#282A32' },
+  { id: 'obsidian', name: 'Obsidian Negro', primaryHex: '#F4F4F5', accentHex: '#18181B' },
 ];
+
+export interface RGB {
+  r: number;
+  g: number;
+  b: number;
+}
+
+/**
+ * Parses Hex '#RRGGBB' or '#RGB' to numeric RGB object
+ */
+export function hexToRgb(hex: string): RGB {
+  let cleanHex = hex.replace('#', '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map((c) => c + c).join('');
+  }
+  if (cleanHex.length !== 6) {
+    return { r: 245, g: 158, b: 11 }; // Fallback to Gold
+  }
+  return {
+    r: parseInt(cleanHex.substring(0, 2), 16),
+    g: parseInt(cleanHex.substring(2, 4), 16),
+    b: parseInt(cleanHex.substring(4, 6), 16),
+  };
+}
 
 /**
  * Converts Hex string '#RRGGBB' to HSL values 'h s% l%'
  */
 export function hexToHsl(hex: string): string {
-  let cleanHex = hex.replace('#', '');
-  if (cleanHex.length === 3) {
-    cleanHex = cleanHex.split('').map((c) => c + c).join('');
-  }
-
-  const r = parseInt(cleanHex.substring(0, 2), 16) / 255;
-  const g = parseInt(cleanHex.substring(2, 4), 16) / 255;
-  const b = parseInt(cleanHex.substring(4, 6), 16) / 255;
+  const { r: rRaw, g: gRaw, b: bRaw } = hexToRgb(hex);
+  const r = rRaw / 255;
+  const g = gRaw / 255;
+  const b = bRaw / 255;
 
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
@@ -61,21 +82,88 @@ export function hexToHsl(hex: string): string {
 }
 
 /**
+ * Computes WCAG 2.1 relative luminance for an sRGB component
+ */
+export function getRelativeLuminance(r: number, g: number, b: number): number {
+  const [rs, gs, bs] = [r, g, b].map((val) => {
+    const s = val / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+/**
+ * Computes WCAG contrast ratio between two luminance values (1.0 to 21.0)
+ */
+export function getContrastRatio(lum1: number, lum2: number): number {
+  const lighter = Math.max(lum1, lum2);
+  const darker = Math.min(lum1, lum2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+export interface ContrastResult {
+  textColor: '#000000' | '#FFFFFF';
+  ratio: number;
+  ratioFormatted: string;
+  passesAA: boolean;
+  passesAAA: boolean;
+}
+
+/**
+ * Calculates whether text on a given Hex background should be Black or White for WCAG AA compliance (4.5:1 min)
+ */
+export function getAccessibleTextColor(hex: string): ContrastResult {
+  const rgb = hexToRgb(hex);
+  const bgLum = getRelativeLuminance(rgb.r, rgb.g, rgb.b);
+
+  const whiteLum = 1.0;
+  const blackLum = 0.0;
+
+  const ratioWithWhite = getContrastRatio(whiteLum, bgLum);
+  const ratioWithBlack = getContrastRatio(bgLum, blackLum);
+
+  // Pick the one with the highest contrast ratio
+  const useWhite = ratioWithWhite >= ratioWithBlack;
+  const bestRatio = useWhite ? ratioWithWhite : ratioWithBlack;
+
+  return {
+    textColor: useWhite ? '#FFFFFF' : '#000000',
+    ratio: bestRatio,
+    ratioFormatted: `${bestRatio.toFixed(1)}:1`,
+    passesAA: bestRatio >= 4.5,
+    passesAAA: bestRatio >= 7.0,
+  };
+}
+
+/**
  * Dynamically applies a profile's theme configuration to document.documentElement
+ * Injects HSL variables and manages dark/light/amoled modes without React re-render.
  */
 export function applyTheme(config: ThemeConfig): void {
+  if (typeof document === 'undefined') return;
+
   const root = document.documentElement;
 
-  // 1. Set mode classes
+  // 1. Manage mode classes
   root.classList.remove('dark', 'amoled');
   if (config.baseMode === 'dark') {
     root.classList.add('dark');
+  } else if (config.baseMode === 'amoled') {
+    root.classList.add('dark', 'amoled');
   }
 
-  // 2. Set dynamic HSL primary & accent variables
+  // 2. Compute dynamic primary and accent HSL
   const primaryHsl = hexToHsl(config.primaryHex);
   const accentHsl = hexToHsl(config.accentHex);
 
   root.style.setProperty('--primary', primaryHsl);
   root.style.setProperty('--accent', accentHsl);
+
+  // 3. Dynamic WCAG contrast calculation for text on primary
+  const contrast = getAccessibleTextColor(config.primaryHex);
+  if (contrast.textColor === '#FFFFFF') {
+    root.style.setProperty('--primary-foreground', '0 0% 100%');
+  } else {
+    root.style.setProperty('--primary-foreground', '240 10% 4%');
+  }
 }

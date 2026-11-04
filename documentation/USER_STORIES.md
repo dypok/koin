@@ -238,11 +238,11 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Invalidación de cache en TanStack Query para refrescar cuentas y gastos del nuevo perfil
 
 **Subtasks:**
-- [ ] [FRONTEND] Componente `ProfileSwitcherSheet`: hoja inferior deslizante con diseño plano y separadores finos
-- [ ] [FRONTEND] Renderizar cada fila con: icono SVG del perfil, nombre, moneda base y candado SVG si requiere PIN
-- [ ] [FRONTEND] Al seleccionar perfil sin PIN: actualizar `activeProfileId` en Zustand e inyectar tema visual
-- [ ] [FRONTEND] Llamar `queryClient.invalidateQueries()` refrescando el dashboard con los datos del nuevo perfil
-- [ ] [FRONTEND] Al seleccionar perfil con PIN: abrir modal numérico de desbloqueo sin cambiar el contexto previo
+- [x] [FRONTEND] Componente `ProfileSwitcherSheet`: hoja inferior deslizante con diseño plano y separadores finos
+- [x] [FRONTEND] Renderizar cada fila con: icono SVG del perfil, nombre, moneda base y candado SVG si requiere PIN
+- [x] [FRONTEND] Al seleccionar perfil sin PIN: actualizar `activeProfileId` en Zustand e inyectar tema visual
+- [x] [FRONTEND] Llamar `queryClient.invalidateQueries()` refrescando el dashboard con los datos del nuevo perfil
+- [x] [FRONTEND] Al seleccionar perfil con PIN: abrir modal numérico de desbloqueo sin cambiar el contexto previo
 
 **DoD adicional para esta US:**
 - Conmutar de Perfil 1 a Perfil 2 en un teléfono Android real y verificar fluidez absoluta (<100ms)
@@ -265,11 +265,11 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Persistencia de la paleta en `theme_config JSONB` en PostgreSQL
 
 **Subtasks:**
-- [ ] [FRONTEND] Utilidad `themeEngine.ts`: función conversora Hex-to-HSL (`hexToHsl(hex)`)
-- [ ] [FRONTEND] Función de luminancia relativa y ratio de contraste WCAG: calcula texto blanco o negro automáticamente
-- [ ] [FRONTEND] Pantalla "Ajustes > Apariencia": selector de presets, input Hex libre y selector Claro/Oscuro/AMOLED
-- [ ] [FRONTEND] Aplicar cambios en vivo en el DOM: `document.documentElement.style.setProperty('--primary', hsl)`
-- [ ] [BACKEND] Endpoint `PATCH /api/v1/profiles/:id/theme`: persistir objeto `themeConfig` en la base de datos
+- [x] [FRONTEND] Utilidad `themeEngine.ts`: función conversora Hex-to-HSL (`hexToHsl(hex)`)
+- [x] [FRONTEND] Función de luminancia relativa y ratio de contraste WCAG: calcula texto blanco o negro automáticamente
+- [x] [FRONTEND] Pantalla "Ajustes > Apariencia": selector de presets, input Hex libre y selector Claro/Oscuro/AMOLED
+- [x] [FRONTEND] Aplicar cambios en vivo en el DOM: `document.documentElement.style.setProperty('--primary', hsl)`
+- [x] [BACKEND] Endpoint `PATCH /api/v1/profiles/:id/theme`: persistir objeto `themeConfig` en la base de datos
 
 **DoD adicional para esta US:**
 - Probar un color primario claro (amarillo) y oscuro (azul marino); el texto debe cambiar dinámicamente entre negro y blanco garantizando legibilidad
@@ -291,12 +291,12 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Verificación en tiempo constante con `crypto.timingSafeEqual`
 
 **Subtasks:**
-- [ ] [BD] Columnas `has_pin`, `pin_hash`, `failed_attempts`, `locked_until` en tabla `profiles`
-- [ ] [BACKEND] Endpoint `POST /api/v1/profiles/:id/pin`: configurar o actualizar PIN (hasheo con Argon2id)
-- [ ] [BACKEND] Endpoint `POST /api/v1/profiles/:id/unlock`: validar PIN con comparación segura `timingSafeEqual`
-- [ ] [BACKEND] Contador de reintentos fallidos en servidor con bloqueo a los 5 intentos
-- [ ] [FRONTEND] Componente `PinPadModal`: teclado numérico táctil plano en pantalla
-- [ ] [FRONTEND] Respuesta visual de error: vibración háptica suave y mensaje sutil indicando intentos restantes
+- [x] [BD] Columnas `has_pin`, `pin_hash`, `failed_attempts`, `locked_until` en tabla `profiles`
+- [x] [BACKEND] Endpoint `POST /api/v1/profiles/:id/pin`: configurar o actualizar PIN (hasheo con Argon2id)
+- [x] [BACKEND] Endpoint `POST /api/v1/profiles/:id/unlock`: validar PIN con comparación segura `timingSafeEqual`
+- [x] [BACKEND] Contador de reintentos fallidos en servidor con bloqueo a los 5 intentos
+- [x] [FRONTEND] Componente `PinPadModal`: teclado numérico táctil plano en pantalla
+- [x] [FRONTEND] Respuesta visual de error: vibración háptica suave y mensaje sutil indicando intentos restantes
 
 **DoD adicional para esta US:**
 - Bloqueo verificado contra ataques de fuerza bruta en pruebas automatizadas

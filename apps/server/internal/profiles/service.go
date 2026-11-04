@@ -3,8 +3,10 @@ package profiles
 import (
 	"context"
 	"errors"
+	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -17,6 +19,7 @@ var (
 	ErrInvalidPIN         = errors.New("el PIN debe tener entre 4 y 6 dígitos numéricos")
 	ErrPINMismatch        = errors.New("PIN de seguridad incorrecto")
 	ErrPINNotSet          = errors.New("el perfil no tiene PIN configurado")
+	ErrProfileLocked      = errors.New("perfil bloqueado temporalmente por seguridad debido a 5 intentos fallidos consecutivos. Intente de nuevo en 15 minutos")
 )
 
 var pinRegex = regexp.MustCompile(`^\d{4,6}$`)
@@ -114,28 +117,64 @@ func (s *Service) Update(ctx context.Context, userID uuid.UUID, profileID uuid.U
 	return s.repo.UpdateProfile(ctx, userID, profileID, req, pinHash)
 }
 
+func (s *Service) SetPIN(ctx context.Context, userID, profileID uuid.UUID, pin string) error {
+	trimmedPIN := strings.TrimSpace(pin)
+	var pinHash *string
+
+	if trimmedPIN != "" {
+		if !pinRegex.MatchString(trimmedPIN) {
+			return ErrInvalidPIN
+		}
+		hash, err := auth.HashPassword(trimmedPIN)
+		if err != nil {
+			return err
+		}
+		pinHash = &hash
+	}
+
+	return s.repo.SetPIN(ctx, userID, profileID, pinHash)
+}
+
 func (s *Service) Delete(ctx context.Context, userID uuid.UUID, profileID uuid.UUID) error {
 	return s.repo.DeleteProfile(ctx, userID, profileID)
 }
 
+// VerifyPIN verifies the provided PIN against the profile's Argon2id hash with a 5-attempt/15-minute lock.
 func (s *Service) VerifyPIN(ctx context.Context, profileID uuid.UUID, pin string) (bool, error) {
 	trimmedPIN := strings.TrimSpace(pin)
 	if !pinRegex.MatchString(trimmedPIN) {
 		return false, ErrInvalidPIN
 	}
 
-	hash, err := s.repo.GetProfilePINHash(ctx, profileID)
+	sec, err := s.repo.GetProfileSecurity(ctx, profileID)
 	if err != nil {
 		return false, err
 	}
-	if hash == "" {
+	if !sec.HasPIN || sec.PINHash == "" {
 		return false, ErrPINNotSet
 	}
 
-	valid, err := auth.VerifyPassword(trimmedPIN, hash)
-	if err != nil || !valid {
-		return false, ErrPINMismatch
+	// 1. Check if profile is actively locked
+	now := time.Now()
+	if sec.LockedUntil != nil && sec.LockedUntil.After(now) {
+		remainingMinutes := int(time.Until(*sec.LockedUntil).Minutes()) + 1
+		return false, fmt.Errorf("perfil bloqueado por seguridad. Intente de nuevo en %d minutos", remainingMinutes)
 	}
+
+	// 2. Constant-time password verification with Argon2id
+	valid, err := auth.VerifyPassword(trimmedPIN, sec.PINHash)
+	if err != nil || !valid {
+		// Increment failure counter
+		attempts, lockedUntil, _ := s.repo.IncrementFailedAttempts(ctx, profileID)
+		if attempts >= 5 || (lockedUntil != nil && lockedUntil.After(now)) {
+			return false, ErrProfileLocked
+		}
+		remaining := 5 - attempts
+		return false, fmt.Errorf("PIN incorrecto (%d intentos restantes antes de bloqueo)", remaining)
+	}
+
+	// 3. Reset failures on successful PIN match
+	_ = s.repo.ResetFailedAttempts(ctx, profileID)
 
 	return true, nil
 }
