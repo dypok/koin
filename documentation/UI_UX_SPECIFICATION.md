@@ -1,11 +1,31 @@
-# 05. Especificación UI/UX y Flujos de Experiencia
+# 05. Especificación UI/UX y Sistema de Diseño (Koin)
 
-## 1. Filosofía de Diseño: Velocidad Extrema y Cero Fricción
+## 1. Directivas Visuales y Filosofía de Diseño Minimalista
 
-La interfaz de **Koin** está pensada para responder a las frustraciones habituales de las apps financieras tradicionales. Su diseño se rige por:
-- **Operabilidad a una sola mano**: Los controles clave, teclado numérico y botones de guardado se sitúan en la mitad inferior de la pantalla.
-- **Micro-interacciones táctiles (Haptics)**: Respuesta física sutil al pulsar números o confirmar registros en Android.
-- **Perfiles visualmente inconfundibles**: Cambiar de perfil no es solo cambiar un nombre, sino transformar la paleta cromática completa para evitar equivocaciones de contexto.
+Para mantener una interfaz sobria, profesional y de carga ultrarrápida, el diseño de **Koin** se rige por tres directivas visuales estrictas:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                   DIRECTIVAS VISUALES OBLIGATORIAS                     │
+├────────────────────────────────────────────────────────────────────────┤
+│ 1. CERO EMOJIS (100% SVG ICONS):                                       │
+│    Queda prohibido el uso de emojis en cualquier elemento de la UI     │
+│    (avatares, categorías, cuentas, estados). Se utilizan               │
+│    exclusivamente iconos SVG vectoriales limpios (Lucide Icons).       │
+│                                                                        │
+│ 2. CERO BADGES (ANTI-CLUTTER):                                         │
+│    No se utilizan componentes <Badge> ni pastillas de color flotantes. │
+│    Los estados y tipos se comunican mediante jerarquía tipográfica,   │
+│    colores de texto discretos (muted-foreground) o puntos sutiles      │
+│    (status dots de 4px).                                               │
+│                                                                        │
+│ 3. PROHIBICIÓN DE CARDS EN EXCESO (FLAT & DIVIDER DESIGN):             │
+│    Se erradica el antipatrón de "cards dentro de cards" con bordes y  │
+│    sombras pesadas. La interfaz utiliza líneas divisorias sutiles      │
+│    (border-b border-border/40), espaciado en blanco y filas planas     │
+│    (list rows), logrando un aspecto elegante y minimalista.            │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -17,90 +37,69 @@ El objetivo es permitir registrar un gasto habitual en **2 toques** sin pasos in
 sequenceDiagram
     autonumber
     actor User as Usuario
-    participant FAB as Botón Rápido (+)
-    participant Modal as Teclado / Modal Rápido
+    participant FAB as Botón (+)
+    participant Modal as Teclado Rápido Inferior
     participant Store as Finance Store
     participant Haptic as Android Haptic
 
-    User->>FAB: Toca el botón flotante central (+)
+    User->>FAB: Toca el botón flotante (+)
     FAB->>Modal: Despliega hoja inferior con teclado numérico activo
-    User->>Modal: Digita "12.50" (o pulsa chip sugerido $10 + $2)
-    User->>Modal: Toca la categoría "🍔 Comida"
+    User->>Modal: Digita "12.50" (o pulsa chip sugerido +10 +2)
+    User->>Modal: Toca la categoría [SVG: Utensils] "Alimentación"
     Modal->>Store: Guarda transacción automáticamente
-    Store->>Haptic: Emite vibración de confirmación
-    Store->>User: Muestra Toast no intrusivo ("$12.50 en Comida [Deshacer]")
-    Modal->>User: Cierra modal instantáneamente
+    Store->>Haptic: Emite vibración háptica suave
+    Store->>User: Muestra Toast plano no intrusivo ("$12.50 en Alimentación [Deshacer]")
+    Modal->>User: Cierra hoja inferior instantáneamente
 ```
 
-### Wireframe: Modal de Registro Rápido
+### Wireframe: Entrada Rápida (Diseño Plano y Minimalista)
 ```
-┌──────────────────────────────────────────────┐
-│  [Gasto (Activo)]    [Ingreso]   [Transfer]  │
-├──────────────────────────────────────────────┤
-│                                              │
-│                  $ 12.50                     │
-│          Cuenta: [Efectivo ▾]                │
-│                                              │
-├──────────────────────────────────────────────┤
-│  Categorías Frecuentes (1 toque para guardar)│
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐         │
-│  │ 🍔 Comida│ │ 🚗 Trans│ │ 🏠 Hogar│         │
-│  └─────────┘ └─────────┘ └─────────┘         │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐         │
-│  │ 🍿 Ocio │ │ 💊 Salud│ │ ➕ Más  │         │
-│  └─────────┘ └─────────┘ └─────────┘         │
-├──────────────────────────────────────────────┤
-│               TECLADO NUMÉRICO               │
-│         [ 1 ]      [ 2 ]      [ 3 ]          │
-│         [ 4 ]      [ 5 ]      [ 6 ]          │
-│         [ 7 ]      [ 8 ]      [ 9 ]          │
-│         [ . ]      [ 0 ]      [ ⌫ ]          │
-├──────────────────────────────────────────────┤
-│  [ + Agregar Nota / Foto ]      [ GUARDAR ]  │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  Gasto (Activo)         Ingreso         Transferencia        │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│                          $ 12.50                             │
+│                  Cuenta: [SVG: Wallet] Efectivo              │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│  Categorías frecuentes (1 toque para guardar)                │
+│  [SVG: Utensils]     [SVG: Car]          [SVG: Home]         │
+│  Alimentación        Transporte          Vivienda            │
+│                                                              │
+│  [SVG: Film]         [SVG: Activity]     [SVG: Plus]         │
+│  Ocio                Salud               Más categorías      │
+├──────────────────────────────────────────────────────────────┤
+│                       TECLADO TÁCTIL                         │
+│             1                 2                 3            │
+│             4                 5                 6            │
+│             7                 8                 9            │
+│             .                 0                 ⌫            │
+├──────────────────────────────────────────────────────────────┤
+│  [SVG: FileText] Nota opcional                   [ GUARDAR ] │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Flujo Crítico 2: Conmutación de Perfiles
+## 3. Flujo Crítico 2: Conmutador de Perfiles (Diseño Plano de Filas)
 
-El usuario puede alternar entre perfiles en cualquier momento desde la barra superior o el menú lateral.
+En lugar de tarjetas abultadas, los perfiles se muestran en un listado plano con separadores sutiles:
 
-```mermaid
-flowchart TD
-    TapHeader["Usuario toca el Avatar/Perfil actual en el Header"] --> OpenSheet["Se abre la bandeja de perfiles disponibles"]
-    OpenSheet --> SelectProfile["Selecciona 'María' (Perfil con PIN)"]
-    SelectProfile --> HasPin{"¿Tiene PIN configurado?"}
-    
-    HasPin -- Sí --> PinModal["Muestra teclado numérico de seguridad"]
-    PinModal --> ValidatePin{"¿PIN Válido?"}
-    ValidatePin -- No --> ErrorMsg["Vibración de error y reintento"]
-    ValidatePin -- Sí --> SwitchState["Aplica sesión de 'María'"]
-
-    HasPin -- No --> SwitchState
-    
-    SwitchState --> ApplyTheme["Aplica variables CSS del tema de María"]
-    ApplyTheme --> SyncAndroid["Sincroniza Color en Android Status Bar"]
-    SyncAndroid --> RefreshData["Carga cuentas y gastos de María en < 50ms"]
 ```
-
-### Wireframe: Selector de Perfiles (Bottom Sheet)
+┌──────────────────────────────────────────────────────────────┐
+│  Perfiles                                     [SVG: Plus]    │
+├──────────────────────────────────────────────────────────────┤
+│  [SVG: User]  Dylan (Personal) • Activo                      │
+│               Tema Esmeralda • USD                           │
+├──────────────────────────────────────────────────────────────┤
+│  [SVG: Briefcase] Dylan (Freelance)                          │
+│                   Tema Ámbar • USD                           │
+├──────────────────────────────────────────────────────────────┤
+│  [SVG: Heart] María                           [SVG: Lock]    │
+│               Tema Coral • COP • Requiere PIN                │
+└──────────────────────────────────────────────────────────────┘
 ```
-┌──────────────────────────────────────────────┐
-│             Perfiles Disponibles             │
-├──────────────────────────────────────────────┤
-│  (●) 🦁 Dylan (Personal)         [ACTIVO]    │
-│      Tema: Esmeralda • 3 Cuentas             │
-├──────────────────────────────────────────────┤
-│  ( ) 💼 Dylan (Freelance)                    │
-│      Tema: Amarillo Ámbar • 2 Cuentas        │
-├──────────────────────────────────────────────┤
-│  ( ) 🌸 María                   🔒 [Con PIN] │
-│      Tema: Rosa Coral • 4 Cuentas            │
-├──────────────────────────────────────────────┤
-│  [ ➕ Crear Nuevo Perfil ]                   │
-└──────────────────────────────────────────────┘
-```
+*(Nota: Sin badges ni tarjetas elevadas; solo filas limpias con divisores finos y estado tipográfico sobrio).*
 
 ---
 
@@ -109,51 +108,55 @@ flowchart TD
 Cada perfil cuenta con su propio menú de personalización dentro de **Ajustes > Apariencia**.
 
 ```
-┌──────────────────────────────────────────────┐
-│  ← Personalización de Perfil: Dylan          │
-├──────────────────────────────────────────────┤
-│  MODO BASE                                   │
-│  [ Claro ]     [ Oscuro (✓) ]    [ AMOLED ]  │
-├──────────────────────────────────────────────┤
-│  PALETAS PRECONFIGURADAS                     │
-│  [ 🌲 Esmeralda ]  [ 💎 Índigo ] [ 🍇 Púrpura ]│
-│  [ 🌅 Coral ]     [ ⚡ Ámbar ]  [ 🌸 Pastel ] │
-├──────────────────────────────────────────────┤
-│  COLOR PERSONALIZADO (HEX)                   │
-│  Muestra: [   #10B981   ]  [ 🎨 Elegir Color]│
-├──────────────────────────────────────────────┤
-│  VISTA PREVIA EN TIEMPO REAL                 │
-│  ┌────────────────────────────────────────┐  │
-│  │ Balance Total                          │  │
-│  │ $ 4,250.00                             │  │
-│  │ [ + Registrar Gasto ] (Botón dinámico) │  │
-│  └────────────────────────────────────────┘  │
-│  Texto: Contraste verificado (WCAG AAA)      │
-├──────────────────────────────────────────────┤
-│  [ GUARDAR CAMBIOS ]                         │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  ← Apariencia del Perfil: Dylan                              │
+├──────────────────────────────────────────────────────────────┤
+│  MODO DE PANTALLA                                            │
+│  Claro            Oscuro (Activo)            AMOLED (Negro)  │
+├──────────────────────────────────────────────────────────────┤
+│  PALETAS RECOMENDADAS                                        │
+│  (●) Esmeralda   ( ) Índigo   ( ) Amatista                   │
+│  ( ) Coral       ( ) Ámbar    ( ) Zafiro                     │
+├──────────────────────────────────────────────────────────────┤
+│  COLOR PERSONALIZADO                                         │
+│  Hex: #10B981   [ Muestra visual SVG ]                       │
+├──────────────────────────────────────────────────────────────┤
+│  VISTA PREVIA                                                │
+│  Balance Total: $ 4,250.00                                   │
+│  Contraste verificado WCAG AA (Ratio 7.2:1)                  │
+├──────────────────────────────────────────────────────────────┤
+│  [ GUARDAR CAMBIOS ]                                         │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 5. Arquitectura de Pantallas Principales
+## 5. Arquitectura de Pantallas Principales (Escritorio Responsive y Minimalista)
 
-1. **Dashboard (Inicio)**:
-   - Selector de Perfil y Saldo Neto Total consolidado.
-   - Tarjetas de resumen del mes actual: Total Ingresos (verde), Total Gastos (rojo/naranja), Ahorro neto.
-   - Carrusel deslizable de Cuentas (Efectivo, Tarjeta A, Tarjeta B) con saldo individual.
-   - Últimos 5 movimientos con categorías coloreadas.
-   - Botón central flotante de acción rápida (+).
+Koin está concebida como una aplicación **Desktop-First Responsive**: aprovecha al máximo el espacio visual en monitores de escritorio y portátiles (1080p, 1440p, 4K) sin confinarse a columnas estrechas tipo móvil, adaptándose de forma fluida a tablets y teléfonos móviles.
 
-2. **Transacciones (Historial)**:
-   - Barra de búsqueda instantánea por nota o categoría.
-   - Filtros rápidos por: Mes/Año, Tipo (Gasto/Ingreso), Cuenta específica y Categoría.
-   - Agrupación por días: "Hoy", "Ayer", "Lunes 28 Octubre".
+### 5.1. Estructura para Escritorio (`md:` y `lg:`)
+- **Sidebar Izquierdo Fijo (`w-64` a `w-72`)**:
+  - Encabezado con isotipo vectorial (`Coins` SVG) y versión.
+  - Selector plano de perfil con avatar SVG, divisa base y dropdown de conmutación rápida.
+  - Navegación vertical plana (`Inicio`, `Movimientos`, `Presupuestos`, `Cuentas`, `Ajustes`) con indicador de borde activo `border-l-2 border-primary`.
+  - Zona inferior con datos del titular y botón de cierre de sesión (`LogOut`).
+- **Barra Superior de Escritorio**:
+  - Título dinámico de la vista activa y divisa base del perfil en tipografía monospace.
+  - Botón primario de acción rápida: `+ Nuevo Movimiento (<3s)`.
+- **Canvas Central Multi-Columna (`max-w-7xl mx-auto grid grid-cols-12 gap-8`)**:
+  - **Hero Métrico (Ancho Total)**:
+    - Balance total consolidado en tipografía grande (`$ 14,820.50`).
+    - Barra de 3 métricas planas con divisores de 1px (`Ingresos Mes`, `Gastos Mes`, `Ahorro Neto Proyectado`).
+  - **Columna Principal (`lg:col-span-8`)**:
+    - Pestañas planas de filtrado (`Todos`, `Gastos`, `Ingresos`).
+    - Listado plano de transacciones con separadores `divide-y divide-border/30` e iconos vectoriales SVG Lucide.
+  - **Columna Secundaria (`lg:col-span-4`)**:
+    - Bloque de Cuentas Financieras con saldos actuales e iconos específicos.
+    - Bloque de Presupuestos del Mes con líneas de progreso sutiles de 4px (sin tarjetas abultadas).
 
-3. **Presupuestos y Metas**:
-   - Barras de progreso de gasto mensual por categoría.
-   - Indicador visual de alerta: Verde (<70%), Amarillo (70-99%), Rojo (>100% excedido).
-
-4. **Estadísticas y Análisis**:
-   - Gráfico de torta/dona interactivo con porcentaje por categoría.
-   - Gráfico de barras comparativo de Ingresos vs Gastos de los últimos 6 meses.
+### 5.2. Adaptabilidad para Dispositivos Móviles (`< md`)
+- El sidebar se colapsa automáticamente (`hidden md:flex`).
+- Se activa la barra de navegación inferior compacta (`md:hidden`).
+- El botón de acción rápida se transforma en un botón flotante circular (+) en la esquina inferior derecha.
+- Las columnas de escritorio se reorganizan fluidamente en un flujo vertical apilado de una sola columna.

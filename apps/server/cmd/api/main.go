@@ -1,0 +1,192 @@
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"strings"
+	"syscall"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
+
+	"koin/server/internal/auth"
+	"koin/server/internal/config"
+	"koin/server/internal/database"
+	"koin/server/internal/middleware"
+	"koin/server/internal/response"
+)
+
+var startTime = time.Now()
+
+func main() {
+	cfg := config.Load()
+
+	log.Printf("[Koin API] Initializing server on port %s (env: %s)...", cfg.Port, cfg.Environment)
+
+	// Connect to Database
+	db, err := database.Connect(cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("[Koin Database] Connection error: %v", err)
+	}
+	defer db.Close()
+
+	// Initialize Services & Handlers
+	authRepo := auth.NewRepository(db.Pool)
+	authService := auth.NewService(authRepo, cfg.JWTSecret)
+	authHandler := auth.NewHandler(authService, func(r *http.Request) *auth.JWTClaims {
+		return middleware.GetUserClaims(r.Context())
+	})
+
+	// Rate Limiters
+	loginLimiter := middleware.NewIPRateLimiter(5, 15*time.Minute, "Demasiados intentos fallidos. Por seguridad, intente de nuevo en 15 minutos.")
+	registerLimiter := middleware.NewIPRateLimiter(10, 1*time.Hour, "Límite de registros alcanzado. Por favor, intente más tarde.")
+
+	// Chi Router
+	r := chi.NewRouter()
+
+	// Global Middlewares
+	r.Use(chiMiddleware.RequestID)
+	r.Use(chiMiddleware.RealIP)
+	r.Use(chiMiddleware.Logger)
+	r.Use(chiMiddleware.Recoverer)
+
+	// Security Headers Middleware (Helmet equivalent)
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+			w.Header().Set("X-Frame-Options", "DENY")
+			w.Header().Set("X-XSS-Protection", "1; mode=block")
+			w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+			next.ServeHTTP(w, r)
+		})
+	})
+
+	// CORS
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   cfg.CORSAllowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
+	// Health Check
+	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
+		uptime := time.Since(startTime).Seconds()
+		response.JSON(w, http.StatusOK, map[string]any{
+			"status":              "healthy",
+			"timestamp":           time.Now().UTC().Format(time.RFC3339),
+			"service":             "koin-api-go",
+			"uptime":              uptime,
+			"supportedCurrencies": []string{"USD", "COP", "EUR", "MXN", "BRL", "ARS", "CLP", "PEN", "GBP", "CAD"},
+		})
+	})
+
+	// Auth Subrouter
+	r.Route("/api/v1/auth", func(r chi.Router) {
+		r.With(registerLimiter.Middleware).Post("/register", authHandler.Register)
+		r.With(loginLimiter.Middleware).Post("/login", authHandler.Login)
+		r.With(middleware.AuthenticateToken(cfg.JWTSecret)).Get("/me", authHandler.GetMe)
+		r.With(middleware.AuthenticateToken(cfg.JWTSecret)).Post("/logout", authHandler.Logout)
+	})
+
+	// Frontend SPA Serving & Fallback
+	webDistPaths := []string{
+		"../../apps/web/dist",
+		"../web/dist",
+		"./web/dist",
+		"apps/web/dist",
+	}
+
+	var foundDistDir string
+	for _, p := range webDistPaths {
+		if fi, err := os.Stat(p); err == nil && fi.IsDir() {
+			foundDistDir = p
+			break
+		}
+	}
+
+	if foundDistDir != "" {
+		absPath, _ := filepath.Abs(foundDistDir)
+		log.Printf("[Koin Web] Serving static SPA frontend from %s", absPath)
+		fileServer := http.FileServer(http.Dir(foundDistDir))
+
+		spaHandler := func(w http.ResponseWriter, r *http.Request) {
+			// Do not intercept /api/ requests with SPA HTML
+			if strings.HasPrefix(r.URL.Path, "/api") {
+				response.Error(w, http.StatusNotFound, "Ruta de API no encontrada")
+				return
+			}
+
+			// Check if the requested file exists
+			requestedPath := filepath.Join(foundDistDir, filepath.Clean(r.URL.Path))
+			if fi, err := os.Stat(requestedPath); err == nil && !fi.IsDir() {
+				fileServer.ServeHTTP(w, r)
+				return
+			}
+
+			// SPA Fallback: serve index.html
+			http.ServeFile(w, r, filepath.Join(foundDistDir, "index.html"))
+		}
+
+		r.Get("/*", spaHandler)
+		r.Head("/*", spaHandler)
+	} else {
+		log.Println("[Koin Web] Frontend dist folder not found. API mode only.")
+		fallbackHandler := func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, "/api") {
+				response.Error(w, http.StatusNotFound, "Ruta de API no encontrada")
+				return
+			}
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("Koin Go API is running. Build frontend with `pnpm build` to serve web app."))
+		}
+		r.Get("/*", fallbackHandler)
+		r.Head("/*", fallbackHandler)
+	}
+
+	// Server Configuration
+	srv := &http.Server{
+		Addr:         ":" + cfg.Port,
+		Handler:      r,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+
+	// Start server in background
+	serverErrors := make(chan error, 1)
+	go func() {
+		log.Printf("[Koin API] Server listening on http://localhost:%s", cfg.Port)
+		serverErrors <- srv.ListenAndServe()
+	}()
+
+	// Graceful Shutdown
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
+
+	select {
+	case err := <-serverErrors:
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("[Koin API] Fatal server error: %v", err)
+		}
+	case sig := <-shutdown:
+		log.Printf("[Koin API] Received signal %v, gracefully shutting down...", sig)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := srv.Shutdown(ctx); err != nil {
+			_ = srv.Close()
+			log.Fatalf("[Koin API] Could not stop server gracefully: %v", err)
+		}
+		log.Println("[Koin API] Server exited cleanly")
+	}
+}

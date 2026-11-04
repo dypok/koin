@@ -10,7 +10,7 @@ flowchart TD
         WebBrowser["Navegador Web (Desktop / Mobile PWA)"]
         AndroidApp["App Nativa Android (Capacitor WebView)"]
         ReactQuery["TanStack React Query (Cache reactivo & sync)"]
-        ThemeEngine["🎨 Dynamic Theming Engine (CSS HSL Variables)"]
+        ThemeEngine["Dynamic Theming Engine (CSS HSL Variables)"]
     end
 
     subgraph SharedPkg ["Capa Compartida (packages/shared)"]
@@ -69,7 +69,7 @@ graph TD
     Profile1 --> PrivAcc1["Cuenta Privada: Billetera Efectivo"]
     Profile1 --> PrivAcc2["Cuenta Privada: Tarjeta Visa"]
 
-    SharedAcc["💰 Cuenta Compartida: Gastos Comunes Hogar"]
+    SharedAcc["Cuenta Compartida: Gastos Comunes Hogar"]
     Profile2 -->|Propietario / Admin| SharedAcc
     ProfileB -->|Perfil Invitado (Editor)| SharedAcc
 ```

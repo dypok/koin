@@ -35,7 +35,7 @@ erDiagram
         uuid id PK
         uuid user_id FK
         string name
-        string avatar_emoji
+        string avatar_icon
         jsonb theme_config
         string base_currency
         boolean has_pin
@@ -139,7 +139,7 @@ CREATE TABLE profiles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
-    avatar_emoji VARCHAR(10) NOT NULL DEFAULT '👤',
+    avatar_icon VARCHAR(50) NOT NULL DEFAULT 'User', -- Nombre de icono SVG Lucide (Cero Emojis)
     theme_config JSONB NOT NULL DEFAULT '{"preset":"emerald","primaryHex":"#10B981","accentHex":"#F59E0B","baseMode":"dark"}',
     base_currency VARCHAR(3) NOT NULL DEFAULT 'USD',
     has_pin BOOLEAN NOT NULL DEFAULT FALSE,
@@ -263,7 +263,7 @@ export const profiles = pgTable('profiles', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   name: varchar('name', { length: 100 }).notNull(),
-  avatarEmoji: varchar('avatar_emoji', { length: 10 }).default('👤').notNull(),
+  avatarIcon: varchar('avatar_icon', { length: 50 }).default('User').notNull(), // Icono SVG Lucide
   themeConfig: jsonb('theme_config').notNull(),
   baseCurrency: varchar('base_currency', { length: 3 }).default('USD').notNull(),
   hasPin: boolean('has_pin').default(false).notNull(),

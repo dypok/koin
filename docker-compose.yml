@@ -1,0 +1,63 @@
+services:
+  koin-db:
+    image: postgres:16-alpine
+    container_name: koin-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-koin}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - koin_postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/01-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-koin}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - koin-network
+
+  koin-api:
+    build:
+      context: ./apps/server
+      dockerfile: Dockerfile
+    container_name: koin-api
+    restart: unless-stopped
+    depends_on:
+      koin-db:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@koin-db:5432/${POSTGRES_DB:-koin}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_koin_change_in_production_min32}
+      CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://localhost:8080,http://localhost:3000,http://koin-web,http://localhost"
+      NODE_ENV: production
+    ports:
+      - "${API_PORT:-3000}:3000"
+    networks:
+      - koin-network
+
+  koin-web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: koin-web
+    restart: unless-stopped
+    depends_on:
+      - koin-api
+    ports:
+      - "${WEB_PORT:-5173}:80"
+    networks:
+      - koin-network
+
+volumes:
+  koin_postgres_data:
+    name: koin_postgres_data
+
+networks:
+  koin-network:
+    name: koin-network
+    driver: bridge

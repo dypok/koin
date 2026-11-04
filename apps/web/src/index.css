@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 4%;
+    --primary: 38 92% 50%;            /* Sovereign Gold #F59E0B */
+    --primary-foreground: 240 10% 4%; /* Crisp Black on Gold */
+    --accent: 42 96% 56%;             /* Warm Gold Luster #FBBF24 */
+    --accent-foreground: 240 10% 4%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --border: 240 6% 90%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    /* Sovereign Gold Dark Mode (Default) - Sovereign Fintech Luster */
+    --background: 240 10% 4%;          /* #09090b Obsidian Black Background */
+    --foreground: 0 0% 98%;            /* #fafafa Crisp Off-White Text */
+    --primary: 38 92% 50%;            /* #F59E0B Sovereign Gold */
+    --primary-foreground: 240 10% 4%;  /* #09090b Ultra-Crisp Dark on Gold */
+    --accent: 42 96% 56%;             /* #FBBF24 Warm Gold Accent */
+    --accent-foreground: 240 10% 4%;
+    --muted: 240 4% 15%;              /* #1e1e24 Deep Surface */
+    --muted-foreground: 240 5% 65%;    /* #a1a1aa Muted Labels */
+    --border: 240 4% 16%;              /* #23232a 1px Border Hairlines */
+    --destructive: 350 89% 60%;        /* #f43f5e Financial Expense Coral */
+    --destructive-foreground: 0 0% 98%;
+  }
+
+  .amoled {
+    /* AMOLED Pure Black Mode */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --primary: 38 92% 50%;
+    --primary-foreground: 0 0% 0%;
+    --border: 0 0% 12%;
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 60%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+  }
+}
+
+/* Minimalist Flat Layout Directives */
+* {
+  border-color: hsl(var(--border) / 0.5);
+}
+
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Hide scrollbars for clean minimal lists */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

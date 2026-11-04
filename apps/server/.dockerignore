@@ -1,0 +1,7 @@
+node_modules
+!bin/api
+.turbo
+dist
+*.log
+.git
+.env
