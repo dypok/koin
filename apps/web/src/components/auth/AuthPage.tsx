@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Layers, Globe, Zap } from 'lucide-react';
+import { ShieldCheck, Globe, Users } from 'lucide-react';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 import { KoinLogo } from '../common/KoinLogo';
@@ -8,105 +8,77 @@ export function AuthPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row">
-      {/* Left Column: Brand & Architecture Highlights (Desktop Only) */}
-      <div className="hidden md:flex md:w-1/2 lg:w-5/12 bg-muted/20 border-r border-border/40 p-8 lg:p-12 flex-col justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <KoinLogo size={40} />
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Koin</h1>
-              <p className="text-xs text-muted-foreground">Finanzas Personales Soberanas</p>
-            </div>
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between items-center p-4 sm:p-6 md:p-10 relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background">
+      {/* Decorative Golden Ambient Aura */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10" />
+
+      {/* Main Centered Content */}
+      <main className="w-full max-w-lg flex flex-col items-center my-auto">
+        {/* Unified Brand Header */}
+        <header className="flex flex-col items-center text-center mb-6">
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+            <KoinLogo size={52} className="relative drop-shadow-md" />
           </div>
+          <h1 className="text-2xl font-bold tracking-tight mt-3 text-foreground">Koin</h1>
+          <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+            Finanzas Personales Soberanas · Tu patrimonio bajo tu control total
+          </p>
+        </header>
 
-          <div className="mt-16 space-y-8">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                Control financiero de alta velocidad en escritorio y móvil.
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                Diseñado para profesionales que exigen precisión matemática, cero distracciones y registro en menos de 3 segundos.
-              </p>
-            </div>
-
-            <div className="space-y-6 pt-4">
-              <div className="flex items-start gap-3.5">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                  <Layers className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold">Multi-Perfiles Aislados</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Gestiona finanzas personales, proyectos freelance o presupuestos familiares de forma independiente con conmutación en un clic.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3.5">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                  <Globe className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold">Motor Multidivisa Soberano</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Cuentas y transacciones en USD, EUR, COP, MXN o ARS con normalización matemática exacta en base de datos.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3.5">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold">Seguridad Criptográfica</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Hashing Argon2id, comparaciones con mitigación de timing attacks y protección contra fuerza bruta por IP.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3.5">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold">Diseño Plano &amp; Cero Emojis</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Iconografía 100% vectorial SVG Lucide, sin badges abultados ni cards innecesarias.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-8 border-t border-border/30 text-xs text-muted-foreground flex items-center justify-between font-mono">
-          <span>Koin v1.0.0</span>
-          <span>Heroku &amp; Postgres</span>
-        </div>
-      </div>
-
-      {/* Right Column: Interactive Form (Responsive for Mobile and Desktop) */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 md:p-12 lg:p-16">
-        {/* Mobile Header (Hidden on Desktop) */}
-        <div className="md:hidden flex items-center gap-3 border-b border-border/40 pb-5 mb-8 w-full max-w-md">
-          <KoinLogo size={36} />
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Koin</h1>
-            <p className="text-xs text-muted-foreground">Finanzas Personales Soberanas</p>
-          </div>
-        </div>
-
-        <div className="w-full max-w-md">
+        {/* Auth Form Card */}
+        <div className="w-full bg-card/60 backdrop-blur-md border border-border/60 p-6 sm:p-8 rounded-2xl shadow-2xl">
           {mode === 'login' ? (
             <LoginForm onToggleRegister={() => setMode('register')} />
           ) : (
             <RegisterForm onToggleLogin={() => setMode('login')} />
           )}
         </div>
-      </div>
+
+        {/* Financial Value Pillars (Relevant product benefits, zero tech jargon) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full mt-6">
+          <div className="p-3 rounded-xl bg-card/30 border border-border/40 flex items-center sm:flex-col sm:items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold text-foreground">Soberanía Total</h3>
+              <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
+                Tus datos patrimoniales y balances bajo tu estricta privacidad.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-card/30 border border-border/40 flex items-center sm:flex-col sm:items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Globe className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold text-foreground">Multi-Divisa Real</h3>
+              <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
+                Cuentas en USD, EUR y monedas locales sincronizadas sin fricción.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-card/30 border border-border/40 flex items-center sm:flex-col sm:items-start gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold text-foreground">Cuentas Compartidas</h3>
+              <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
+                Presupuestos colaborativos en familia con límites y roles claros.
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Clean Minimal Footer */}
+      <footer className="w-full text-center text-xs text-muted-foreground/60 py-4 mt-6">
+        <p>Koin · Tu dinero, tus decisiones, tu soberanía financiera.</p>
+      </footer>
     </div>
   );
 }
