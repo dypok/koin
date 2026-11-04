@@ -19,6 +19,7 @@ import (
 	"koin/server/internal/config"
 	"koin/server/internal/database"
 	"koin/server/internal/middleware"
+	"koin/server/internal/profiles"
 	"koin/server/internal/response"
 )
 
@@ -40,6 +41,12 @@ func main() {
 	authRepo := auth.NewRepository(db.Pool)
 	authService := auth.NewService(authRepo, cfg.JWTSecret)
 	authHandler := auth.NewHandler(authService, func(r *http.Request) *auth.JWTClaims {
+		return middleware.GetUserClaims(r.Context())
+	})
+
+	profileRepo := profiles.NewRepository(db.Pool)
+	profileService := profiles.NewService(profileRepo)
+	profileHandler := profiles.NewHandler(profileService, func(r *http.Request) *auth.JWTClaims {
 		return middleware.GetUserClaims(r.Context())
 	})
 
@@ -95,6 +102,17 @@ func main() {
 		r.With(loginLimiter.Middleware).Post("/login", authHandler.Login)
 		r.With(middleware.AuthenticateToken(cfg.JWTSecret)).Get("/me", authHandler.GetMe)
 		r.With(middleware.AuthenticateToken(cfg.JWTSecret)).Post("/logout", authHandler.Logout)
+	})
+
+	// Profiles Subrouter (PROF-01 to PROF-04)
+	r.Route("/api/v1/profiles", func(r chi.Router) {
+		r.Use(middleware.AuthenticateToken(cfg.JWTSecret))
+		r.Get("/", profileHandler.List)
+		r.Post("/", profileHandler.Create)
+		r.Get("/{id}", profileHandler.GetByID)
+		r.Patch("/{id}", profileHandler.Update)
+		r.Delete("/{id}", profileHandler.Delete)
+		r.Post("/{id}/verify-pin", profileHandler.VerifyPIN)
 	})
 
 	// Frontend SPA Serving & Fallback

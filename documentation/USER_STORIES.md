@@ -210,12 +210,12 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Al crear el perfil, se generan automáticamente sus cuentas y categorías privadas
 
 **Subtasks:**
-- [ ] [BD] Migración Drizzle de tabla `profiles` con columna `avatar_icon VARCHAR(50) NOT NULL DEFAULT 'User'`
-- [ ] [BACKEND] Endpoint `GET /api/v1/profiles`: listar perfiles del usuario en sesión
-- [ ] [BACKEND] Endpoint `POST /api/v1/profiles`: crear perfil + cuentas/categorías base en transacción PostgreSQL
-- [ ] [BACKEND] Endpoint `PATCH /api/v1/profiles/:id`: editar nombre, icono SVG o moneda base
-- [ ] [FRONTEND] Vista de perfiles: lista plana con divisores sutiles de 1px (sin cards flotantes)
-- [ ] [FRONTEND] Modal de creación de perfil: selector visual de iconos SVG Lucide y selector de moneda ISO
+- [x] [BD] Migración Drizzle de tabla `profiles` con columna `avatar_icon VARCHAR(50) NOT NULL DEFAULT 'User'`
+- [x] [BACKEND] Endpoint `GET /api/v1/profiles`: listar perfiles del usuario en sesión
+- [x] [BACKEND] Endpoint `POST /api/v1/profiles`: crear perfil + cuentas/categorías base en transacción PostgreSQL
+- [x] [BACKEND] Endpoint `PATCH /api/v1/profiles/:id`: editar nombre, icono SVG o moneda base
+- [x] [FRONTEND] Vista de perfiles: lista plana con divisores sutiles de 1px (sin cards flotantes)
+- [x] [FRONTEND] Modal de creación de perfil: selector visual de iconos SVG Lucide y selector de moneda ISO
 
 **DoD adicional para esta US:**
 - Confirmar que ningún perfil nuevo tiene acceso a las cuentas de los otros perfiles existentes

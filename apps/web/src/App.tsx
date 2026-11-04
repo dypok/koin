@@ -17,15 +17,24 @@ import {
   Building2,
   Tag,
   TrendingUp,
+  Lock,
+  Check,
+  X,
 } from 'lucide-react';
+import { ProfileDTO } from '@koin/shared';
 import { useAuthStore } from './stores/authStore';
 import { AuthPage } from './components/auth/AuthPage';
 import { KoinIcon } from './lib/icons';
 import { KoinLogo } from './components/common/KoinLogo';
+import { ProfileModal } from './components/profiles/ProfileModal';
+import { ProfilePinModal } from './components/profiles/ProfilePinModal';
+import { ProfileManagerView } from './components/profiles/ProfileManagerView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'history' | 'budgets' | 'accounts' | 'settings'>('home');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isCreateProfileModalOpen, setIsCreateProfileModalOpen] = useState(false);
+  const [pinModalProfile, setPinModalProfile] = useState<ProfileDTO | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'expense' | 'income'>('all');
 
   const {
@@ -38,6 +47,16 @@ export default function App() {
     setActiveProfile,
     logout,
   } = useAuthStore();
+
+  const handleSelectProfile = (p: ProfileDTO) => {
+    setIsProfileMenuOpen(false);
+    if (p.id === activeProfile?.id) return;
+    if (p.hasPin) {
+      setPinModalProfile(p);
+    } else {
+      setActiveProfile(p);
+    }
+  };
 
   useEffect(() => {
     checkSession();
@@ -99,30 +118,53 @@ export default function App() {
             {/* Profile Dropdown */}
             {isProfileMenuOpen && (
               <div className="absolute top-14 left-0 w-full bg-background border border-border/60 shadow-xl py-1 z-30 divide-y divide-border/30">
-                <div className="px-3 py-2 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-                  Perfiles ({profiles.length})
-                </div>
-                {profiles.map((p) => (
+                <div className="px-3 py-2 text-[10px] uppercase font-bold tracking-wider text-muted-foreground flex items-center justify-between">
+                  <span>Perfiles ({profiles.length})</span>
                   <button
-                    key={p.id}
                     onClick={() => {
-                      setActiveProfile(p);
                       setIsProfileMenuOpen(false);
+                      setIsCreateProfileModalOpen(true);
                     }}
-                    className={`w-full px-3 py-2 flex items-center justify-between text-left hover:bg-muted/40 transition-colors ${
-                      p.id === profile?.id ? 'bg-primary/10 text-primary' : 'text-foreground'
-                    }`}
+                    className="text-primary hover:underline flex items-center gap-1 font-semibold text-[10px]"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <KoinIcon name={p.avatarIcon} className="w-4 h-4" />
-                      <div>
-                        <p className="text-xs font-medium">{p.name}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono">{p.baseCurrency}</p>
-                      </div>
-                    </div>
-                    {p.id === profile?.id && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                    <Plus className="w-3 h-3" />
+                    <span>Nuevo</span>
                   </button>
-                ))}
+                </div>
+                <div className="max-h-56 overflow-y-auto divide-y divide-border/20">
+                  {profiles.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => handleSelectProfile(p)}
+                      className={`w-full px-3 py-2 flex items-center justify-between text-left hover:bg-muted/40 transition-colors ${
+                        p.id === profile?.id ? 'bg-primary/10 text-primary' : 'text-foreground'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <KoinIcon name={p.avatarIcon} className="w-4 h-4" />
+                        <div>
+                          <div className="flex items-center gap-1">
+                            <p className="text-xs font-medium">{p.name}</p>
+                            {p.hasPin && <Lock className="w-2.5 h-2.5 text-muted-foreground" />}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground font-mono">{p.baseCurrency}</p>
+                        </div>
+                      </div>
+                      {p.id === profile?.id && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                    </button>
+                  ))}
+                </div>
+                <div className="p-1.5 bg-muted/10">
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      setActiveTab('settings');
+                    }}
+                    className="w-full py-1.5 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors text-center font-medium block"
+                  >
+                    Gestionar Perfiles
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -214,7 +256,10 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
         {/* Mobile Header (Hidden on md+) */}
         <header className="md:hidden p-4 flex items-center justify-between border-b border-border/40 bg-background/80 backdrop-blur sticky top-0 z-20">
-          <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+            className="flex items-center gap-3 text-left focus:outline-none"
+          >
             <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center">
               <KoinIcon name={profile?.avatarIcon || 'User'} className="w-4 h-4" />
             </div>
@@ -222,15 +267,81 @@ export default function App() {
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-semibold">{profile?.name}</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
               </div>
               <p className="text-[10px] text-muted-foreground font-mono">{profile?.baseCurrency} · Moneda Base</p>
             </div>
-          </div>
+          </button>
 
           <button onClick={logout} className="p-2 text-muted-foreground hover:text-destructive">
             <LogOut className="w-4 h-4" />
           </button>
         </header>
+
+        {/* Mobile Profile Switcher Sheet (md:hidden) */}
+        {isProfileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-40 bg-background/80 backdrop-blur-sm flex flex-col justify-end">
+            <div className="bg-background border-t border-border/60 p-4 space-y-3 animate-in slide-in-from-bottom duration-200">
+              <div className="flex items-center justify-between pb-2 border-b border-border/30">
+                <span className="text-xs uppercase font-bold tracking-wider text-muted-foreground">
+                  Conmutar Perfil ({profiles.length})
+                </span>
+                <button
+                  onClick={() => setIsProfileMenuOpen(false)}
+                  className="p-1 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-1 divide-y divide-border/20 max-h-60 overflow-y-auto">
+                {profiles.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => handleSelectProfile(p)}
+                    className={`w-full py-2.5 px-3 flex items-center justify-between text-left ${
+                      p.id === profile?.id ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <KoinIcon name={p.avatarIcon} className="w-4 h-4" />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs">{p.name}</span>
+                          {p.hasPin && <Lock className="w-3 h-3 text-muted-foreground" />}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground font-mono">{p.baseCurrency}</span>
+                      </div>
+                    </div>
+                    {p.id === profile?.id && <Check className="w-4 h-4 text-primary" />}
+                  </button>
+                ))}
+              </div>
+
+              <div className="pt-2 border-t border-border/30 flex gap-2">
+                <button
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    setIsCreateProfileModalOpen(true);
+                  }}
+                  className="flex-1 py-2 bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Nuevo Perfil</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    setActiveTab('settings');
+                  }}
+                  className="py-2 px-3 border border-border/50 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                >
+                  Gestionar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Desktop Top Header Bar */}
         <header className="hidden md:flex items-center justify-between px-8 py-4 border-b border-border/40 bg-background/60 backdrop-blur sticky top-0 z-10">
@@ -262,8 +373,12 @@ export default function App() {
 
         {/* Main Content Area */}
         <main className="p-4 md:p-8 max-w-6xl w-full mx-auto space-y-8 flex-1">
-          {/* Section 1: Financial Balance & Metrics (Flat, No Card Clutter) */}
-          <section className="space-y-4">
+          {activeTab === 'settings' ? (
+            <ProfileManagerView />
+          ) : activeTab === 'home' ? (
+            <>
+              {/* Section 1: Financial Balance & Metrics (Flat, No Card Clutter) */}
+              <section className="space-y-4">
             <div>
               <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                 Balance Total Consolidado
@@ -446,6 +561,22 @@ export default function App() {
               </div>
             </div>
           </div>
+        </>
+          ) : (
+            <div className="py-20 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-muted/20 mx-auto flex items-center justify-center text-muted-foreground">
+                <Layers className="w-6 h-6 opacity-60" />
+              </div>
+              <h3 className="text-sm font-semibold">
+                {activeTab === 'history' && 'Historial de Transacciones'}
+                {activeTab === 'budgets' && 'Presupuestos por Categoría'}
+                {activeTab === 'accounts' && 'Cuentas Financieras'}
+              </h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                Este módulo financiero opera sobre el libro mayor segregado del perfil activo ({profile?.name}).
+              </p>
+            </div>
+          )}
         </main>
 
         {/* Mobile Floating Action Button (Only on mobile) */}
@@ -509,6 +640,28 @@ export default function App() {
           </button>
         </nav>
       </div>
+
+      {/* Global Profile Creation Modal */}
+      <ProfileModal
+        isOpen={isCreateProfileModalOpen}
+        onClose={() => setIsCreateProfileModalOpen(false)}
+        onSuccess={(newProfile) => {
+          setActiveProfile(newProfile);
+        }}
+      />
+
+      {/* Global Profile PIN Unlock Modal */}
+      <ProfilePinModal
+        isOpen={!!pinModalProfile}
+        profile={pinModalProfile}
+        onClose={() => setPinModalProfile(null)}
+        onSuccess={() => {
+          if (pinModalProfile) {
+            setActiveProfile(pinModalProfile);
+            setPinModalProfile(null);
+          }
+        }}
+      />
     </div>
   );
 }

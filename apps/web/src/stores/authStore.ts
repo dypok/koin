@@ -14,6 +14,27 @@ interface AuthState {
 
   setSession: (user: UserDTO, profiles: ProfileDTO[], token: string, activeProfile?: ProfileDTO | null) => void;
   setActiveProfile: (profile: ProfileDTO) => void;
+  fetchProfiles: () => Promise<void>;
+  createProfile: (input: {
+    name: string;
+    avatarIcon?: string;
+    baseCurrency?: string;
+    themeConfig?: any;
+    pin?: string;
+    useBiometrics?: boolean;
+  }) => Promise<ProfileDTO>;
+  updateProfile: (
+    id: string,
+    input: {
+      name?: string;
+      avatarIcon?: string;
+      baseCurrency?: string;
+      themeConfig?: any;
+      pin?: string;
+      useBiometrics?: boolean;
+    }
+  ) => Promise<ProfileDTO>;
+  deleteProfile: (id: string) => Promise<void>;
   logout: () => void;
   checkSession: () => Promise<void>;
   clearError: () => void;
@@ -50,6 +71,83 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     applyTheme(profile.themeConfig);
     localStorage.setItem('koin_active_profile_id', profile.id);
     set({ activeProfile: profile });
+  },
+
+  fetchProfiles: async () => {
+    try {
+      const response = await apiRequest<{ data: ProfileDTO[] }>('/profiles');
+      const profiles = response.data || [];
+      const currentActive = get().activeProfile;
+      const matched = profiles.find((p) => p.id === currentActive?.id) || profiles[0] || null;
+      if (matched) {
+        applyTheme(matched.themeConfig);
+      }
+      set({ profiles, activeProfile: matched });
+    } catch (err: any) {
+      set({ error: err.message || 'Error al obtener perfiles' });
+    }
+  },
+
+  createProfile: async (input) => {
+    try {
+      const response = await apiRequest<{ data: ProfileDTO; message: string }>('/profiles', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      });
+      const created = response.data;
+      const currentProfiles = get().profiles;
+      const updatedProfiles = [...currentProfiles, created];
+      set({ profiles: updatedProfiles });
+      return created;
+    } catch (err: any) {
+      set({ error: err.message || 'Error al crear perfil' });
+      throw err;
+    }
+  },
+
+  updateProfile: async (id, input) => {
+    try {
+      const response = await apiRequest<{ data: ProfileDTO; message: string }>(`/profiles/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+      });
+      const updated = response.data;
+      const currentProfiles = get().profiles;
+      const updatedProfiles = currentProfiles.map((p) => (p.id === id ? updated : p));
+      
+      const currentActive = get().activeProfile;
+      let activeProfile = currentActive;
+      if (currentActive?.id === id) {
+        activeProfile = updated;
+        applyTheme(updated.themeConfig);
+      }
+      set({ profiles: updatedProfiles, activeProfile });
+      return updated;
+    } catch (err: any) {
+      set({ error: err.message || 'Error al actualizar perfil' });
+      throw err;
+    }
+  },
+
+  deleteProfile: async (id) => {
+    try {
+      await apiRequest(`/profiles/${id}`, { method: 'DELETE' });
+      const currentProfiles = get().profiles;
+      const filtered = currentProfiles.filter((p) => p.id !== id);
+      const currentActive = get().activeProfile;
+      let nextActive = currentActive;
+      if (currentActive?.id === id) {
+        nextActive = filtered[0] || null;
+        if (nextActive) {
+          applyTheme(nextActive.themeConfig);
+          localStorage.setItem('koin_active_profile_id', nextActive.id);
+        }
+      }
+      set({ profiles: filtered, activeProfile: nextActive });
+    } catch (err: any) {
+      set({ error: err.message || 'Error al eliminar perfil' });
+      throw err;
+    }
   },
 
   logout: () => {
