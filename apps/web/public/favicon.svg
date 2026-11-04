@@ -1,35 +1,75 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <linearGradient id="favGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="emFaceFav" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#34D399" />
-      <stop offset="100%" stop-color="#059669" />
+      <stop offset="45%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="emEdgeFav" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#064E3B" />
     </linearGradient>
   </defs>
-  <!-- Background Disc / Shield for crisp contrast in browser tabs -->
+
+  <!-- Background squircle for contrast in browser tabs -->
   <rect width="100" height="100" rx="24" fill="#09090b" />
-  
-  <!-- Coins forming K -->
-  <!-- Left Column -->
-  <circle cx="28" cy="25" r="13" fill="url(#favGrad)" stroke="#09090b" stroke-width="2" />
-  <circle cx="28" cy="25" r="8" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" />
-  
-  <circle cx="28" cy="75" r="13" fill="url(#favGrad)" stroke="#09090b" stroke-width="2" />
-  <circle cx="28" cy="75" r="8" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" />
 
-  <circle cx="28" cy="50" r="13" fill="url(#favGrad)" stroke="#09090b" stroke-width="2" />
-  <circle cx="28" cy="50" r="8" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" />
+  <!-- Left Pillar: 5 Coins -->
+  <g>
+    <path d="M 15,80 A 11,6.5 0 0,0 37,80 v 3.2 A 11,6.5 0 0,1 15,83.2 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="26" cy="80" rx="11" ry="6.5" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="26" cy="80" rx="7.5" ry="4.5" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" />
+  </g>
+  <g>
+    <path d="M 15,65 A 11,6.5 0 0,0 37,65 v 3.2 A 11,6.5 0 0,1 15,68.2 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="26" cy="65" rx="11" ry="6.5" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="26" cy="65" rx="7.5" ry="4.5" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" />
+  </g>
+  <g>
+    <path d="M 15,50 A 11,6.5 0 0,0 37,50 v 3.2 A 11,6.5 0 0,1 15,53.2 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="26" cy="50" rx="11" ry="6.5" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="26" cy="50" rx="7.5" ry="4.5" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" />
+  </g>
+  <g>
+    <path d="M 15,35 A 11,6.5 0 0,0 37,35 v 3.2 A 11,6.5 0 0,1 15,38.2 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="26" cy="35" rx="11" ry="6.5" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="26" cy="35" rx="7.5" ry="4.5" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" />
+  </g>
+  <g>
+    <path d="M 15,20 A 11,6.5 0 0,0 37,20 v 3.2 A 11,6.5 0 0,1 15,23.2 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="26" cy="20" rx="11" ry="6.5" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="26" cy="20" rx="7.5" ry="4.5" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" />
+  </g>
 
-  <!-- Upper Branch -->
-  <circle cx="51" cy="38" r="13" fill="url(#favGrad)" stroke="#09090b" stroke-width="2" />
-  <circle cx="51" cy="38" r="8" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" />
+  <!-- Lower Branch: 3 Coins -->
+  <g>
+    <path d="M 33.5,60 A 10.5,6.2 0 0,0 54.5,60 v 3 A 10.5,6.2 0 0,1 33.5,63 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="44" cy="60" rx="10.5" ry="6.2" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+  </g>
+  <g>
+    <path d="M 50.5,71 A 10.5,6.2 0 0,0 71.5,71 v 3 A 10.5,6.2 0 0,1 50.5,74 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="61" cy="71" rx="10.5" ry="6.2" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+  </g>
+  <g>
+    <path d="M 67.5,82 A 10.5,6.2 0 0,0 88.5,82 v 3 A 10.5,6.2 0 0,1 67.5,85 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="78" cy="82" rx="10.5" ry="6.2" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+  </g>
 
-  <circle cx="72" cy="23" r="13" fill="url(#favGrad)" stroke="#09090b" stroke-width="2" />
-  <circle cx="72" cy="23" r="8" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" />
-
-  <!-- Lower Branch -->
-  <circle cx="51" cy="62" r="13" fill="url(#favGrad)" stroke="#09090b" stroke-width="2" />
-  <circle cx="51" cy="62" r="8" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" />
-
-  <circle cx="72" cy="77" r="13" fill="url(#favGrad)" stroke="#09090b" stroke-width="2" />
-  <circle cx="72" cy="77" r="8" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" />
+  <!-- Upper Branch: 4 Coins -->
+  <g>
+    <path d="M 31.5,43 A 10.5,6.2 0 0,0 52.5,43 v 3 A 10.5,6.2 0 0,1 31.5,46 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="42" cy="43" rx="10.5" ry="6.2" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+  </g>
+  <g>
+    <path d="M 45.5,33 A 10.5,6.2 0 0,0 66.5,33 v 3 A 10.5,6.2 0 0,1 45.5,36 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="56" cy="33" rx="10.5" ry="6.2" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+  </g>
+  <g>
+    <path d="M 59.5,23 A 10.5,6.2 0 0,0 80.5,23 v 3 A 10.5,6.2 0 0,1 59.5,26 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="70" cy="23" rx="10.5" ry="6.2" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+  </g>
+  <g>
+    <path d="M 73.5,13 A 10.5,6.2 0 0,0 94.5,13 v 3 A 10.5,6.2 0 0,1 73.5,16 Z" fill="url(#emEdgeFav)" stroke="#09090b" stroke-width="0.8" />
+    <ellipse cx="84" cy="13" rx="10.5" ry="6.2" fill="url(#emFaceFav)" stroke="#09090b" stroke-width="0.8" />
+  </g>
 </svg>
