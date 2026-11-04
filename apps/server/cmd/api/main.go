@@ -113,6 +113,8 @@ func main() {
 		r.Patch("/{id}", profileHandler.Update)
 		r.Patch("/{id}/theme", profileHandler.UpdateTheme)
 		r.Delete("/{id}", profileHandler.Delete)
+		r.Post("/{id}/pin", profileHandler.SetPIN)
+		r.Post("/{id}/unlock", profileHandler.VerifyPIN)
 		r.Post("/{id}/verify-pin", profileHandler.VerifyPIN)
 	})
 

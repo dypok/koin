@@ -291,12 +291,12 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Verificación en tiempo constante con `crypto.timingSafeEqual`
 
 **Subtasks:**
-- [ ] [BD] Columnas `has_pin`, `pin_hash`, `failed_attempts`, `locked_until` en tabla `profiles`
-- [ ] [BACKEND] Endpoint `POST /api/v1/profiles/:id/pin`: configurar o actualizar PIN (hasheo con Argon2id)
-- [ ] [BACKEND] Endpoint `POST /api/v1/profiles/:id/unlock`: validar PIN con comparación segura `timingSafeEqual`
-- [ ] [BACKEND] Contador de reintentos fallidos en servidor con bloqueo a los 5 intentos
-- [ ] [FRONTEND] Componente `PinPadModal`: teclado numérico táctil plano en pantalla
-- [ ] [FRONTEND] Respuesta visual de error: vibración háptica suave y mensaje sutil indicando intentos restantes
+- [x] [BD] Columnas `has_pin`, `pin_hash`, `failed_attempts`, `locked_until` en tabla `profiles`
+- [x] [BACKEND] Endpoint `POST /api/v1/profiles/:id/pin`: configurar o actualizar PIN (hasheo con Argon2id)
+- [x] [BACKEND] Endpoint `POST /api/v1/profiles/:id/unlock`: validar PIN con comparación segura `timingSafeEqual`
+- [x] [BACKEND] Contador de reintentos fallidos en servidor con bloqueo a los 5 intentos
+- [x] [FRONTEND] Componente `PinPadModal`: teclado numérico táctil plano en pantalla
+- [x] [FRONTEND] Respuesta visual de error: vibración háptica suave y mensaje sutil indicando intentos restantes
 
 **DoD adicional para esta US:**
 - Bloqueo verificado contra ataques de fuerza bruta en pruebas automatizadas

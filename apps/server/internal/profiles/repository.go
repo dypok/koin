@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -18,6 +19,13 @@ var (
 	ErrSingleProfile   = errors.New("no es posible eliminar el único perfil activo de la cuenta")
 )
 
+type ProfileSecurityInfo struct {
+	HasPIN         bool
+	PINHash        string
+	FailedAttempts int
+	LockedUntil    *time.Time
+}
+
 type Repository struct {
 	pool *pgxpool.Pool
 }
@@ -28,7 +36,7 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 
 func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID) ([]models.Profile, error) {
 	query := `
-		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, use_biometrics, created_at, updated_at
+		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, failed_attempts, locked_until, use_biometrics, created_at, updated_at
 		FROM auth.profiles
 		WHERE user_id = $1
 		ORDER BY created_at ASC
@@ -50,6 +58,8 @@ func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID)
 			&p.ThemeConfig,
 			&p.BaseCurrency,
 			&p.HasPin,
+			&p.FailedAttempts,
+			&p.LockedUntil,
 			&p.UseBiometrics,
 			&p.CreatedAt,
 			&p.UpdatedAt,
@@ -65,7 +75,7 @@ func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID)
 
 func (r *Repository) FindProfileByID(ctx context.Context, profileID uuid.UUID) (*models.Profile, error) {
 	query := `
-		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, use_biometrics, created_at, updated_at
+		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, failed_attempts, locked_until, use_biometrics, created_at, updated_at
 		FROM auth.profiles
 		WHERE id = $1
 		LIMIT 1
@@ -79,6 +89,8 @@ func (r *Repository) FindProfileByID(ctx context.Context, profileID uuid.UUID) (
 		&p.ThemeConfig,
 		&p.BaseCurrency,
 		&p.HasPin,
+		&p.FailedAttempts,
+		&p.LockedUntil,
 		&p.UseBiometrics,
 		&p.CreatedAt,
 		&p.UpdatedAt,
@@ -115,9 +127,9 @@ func (r *Repository) CreateProfileWithSeed(ctx context.Context, userID uuid.UUID
 	// 1. Insert Profile
 	var newProfile models.Profile
 	profileQuery := `
-		INSERT INTO auth.profiles (user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_hash, use_biometrics)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, use_biometrics, created_at, updated_at
+		INSERT INTO auth.profiles (user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_hash, failed_attempts, use_biometrics)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, 0, $8)
+		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, failed_attempts, locked_until, use_biometrics, created_at, updated_at
 	`
 	err = tx.QueryRow(ctx, profileQuery,
 		userID,
@@ -136,6 +148,8 @@ func (r *Repository) CreateProfileWithSeed(ctx context.Context, userID uuid.UUID
 		&newProfile.ThemeConfig,
 		&newProfile.BaseCurrency,
 		&newProfile.HasPin,
+		&newProfile.FailedAttempts,
+		&newProfile.LockedUntil,
 		&newProfile.UseBiometrics,
 		&newProfile.CreatedAt,
 		&newProfile.UpdatedAt,
@@ -248,12 +262,12 @@ func (r *Repository) UpdateProfile(ctx context.Context, userID uuid.UUID, profil
 	}
 
 	if pinHash != nil {
-		setClauses = append(setClauses, fmt.Sprintf("has_pin = true, pin_hash = $%d", argIdx))
+		setClauses = append(setClauses, fmt.Sprintf("has_pin = true, pin_hash = $%d, failed_attempts = 0, locked_until = NULL", argIdx))
 		args = append(args, *pinHash)
 		argIdx++
 	} else if req.PIN != nil && *req.PIN == "" {
 		// Removing PIN
-		setClauses = append(setClauses, "has_pin = false, pin_hash = NULL")
+		setClauses = append(setClauses, "has_pin = false, pin_hash = NULL, failed_attempts = 0, locked_until = NULL")
 	}
 
 	if req.UseBiometrics != nil {
@@ -266,7 +280,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, userID uuid.UUID, profil
 		UPDATE auth.profiles
 		SET %s
 		WHERE id = $1 AND user_id = $2
-		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, use_biometrics, created_at, updated_at
+		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, failed_attempts, locked_until, use_biometrics, created_at, updated_at
 	`, strings.Join(setClauses, ", "))
 
 	var p models.Profile
@@ -278,6 +292,8 @@ func (r *Repository) UpdateProfile(ctx context.Context, userID uuid.UUID, profil
 		&p.ThemeConfig,
 		&p.BaseCurrency,
 		&p.HasPin,
+		&p.FailedAttempts,
+		&p.LockedUntil,
 		&p.UseBiometrics,
 		&p.CreatedAt,
 		&p.UpdatedAt,
@@ -314,15 +330,83 @@ func (r *Repository) DeleteProfile(ctx context.Context, userID uuid.UUID, profil
 	return nil
 }
 
-func (r *Repository) GetProfilePINHash(ctx context.Context, profileID uuid.UUID) (string, error) {
-	query := `SELECT COALESCE(pin_hash, '') FROM auth.profiles WHERE id = $1`
-	var pinHash string
-	err := r.pool.QueryRow(ctx, query, profileID).Scan(&pinHash)
+// GetProfileSecurity retrieves PIN status, hash, and rate-limiting lockout state.
+func (r *Repository) GetProfileSecurity(ctx context.Context, profileID uuid.UUID) (*ProfileSecurityInfo, error) {
+	query := `
+		SELECT has_pin, COALESCE(pin_hash, ''), failed_attempts, locked_until
+		FROM auth.profiles
+		WHERE id = $1
+	`
+	var sec ProfileSecurityInfo
+	err := r.pool.QueryRow(ctx, query, profileID).Scan(
+		&sec.HasPIN,
+		&sec.PINHash,
+		&sec.FailedAttempts,
+		&sec.LockedUntil,
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", ErrProfileNotFound
+			return nil, ErrProfileNotFound
 		}
-		return "", fmt.Errorf("failed to get profile pin hash: %w", err)
+		return nil, fmt.Errorf("failed to get profile security info: %w", err)
 	}
-	return pinHash, nil
+	return &sec, nil
+}
+
+// IncrementFailedAttempts increments the failure counter and triggers a 15-minute lock upon 5 failures.
+func (r *Repository) IncrementFailedAttempts(ctx context.Context, profileID uuid.UUID) (int, *time.Time, error) {
+	query := `
+		UPDATE auth.profiles
+		SET failed_attempts = failed_attempts + 1,
+		    locked_until = CASE WHEN failed_attempts + 1 >= 5 THEN NOW() + INTERVAL '15 minutes' ELSE locked_until END
+		WHERE id = $1
+		RETURNING failed_attempts, locked_until
+	`
+	var attempts int
+	var lockedUntil *time.Time
+	err := r.pool.QueryRow(ctx, query, profileID).Scan(&attempts, &lockedUntil)
+	if err != nil {
+		return 0, nil, fmt.Errorf("failed to increment failed attempts: %w", err)
+	}
+	return attempts, lockedUntil, nil
+}
+
+// ResetFailedAttempts clears the counter and lockout upon successful unlock.
+func (r *Repository) ResetFailedAttempts(ctx context.Context, profileID uuid.UUID) error {
+	query := `UPDATE auth.profiles SET failed_attempts = 0, locked_until = NULL WHERE id = $1`
+	_, err := r.pool.Exec(ctx, query, profileID)
+	if err != nil {
+		return fmt.Errorf("failed to reset failed attempts: %w", err)
+	}
+	return nil
+}
+
+// SetPIN configures or removes a profile's PIN with zeroed failure counters.
+func (r *Repository) SetPIN(ctx context.Context, userID, profileID uuid.UUID, pinHash *string) error {
+	var query string
+	var args []any
+	if pinHash != nil && *pinHash != "" {
+		query = `
+			UPDATE auth.profiles
+			SET has_pin = true, pin_hash = $1, failed_attempts = 0, locked_until = NULL, updated_at = NOW()
+			WHERE id = $2 AND user_id = $3
+		`
+		args = []any{*pinHash, profileID, userID}
+	} else {
+		query = `
+			UPDATE auth.profiles
+			SET has_pin = false, pin_hash = NULL, failed_attempts = 0, locked_until = NULL, updated_at = NOW()
+			WHERE id = $1 AND user_id = $2
+		`
+		args = []any{profileID, userID}
+	}
+
+	res, err := r.pool.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to set profile PIN: %w", err)
+	}
+	if res.RowsAffected() == 0 {
+		return ErrProfileNotFound
+	}
+	return nil
 }

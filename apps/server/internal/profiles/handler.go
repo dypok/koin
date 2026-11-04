@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -248,7 +249,11 @@ func (h *Handler) VerifyPIN(w http.ResponseWriter, r *http.Request) {
 
 	valid, err := h.service.VerifyPIN(r.Context(), profileID, req.PIN)
 	if err != nil {
-		if errors.Is(err, ErrPINMismatch) {
+		if errors.Is(err, ErrProfileLocked) || strings.Contains(err.Error(), "bloqueado por seguridad") {
+			response.Error(w, http.StatusTooManyRequests, err.Error())
+			return
+		}
+		if errors.Is(err, ErrPINMismatch) || strings.Contains(err.Error(), "intentos restantes") {
 			response.Error(w, http.StatusUnauthorized, err.Error())
 			return
 		}
@@ -264,5 +269,53 @@ func (h *Handler) VerifyPIN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, http.StatusOK, "PIN verificado correctamente", map[string]bool{"valid": valid})
+	response.Success(w, http.StatusOK, "Perfil desbloqueado correctamente", map[string]bool{"valid": valid})
+}
+
+// SetPIN configures or updates the cryptographic PIN of a profile.
+func (h *Handler) SetPIN(w http.ResponseWriter, r *http.Request) {
+	claims := h.claimsGetter(r)
+	if claims == nil || claims.UserID == "" {
+		response.Error(w, http.StatusUnauthorized, "No autenticado")
+		return
+	}
+
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "Token de usuario inválido")
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	profileID, err := uuid.Parse(idStr)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "ID de perfil inválido")
+		return
+	}
+
+	var req models.SetPINRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "Cuerpo de solicitud JSON inválido")
+		return
+	}
+
+	err = h.service.SetPIN(r.Context(), userID, profileID, req.PIN)
+	if err != nil {
+		if errors.Is(err, ErrInvalidPIN) {
+			response.Error(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		if errors.Is(err, ErrProfileNotFound) {
+			response.Error(w, http.StatusNotFound, err.Error())
+			return
+		}
+		response.Error(w, http.StatusInternalServerError, "Error al configurar PIN de seguridad")
+		return
+	}
+
+	msg := "PIN de seguridad configurado exitosamente"
+	if strings.TrimSpace(req.PIN) == "" {
+		msg = "PIN de seguridad eliminado exitosamente"
+	}
+	response.Success(w, http.StatusOK, msg, nil)
 }
