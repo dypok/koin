@@ -32,7 +32,7 @@ export const ThemeConfigSchema = z.object({
   preset: z.string().default('gold'),
   primaryHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color hexadecimal inválido').default('#F59E0B'),
   accentHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color hexadecimal inválido').default('#FCD34D'),
-  baseMode: z.enum(['dark', 'light']).default('dark'),
+  baseMode: z.enum(['dark', 'light', 'amoled']).default('dark'),
 });
 
 export const CreateProfileSchema = z.object({

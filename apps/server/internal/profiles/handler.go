@@ -149,6 +149,50 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusOK, "Perfil actualizado exitosamente", updated)
 }
 
+// UpdateTheme explicitly modifies only the themeConfig JSONB of a profile.
+func (h *Handler) UpdateTheme(w http.ResponseWriter, r *http.Request) {
+	claims := h.claimsGetter(r)
+	if claims == nil || claims.UserID == "" {
+		response.Error(w, http.StatusUnauthorized, "No autenticado")
+		return
+	}
+
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "Token de usuario inválido")
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	profileID, err := uuid.Parse(idStr)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "ID de perfil inválido")
+		return
+	}
+
+	var theme models.ThemeConfig
+	if err := json.NewDecoder(r.Body).Decode(&theme); err != nil {
+		response.Error(w, http.StatusBadRequest, "Configuración de tema JSON inválida")
+		return
+	}
+
+	req := models.UpdateProfileRequest{
+		ThemeConfig: &theme,
+	}
+
+	updated, err := h.service.Update(r.Context(), userID, profileID, req)
+	if err != nil {
+		if errors.Is(err, ErrProfileNotFound) {
+			response.Error(w, http.StatusNotFound, err.Error())
+			return
+		}
+		response.Error(w, http.StatusInternalServerError, "Error al actualizar tema del perfil")
+		return
+	}
+
+	response.Success(w, http.StatusOK, "Tema del perfil actualizado exitosamente", updated)
+}
+
 // Delete removes a profile and cascades associated private finance data, preserving the last profile.
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	claims := h.claimsGetter(r)

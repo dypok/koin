@@ -8,7 +8,7 @@ export interface ThemeConfig {
   preset: string;
   primaryHex: string;
   accentHex: string;
-  baseMode: 'dark' | 'light';
+  baseMode: 'dark' | 'light' | 'amoled';
 }
 
 export interface UserDTO {

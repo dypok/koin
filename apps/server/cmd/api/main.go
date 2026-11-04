@@ -111,6 +111,7 @@ func main() {
 		r.Post("/", profileHandler.Create)
 		r.Get("/{id}", profileHandler.GetByID)
 		r.Patch("/{id}", profileHandler.Update)
+		r.Patch("/{id}/theme", profileHandler.UpdateTheme)
 		r.Delete("/{id}", profileHandler.Delete)
 		r.Post("/{id}/verify-pin", profileHandler.VerifyPIN)
 	})
