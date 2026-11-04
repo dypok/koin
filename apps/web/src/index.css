@@ -5,30 +5,30 @@
 @layer base {
   :root {
     /* Light Mode */
-    --background: 220 20% 98%;        /* #f8fafc Crisp Light Titanium */
-    --foreground: 220 16% 12%;        /* #1a1c21 Dark Titanium */
-    --primary: 220 16% 14%;           /* #1e2026 Deep Titanium Button */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 4%;
+    --primary: 160 84% 39%;           /* Emerald #10B981 */
     --primary-foreground: 0 0% 100%;
-    --accent: 220 14% 92%;            /* #e5e8ef Metallic Tint */
-    --accent-foreground: 220 16% 12%;
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 9% 46%;
-    --border: 220 12% 88%;
+    --accent: 38 92% 50%;              /* Amber #F59E0B */
+    --accent-foreground: 0 0% 100%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --border: 240 6% 90%;
     --destructive: 350 89% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
   }
 
   .dark {
-    /* Natural Titanium Dark Mode (Default) - Industrial Brushed Metal Precision */
-    --background: 220 13% 8.5%;        /* #121316 Deep Titanium Core */
-    --foreground: 220 20% 97%;         /* #f8fafc Crisp Titanium Text */
-    --primary: 220 14% 94%;            /* #edf0f5 Brushed Titanium White */
-    --primary-foreground: 220 16% 12%; /* #1a1c21 Dark Titanium Core */
-    --accent: 220 12% 18%;             /* #282a32 Metallic Slate Accent */
-    --accent-foreground: 220 20% 98%;  /* #f8fafc */
-    --muted: 220 12% 13.5%;            /* #1f2128 Brushed Metal Surface */
-    --muted-foreground: 220 9% 62%;    /* #9499a6 Metallic Muted Gray */
-    --border: 220 11% 20%;             /* #2d303a Subtle 1px Brushed Divider */
+    /* Esmeralda Dark Mode (Default) - High-Velocity Sovereign Fintech */
+    --background: 240 10% 4%;          /* #09090b Obsidian Black Background */
+    --foreground: 0 0% 98%;            /* #fafafa Crisp Off-White Text */
+    --primary: 160 84% 39%;            /* #10B981 Vibrant Emerald */
+    --primary-foreground: 240 10% 4%;  /* #09090b */
+    --accent: 38 92% 50%;              /* #F59E0B Warm Amber Accent */
+    --accent-foreground: 240 10% 4%;
+    --muted: 240 4% 15%;              /* #1e1e24 Deep Surface */
+    --muted-foreground: 240 5% 65%;    /* #a1a1aa Muted Labels */
+    --border: 240 4% 16%;              /* #23232a 1px Border Hairlines */
     --destructive: 350 89% 60%;        /* #f43f5e Financial Expense Coral */
     --destructive-foreground: 0 0% 98%;
   }
@@ -37,11 +37,11 @@
     /* AMOLED Pure Black Mode */
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
-    --primary: 220 14% 94%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 0%;
-    --border: 220 11% 15%;
+    --border: 0 0% 12%;
     --muted: 0 0% 8%;
-    --muted-foreground: 220 9% 60%;
+    --muted-foreground: 0 0% 60%;
     --destructive: 350 89% 60%;
     --destructive-foreground: 0 0% 100%;
   }
@@ -49,7 +49,7 @@
 
 /* Minimalist Flat Layout Directives */
 * {
-  border-color: hsl(var(--border) / 0.6);
+  border-color: hsl(var(--border) / 0.5);
 }
 
 body {
