@@ -72,9 +72,19 @@ export default function App() {
     logout,
   } = useAuthStore();
 
+  const { rules, fetchRules } = useRecurringStore();
+
   useEffect(() => {
     checkSession();
   }, [checkSession]);
+
+  const profile = activeProfile || (profiles && profiles.length > 0 ? profiles[0] : null);
+
+  useEffect(() => {
+    if (isAuthenticated && profile?.id) {
+      fetchRules(profile.id);
+    }
+  }, [isAuthenticated, profile?.id, fetchRules]);
 
   if (isLoading) {
     return (
@@ -91,19 +101,10 @@ export default function App() {
     return <AuthPage />;
   }
 
-  const profile = activeProfile || profiles[0];
   const activeAvatarStyle = getProfileAvatarStyle(
     profile?.themeConfig?.primaryHex,
     profile?.themeConfig?.baseMode
   );
-
-  const { rules, fetchRules } = useRecurringStore();
-
-  useEffect(() => {
-    if (profile?.id) {
-      fetchRules(profile.id);
-    }
-  }, [profile?.id, fetchRules]);
 
   const activeRulesCount = rules.filter((r) => r.status === 'active').length;
 
