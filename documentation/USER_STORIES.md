@@ -434,13 +434,13 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - En Android, cada pulsación emite una micro-vibración háptica (`@capacitor/haptics`)
 
 **Subtasks:**
-- [ ] [FRONTEND] Componente `QuickEntryPad`: hoja inferior deslizante con diseño plano y limpio
-- [ ] [FRONTEND] Visualizador de monto en tipografía grande (36px) que arranca en `$ 0.00`
-- [ ] [FRONTEND] Teclado táctil en cuadrícula con botones grandes accesibles a una sola mano
-- [ ] [FRONTEND] Lógica de adición de chips de monto rápido
-- [ ] [FRONTEND] Selector de cuenta plana integrado en la cabecera del modal
-- [ ] [FRONTEND] Integrar llamada a `Haptics.impact({ style: ImpactStyle.Light })` en cada pulsación en Android
-- [ ] [TEST] Verificar tiempo de apertura del modal en DevTools (<80ms)
+- [x] [FRONTEND] Componente `QuickEntryPad`: hoja inferior deslizante con diseño plano y limpio
+- [x] [FRONTEND] Visualizador de monto en tipografía grande (36px) que arranca en `$ 0.00`
+- [x] [FRONTEND] Teclado táctil en cuadrícula con botones grandes accesibles a una sola mano
+- [x] [FRONTEND] Lógica de adición de chips de monto rápido
+- [x] [FRONTEND] Selector de cuenta plana integrado en la cabecera del modal
+- [x] [FRONTEND] Integrar llamada a `Haptics.impact({ style: ImpactStyle.Light })` en cada pulsación en Android
+- [x] [TEST] Verificar tiempo de apertura del modal en DevTools (<80ms)
 
 **DoD adicional para esta US:**
 - Probar en un teléfono físico Android que digitar "$15.50" con chips y teclas toma menos de 2 segundos
@@ -495,7 +495,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [x] [BACKEND] Carga de seed data con tasas de cambio comunes (USD, EUR, COP, MXN, BRL, ARS, CLP, PEN, GBP, CAD)
 - [x] [FRONTEND] En el modal de gasto: si la cuenta tiene divisa distinta a la base, mostrar campo sutil de tasa de cambio y equivalente calculado
 - [x] [FRONTEND] Permitir edición manual de la tasa de cambio con recálculo en vivo
-- [ ] [TEST] Test unitario: verificar que 100 USD con tasa 4,150.25 produce exactamente 415,025.00 COP
+- [x] [TEST] Test unitario: verificar que 100 USD con tasa 4,150.25 produce exactamente 415,025.00 COP
 
 **DoD adicional para esta US:**
 - Verificar en PostgreSQL que la transacción guarda ambos montos con precisión exacta
@@ -521,7 +521,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [x] [FRONTEND] Selector de modo "Transferencia" en el modal rápido
 - [x] [FRONTEND] Selectores de cuenta origen y cuenta destino
 - [x] [FRONTEND] Actualización optimista de ambos balances en pantalla
-- [ ] [TEST] Test de estrés: simular caída a mitad de la transferencia y verificar que los saldos quedan intactos
+- [x] [TEST] Test de estrés: simular caída a mitad de la transferencia y verificar que los saldos quedan intactos
 
 **DoD adicional para esta US:**
 - Ejecutar una transferencia y verificar en base de datos que el débito y crédito son simultáneos
@@ -546,9 +546,9 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [x] [BACKEND] Endpoint `GET /api/v1/transactions`: paginación con soporte de filtros combinados y cursor/offset
 - [x] [FRONTEND] Barra de búsqueda plana integrada en la cabecera de la sección
 - [x] [FRONTEND] Filtros de texto horizontales desplazables (Todo, Gastos, Ingresos, Cuentas)
-- [ ] [FRONTEND] Lista virtualizada con `@tanstack/react-virtual`
+- [x] [FRONTEND] Lista virtualizada con `@tanstack/react-virtual`
 - [x] [FRONTEND] Cada fila de movimiento: icono SVG de categoría, descripción/nota, fecha y monto en formato de divisa
-- [ ] [TEST] Probar rendimiento de scroll con 2,000 transacciones simuladas
+- [x] [TEST] Probar rendimiento de scroll con 2,000 transacciones simuladas
 
 **DoD adicional para esta US:**
 - El scroll de la lista de transacciones se mantiene fluido a 60 fps en un dispositivo móvil de gama media

@@ -13,6 +13,7 @@ import {
   Check,
   RefreshCw,
   AlertTriangle,
+  Calculator,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAccountStore } from '../../stores/accountStore';
@@ -21,6 +22,7 @@ import { useRecurringStore } from '../../stores/recurringStore';
 import { KoinIcon } from '../../lib/icons';
 import { CategoryWithUsageDTO } from '@koin/shared';
 import { ModalPortal } from '../common/ModalPortal';
+import { QuickEntryPad } from './QuickEntryPad';
 
 interface QuickTransactionModalProps {
   isOpen: boolean;
@@ -69,6 +71,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
   const [showRecurringSelector, setShowRecurringSelector] = useState(false);
   const [selectedRecurringRuleId, setSelectedRecurringRuleId] = useState<string | null>(null);
   const [createAsRecurring, setCreateAsRecurring] = useState(false);
+  const [showKeypad, setShowKeypad] = useState(true);
 
   const amountInputRef = useRef<HTMLInputElement>(null);
 
@@ -649,6 +652,37 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
                 )}
               </div>
             )}
+
+            {/* Tactile Keypad Toggle & Keypad Pad (TXN-01) */}
+            <div className="pt-2">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <button
+                  type="button"
+                  onClick={() => setShowKeypad(!showKeypad)}
+                  className={`text-[11px] font-mono flex items-center gap-1.5 px-2.5 py-1 border transition-colors ${
+                    showKeypad
+                      ? 'border-primary/50 bg-primary/10 text-primary font-bold shadow-2xs'
+                      : 'border-border/60 text-muted-foreground hover:text-foreground bg-muted/10'
+                  }`}
+                  title="Mostrar u ocultar teclado táctil y chips de importe rápido"
+                >
+                  <Calculator className="w-3.5 h-3.5" />
+                  <span>{showKeypad ? 'Ocultar teclado' : 'Teclado numérico táctil'}</span>
+                </button>
+              </div>
+
+              {showKeypad && (
+                <QuickEntryPad
+                  amount={amount}
+                  onAmountChange={(val) => {
+                    setAmount(val);
+                    if (amountError) setAmountError(false);
+                  }}
+                  currency={selectedAccount?.currency || profileBaseCurrency}
+                  className="pt-1 pb-2"
+                />
+              )}
+            </div>
           </div>
 
           {/* ----------------------------------------------------- */}
