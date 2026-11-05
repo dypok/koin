@@ -17,6 +17,8 @@ import { ProfileModal } from './components/profiles/ProfileModal';
 import { ProfilePinModal } from './components/profiles/ProfilePinModal';
 import { ProfileSwitcherSheet } from './components/profiles/ProfileSwitcherSheet';
 import { SettingsHub } from './components/profiles/SettingsHub';
+import { AccountsView } from './components/accounts/AccountsView';
+import { AcceptInviteModal } from './components/accounts/AcceptInviteModal';
 import { UnimplementedView } from './components/common/UnimplementedView';
 import { getProfileAvatarStyle } from './lib/theme';
 
@@ -28,11 +30,22 @@ type NavigationTab =
   | 'settings';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<NavigationTab>('settings');
+  const [activeTab, setActiveTab] = useState<NavigationTab>('accounts');
   const [settingsSubTab, setSettingsSubTab] = useState<'profiles' | 'appearance' | 'security'>('profiles');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isCreateProfileModalOpen, setIsCreateProfileModalOpen] = useState(false);
   const [pinModalProfile, setPinModalProfile] = useState<ProfileDTO | null>(null);
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get('token');
+      if (t) {
+        setInviteToken(t);
+      }
+    }
+  }, []);
 
   const {
     user,
@@ -264,10 +277,7 @@ export default function App() {
           )}
 
           {activeTab === 'accounts' && (
-            <UnimplementedView
-              moduleName="Cuentas Financieras"
-              onGoToSettings={() => handleGoToSettings('profiles')}
-            />
+            <AccountsView onGoToSettings={() => handleGoToSettings('profiles')} />
           )}
 
           {activeTab === 'history' && (
@@ -367,6 +377,26 @@ export default function App() {
           }
         }}
       />
+
+      {/* Global Shared Account Invitation Modal */}
+      {inviteToken && (
+        <AcceptInviteModal
+          token={inviteToken}
+          onClose={() => {
+            setInviteToken(null);
+            if (typeof window !== 'undefined') {
+              window.history.replaceState({}, '', window.location.pathname);
+            }
+          }}
+          onSuccess={() => {
+            setActiveTab('accounts');
+            setInviteToken(null);
+            if (typeof window !== 'undefined') {
+              window.history.replaceState({}, '', window.location.pathname);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

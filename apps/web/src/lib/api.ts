@@ -12,10 +12,12 @@ export async function apiRequest<T = any>(
   options: RequestInit = {}
 ): Promise<T> {
   const token = localStorage.getItem('koin_auth_token');
+  const activeProfileId = localStorage.getItem('koin_active_profile_id');
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(activeProfileId ? { 'X-Profile-ID': activeProfileId } : {}),
     ...(options.headers || {}),
   };
 

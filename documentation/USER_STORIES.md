@@ -327,8 +327,8 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [x] [BACKEND] Endpoint `GET /api/v1/accounts`: retornar cuentas del perfil activo con balance calculado
 - [x] [BACKEND] Endpoint `POST /api/v1/accounts`: crear cuenta privada vinculada a `activeProfileId`
 - [x] [BACKEND] Endpoint `PATCH /api/v1/accounts/:id`: editar nombre, icono SVG o color
-- [ ] [FRONTEND] Formulario plano para creación de cuenta con selector de tipo e icono SVG
-- [ ] [FRONTEND] Vista de Cuentas: listado plano de filas con icono SVG, nombre, divisa y saldo en texto grande
+- [x] [FRONTEND] Formulario plano para creación de cuenta con selector de tipo e icono SVG
+- [x] [FRONTEND] Vista de Cuentas: listado plano de filas con icono SVG, nombre, divisa y saldo en texto grande
 
 **DoD adicional para esta US:**
 - Crear una cuenta con saldo inicial de $500 y verificar que el balance en el listado es exactamente $500.00
@@ -354,7 +354,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [x] [BACKEND] `invitation.service.ts`: generación y firma de tokens criptográficos con expiración de 7 días
 - [x] [BACKEND] Endpoint `POST /api/v1/accounts/:id/invite`: genera enlace de invitación con rol asignado
 - [x] [BACKEND] Middleware / Service RBAC: validar permisos antes de mutar cuentas o transacciones compartidas
-- [ ] [FRONTEND] Diálogo plano "Compartir Cuenta": selector de rol (`Editor` u `Observador`) y botón para copiar enlace
+- [x] [FRONTEND] Diálogo plano "Compartir Cuenta": selector de rol (`Editor` u `Observador`) y botón para copiar enlace
 
 **DoD adicional para esta US:**
 - Verificar que el token de invitación expira exactamente a los 7 días y no puede reutilizarse una vez aceptado
@@ -378,9 +378,9 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 **Subtasks:**
 - [x] [BACKEND] Endpoint `GET /api/v1/invitations/validate?token=...`: valida token y retorna info de la cuenta
 - [x] [BACKEND] Endpoint `POST /api/v1/invitations/accept`: asocia `profile_id` a `account_members` en transacción PostgreSQL
-- [ ] [FRONTEND] Ruta `/invite`: pantalla de aceptación con selector del perfil al que se desea unir la cuenta
-- [ ] [FRONTEND] Botón "Unirse a la Cuenta": despacha mutación y redirige al dashboard del perfil elegido
-- [ ] [FRONTEND] Renderizado en listado de cuentas con icono SVG de usuarios compartidos y rol en texto atenuado
+- [x] [FRONTEND] Ruta `/invite`: pantalla de aceptación con selector del perfil al que se desea unir la cuenta
+- [x] [FRONTEND] Botón "Unirse a la Cuenta": despacha mutación y redirige al dashboard del perfil elegido
+- [x] [FRONTEND] Renderizado en listado de cuentas con icono SVG de usuarios compartidos y rol en texto atenuado
 
 **DoD adicional para esta US:**
 - Flujo completo verificado: Usuario A invita por link → Usuario B abre enlace en incógnito → Inicia sesión → Selecciona perfil → Cuenta compartida visible
@@ -404,9 +404,9 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [x] [BACKEND] Endpoint `DELETE /api/v1/accounts/:id/members/:memberId`: revocar acceso de un miembro (solo `owner`)
 - [x] [BACKEND] Endpoint `PATCH /api/v1/accounts/:id/members/:memberId`: actualizar rol de colaborador (solo `owner`)
 - [x] [BACKEND] Endpoint `POST /api/v1/accounts/:id/leave`: desvinculación voluntaria del perfil en sesión
-- [ ] [FRONTEND] Panel "Miembros de la Cuenta": lista plana con nombre del perfil, rol actual y botón sutil de eliminar
-- [ ] [FRONTEND] Diálogo de confirmación antes de expulsar o abandonar la cuenta
-- [ ] [FRONTEND] Actualización inmediata de la lista de cuentas tras desvincularse
+- [x] [FRONTEND] Panel "Miembros de la Cuenta": lista plana con nombre del perfil, rol actual y botón sutil de eliminar
+- [x] [FRONTEND] Diálogo de confirmación antes de expulsar o abandonar la cuenta
+- [x] [FRONTEND] Actualización inmediata de la lista de cuentas tras desvincularse
 
 **DoD adicional para esta US:**
 - Probar que tras expulsar a un miembro, este pierde acceso inmediatamente en su próxima petición HTTP (error 403)
