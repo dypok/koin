@@ -68,6 +68,7 @@ type Account struct {
 	ID                 uuid.UUID       `json:"id"`
 	CreatedByProfileID uuid.UUID       `json:"createdByProfileId"`
 	Name               string          `json:"name"`
+	InstitutionName    *string         `json:"institutionName,omitempty"`
 	Type               string          `json:"type"`
 	Currency           string          `json:"currency"`
 	InitialBalance     decimal.Decimal `json:"initialBalance"`
@@ -188,21 +189,23 @@ type AccountInvitation struct {
 }
 
 type CreateAccountRequest struct {
-	Name           string          `json:"name"`
-	Type           string          `json:"type"`
-	Currency       string          `json:"currency"`
-	InitialBalance decimal.Decimal `json:"initialBalance"`
-	Color          string          `json:"color"`
-	Icon           string          `json:"icon"`
-	IsShared       bool            `json:"isShared"`
+	Name            string          `json:"name"`
+	InstitutionName *string         `json:"institutionName,omitempty"`
+	Type            string          `json:"type"`
+	Currency        string          `json:"currency"`
+	InitialBalance  decimal.Decimal `json:"initialBalance"`
+	Color           string          `json:"color"`
+	Icon            string          `json:"icon"`
+	IsShared        bool            `json:"isShared"`
 }
 
 type UpdateAccountRequest struct {
-	Name       *string `json:"name,omitempty"`
-	Type       *string `json:"type,omitempty"`
-	Color      *string `json:"color,omitempty"`
-	Icon       *string `json:"icon,omitempty"`
-	IsArchived *bool   `json:"isArchived,omitempty"`
+	Name            *string `json:"name,omitempty"`
+	InstitutionName *string `json:"institutionName,omitempty"`
+	Type            *string `json:"type,omitempty"`
+	Color           *string `json:"color,omitempty"`
+	Icon            *string `json:"icon,omitempty"`
+	IsArchived      *bool   `json:"isArchived,omitempty"`
 }
 
 type CreateInvitationRequest struct {

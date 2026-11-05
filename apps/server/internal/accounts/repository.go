@@ -36,6 +36,7 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID) ([]
 			a.id,
 			a.created_by_profile_id,
 			a.name,
+			a.institution_name,
 			a.type,
 			a.currency,
 			a.initial_balance,
@@ -83,6 +84,7 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID) ([]
 			&acc.ID,
 			&acc.CreatedByProfileID,
 			&acc.Name,
+			&acc.InstitutionName,
 			&acc.Type,
 			&acc.Currency,
 			&acc.InitialBalance,
@@ -115,6 +117,7 @@ func (r *Repository) GetByID(ctx context.Context, accountID, profileID uuid.UUID
 			a.id,
 			a.created_by_profile_id,
 			a.name,
+			a.institution_name,
 			a.type,
 			a.currency,
 			a.initial_balance,
@@ -153,6 +156,7 @@ func (r *Repository) GetByID(ctx context.Context, accountID, profileID uuid.UUID
 		&acc.ID,
 		&acc.CreatedByProfileID,
 		&acc.Name,
+		&acc.InstitutionName,
 		&acc.Type,
 		&acc.Currency,
 		&acc.InitialBalance,
@@ -212,6 +216,7 @@ func (r *Repository) Create(ctx context.Context, profileID uuid.UUID, req models
 		INSERT INTO finance.accounts (
 			created_by_profile_id,
 			name,
+			institution_name,
 			type,
 			currency,
 			initial_balance,
@@ -220,15 +225,16 @@ func (r *Repository) Create(ctx context.Context, profileID uuid.UUID, req models
 			color,
 			icon,
 			is_archived
-		) VALUES ($1, $2, $3, $4, $5, $5, $6, $7, $8, false)
+		) VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $8, $9, false)
 		RETURNING 
-			id, created_by_profile_id, name, type, currency, initial_balance,
+			id, created_by_profile_id, name, institution_name, type, currency, initial_balance,
 			current_balance, is_shared, color, icon, is_archived, created_at, updated_at
 	`
 
 	err = tx.QueryRow(ctx, accountQuery,
 		profileID,
 		req.Name,
+		req.InstitutionName,
 		req.Type,
 		req.Currency,
 		req.InitialBalance,
@@ -239,6 +245,7 @@ func (r *Repository) Create(ctx context.Context, profileID uuid.UUID, req models
 		&acc.ID,
 		&acc.CreatedByProfileID,
 		&acc.Name,
+		&acc.InstitutionName,
 		&acc.Type,
 		&acc.Currency,
 		&acc.InitialBalance,
@@ -278,14 +285,15 @@ func (r *Repository) Update(ctx context.Context, accountID uuid.UUID, req models
 		UPDATE finance.accounts
 		SET
 			name = COALESCE($2, name),
-			type = COALESCE($3, type),
-			color = COALESCE($4, color),
-			icon = COALESCE($5, icon),
-			is_archived = COALESCE($6, is_archived),
+			institution_name = COALESCE($3, institution_name),
+			type = COALESCE($4, type),
+			color = COALESCE($5, color),
+			icon = COALESCE($6, icon),
+			is_archived = COALESCE($7, is_archived),
 			updated_at = now()
 		WHERE id = $1
 		RETURNING 
-			id, created_by_profile_id, name, type, currency, initial_balance,
+			id, created_by_profile_id, name, institution_name, type, currency, initial_balance,
 			current_balance, is_shared, color, icon, is_archived, created_at, updated_at
 	`
 
@@ -293,6 +301,7 @@ func (r *Repository) Update(ctx context.Context, accountID uuid.UUID, req models
 	err := r.pool.QueryRow(ctx, query,
 		accountID,
 		req.Name,
+		req.InstitutionName,
 		req.Type,
 		req.Color,
 		req.Icon,
@@ -301,6 +310,7 @@ func (r *Repository) Update(ctx context.Context, accountID uuid.UUID, req models
 		&acc.ID,
 		&acc.CreatedByProfileID,
 		&acc.Name,
+		&acc.InstitutionName,
 		&acc.Type,
 		&acc.Currency,
 		&acc.InitialBalance,

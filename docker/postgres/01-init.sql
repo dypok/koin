@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS finance.accounts (
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	created_by_profile_id uuid NOT NULL,
 	name varchar(100) NOT NULL,
+	institution_name varchar(100),
 	type varchar(20) NOT NULL,
 	currency varchar(3) DEFAULT 'USD' NOT NULL,
 	initial_balance numeric(14, 2) DEFAULT '0.00' NOT NULL,

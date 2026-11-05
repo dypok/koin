@@ -215,6 +215,11 @@ export const AccountsView: React.FC<AccountsViewProps> = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-foreground">{acc.name}</span>
+                      {acc.institutionName && !acc.name.toLowerCase().includes(acc.institutionName.toLowerCase()) && (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 border border-border/60 bg-muted/20 text-muted-foreground">
+                          {acc.institutionName}
+                        </span>
+                      )}
                       {acc.isShared && (
                         <span
                           className="flex items-center gap-1 text-[10px] font-mono uppercase px-1.5 py-0.2 border border-primary/30 text-primary font-bold"

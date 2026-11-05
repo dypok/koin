@@ -67,6 +67,7 @@ export const AccountTypeEnum = z.enum(['cash', 'bank', 'credit', 'savings', 'inv
 
 export const CreateAccountSchema = z.object({
   name: z.string().min(1, 'El nombre de la cuenta es requerido').max(100).trim(),
+  institutionName: z.string().max(100).optional().nullable(),
   type: AccountTypeEnum.default('cash'),
   currency: z.string().length(3).default('USD'),
   initialBalance: z.string().regex(/^-?\d+(\.\d{1,2})?$/, 'Monto inicial decimal inválido').default('0.00'),
