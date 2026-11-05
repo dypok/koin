@@ -56,7 +56,7 @@ Incorpora un modelo de **perfiles independientes estilo streaming** (similar a N
 | :--- | :--- |
 | **Backend** | **Go 1.24+**, Chi HTTP Router, pgxpool, Argon2id, JWT (HMAC-SHA256) |
 | **Frontend** | **React 19**, TypeScript 5.7, Vite 6, Tailwind CSS 3.4, Zustand 5, Lucide SVG |
-| **Base de Datos** | **PostgreSQL 16** con esquemas delimitados (`auth`, `finance`, `analytics`, `system`) |
+| **Base de Datos** | **PostgreSQL 16** con esquemas aislados multiapp (`koin_auth`, `koin_finance`, `koin_analytics`, `koin_system`) |
 | **Contenedores** | **Docker Compose**, Alpine Linux multi-stage builds (API: ~33MB, Web: ~75MB) |
 | **Monorepo** | **Turborepo 2.11**, pnpm Workspaces |
 | **Móvil** | **Capacitor 7** (Android listo con soporte `FLAG_SECURE`) |
@@ -149,7 +149,12 @@ Toda la arquitectura, decisiones de diseño, modelo de datos y entregables está
 
 ## 📈 Historial de Versiones
 
-- **v0.4.2 (Actual):**
+- **v0.4.3 (Actual):**
+  - Aislamiento completo y delimitación de esquemas PostgreSQL bajo el namespace `koin_*` (`koin_auth`, `koin_finance`, `koin_analytics`, `koin_system`).
+  - Capacidad multi-aplicación compartiendo la misma base de datos sin colisión de nombres.
+  - Actualización atómica de repositorios Go, parámetros `search_path`, triggers y vistas analíticas.
+  - Migración en caliente en PostgreSQL conservando el 100% de la información histórica.
+- **v0.4.2:**
   - Scrollbar minimalista personalizado integrado a la paleta de tokens claro/oscuro/AMOLED.
   - Actualización exhaustiva del README y documentación general de la suite.
   - Preparación de pull request a rama principal `main`.

@@ -57,7 +57,7 @@ func (h *Handler) getAuthenticatedProfile(r *http.Request) (uuid.UUID, error) {
 
 	// 3. Fallback to user's first profile
 	var firstProfileID uuid.UUID
-	err = h.pool.QueryRow(r.Context(), `SELECT id FROM auth.profiles WHERE user_id = $1 ORDER BY created_at ASC LIMIT 1`, userID).Scan(&firstProfileID)
+	err = h.pool.QueryRow(r.Context(), `SELECT id FROM koin_auth.profiles WHERE user_id = $1 ORDER BY created_at ASC LIMIT 1`, userID).Scan(&firstProfileID)
 	if err == nil {
 		return firstProfileID, nil
 	}

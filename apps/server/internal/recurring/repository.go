@@ -30,7 +30,7 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 // Create inserts a new recurring rule or installment debt.
 func (r *Repository) Create(ctx context.Context, profileID uuid.UUID, req models.CreateRecurringRuleRequest, nextRunDate time.Time) (*models.RecurringRule, error) {
 	query := `
-		INSERT INTO finance.recurring_rules (
+		INSERT INTO koin_finance.recurring_rules (
 			profile_id,
 			account_id,
 			category_id,
@@ -147,9 +147,9 @@ func (r *Repository) GetByID(ctx context.Context, id, profileID uuid.UUID) (*mod
 			c.name AS category_name,
 			c.icon AS category_icon,
 			c.color AS category_color
-		FROM finance.recurring_rules rr
-		JOIN finance.accounts a ON a.id = rr.account_id
-		LEFT JOIN finance.categories c ON c.id = rr.category_id
+		FROM koin_finance.recurring_rules rr
+		JOIN koin_finance.accounts a ON a.id = rr.account_id
+		LEFT JOIN koin_finance.categories c ON c.id = rr.category_id
 		WHERE rr.id = $1 AND rr.profile_id = $2
 	`
 
@@ -235,9 +235,9 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID, sta
 			c.name AS category_name,
 			c.icon AS category_icon,
 			c.color AS category_color
-		FROM finance.recurring_rules rr
-		JOIN finance.accounts a ON a.id = rr.account_id
-		LEFT JOIN finance.categories c ON c.id = rr.category_id
+		FROM koin_finance.recurring_rules rr
+		JOIN koin_finance.accounts a ON a.id = rr.account_id
+		LEFT JOIN koin_finance.categories c ON c.id = rr.category_id
 		WHERE rr.profile_id = $1
 		  AND ($2::varchar IS NULL OR rr.status = $2)
 		ORDER BY 
@@ -305,7 +305,7 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID, sta
 // Update modifies properties of an existing recurring rule.
 func (r *Repository) Update(ctx context.Context, id, profileID uuid.UUID, req models.UpdateRecurringRuleRequest, nextRunDate *time.Time) (*models.RecurringRule, error) {
 	query := `
-		UPDATE finance.recurring_rules
+		UPDATE koin_finance.recurring_rules
 		SET 
 			name = COALESCE($3, name),
 			account_id = COALESCE($4, account_id),
@@ -347,7 +347,7 @@ func (r *Repository) Update(ctx context.Context, id, profileID uuid.UUID, req mo
 
 // Delete removes a recurring rule.
 func (r *Repository) Delete(ctx context.Context, id, profileID uuid.UUID) error {
-	query := `DELETE FROM finance.recurring_rules WHERE id = $1 AND profile_id = $2`
+	query := `DELETE FROM koin_finance.recurring_rules WHERE id = $1 AND profile_id = $2`
 	cmd, err := r.pool.Exec(ctx, query, id, profileID)
 	if err != nil {
 		return fmt.Errorf("error deleting recurring rule: %w", err)
@@ -360,7 +360,7 @@ func (r *Repository) Delete(ctx context.Context, id, profileID uuid.UUID) error 
 
 // ExecuteInstallmentTx executes an atomic payment/credit for a recurring rule:
 // 1. Locks the rule and verifies it is active.
-// 2. Inserts a transaction into finance.transactions with installment number and interest details.
+// 2. Inserts a transaction into koin_finance.transactions with installment number and interest details.
 // 3. Updates the account balance.
 // 4. Increments current_installment and updates next_run_date.
 // 5. If all installments are completed, marks status = 'completed'.
@@ -377,7 +377,7 @@ func (r *Repository) ExecuteInstallmentTx(ctx context.Context, ruleID, profileID
 			id, profile_id, account_id, category_id, name, type, amount, currency,
 			frequency, day_of_month, is_installment, total_installments, current_installment,
 			installment_principal, installment_interest, status, next_run_date
-		FROM finance.recurring_rules
+		FROM koin_finance.recurring_rules
 		WHERE id = $1 AND profile_id = $2
 		FOR UPDATE
 	`
@@ -418,7 +418,7 @@ func (r *Repository) ExecuteInstallmentTx(ctx context.Context, ruleID, profileID
 
 	// 2. Get Profile base currency for conversion
 	var baseCurrency string
-	err = tx.QueryRow(ctx, `SELECT base_currency FROM auth.profiles WHERE id = $1`, profileID).Scan(&baseCurrency)
+	err = tx.QueryRow(ctx, `SELECT base_currency FROM koin_auth.profiles WHERE id = $1`, profileID).Scan(&baseCurrency)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error getting base currency: %w", err)
 	}
@@ -428,7 +428,7 @@ func (r *Repository) ExecuteInstallmentTx(ctx context.Context, ruleID, profileID
 	if rule.Currency != baseCurrency {
 		pair := fmt.Sprintf("%s/%s", rule.Currency, baseCurrency)
 		var rate decimal.Decimal
-		err = tx.QueryRow(ctx, `SELECT rate FROM system.exchange_rates WHERE pair = $1`, pair).Scan(&rate)
+		err = tx.QueryRow(ctx, `SELECT rate FROM koin_system.exchange_rates WHERE pair = $1`, pair).Scan(&rate)
 		if err == nil && !rate.IsZero() {
 			exchangeRate = rate
 		}
@@ -454,7 +454,7 @@ func (r *Repository) ExecuteInstallmentTx(ctx context.Context, ruleID, profileID
 
 	// 5. Insert transaction
 	insertTxnQuery := `
-		INSERT INTO finance.transactions (
+		INSERT INTO koin_finance.transactions (
 			profile_id,
 			account_id,
 			category_id,
@@ -533,7 +533,7 @@ func (r *Repository) ExecuteInstallmentTx(ctx context.Context, ruleID, profileID
 
 	// 6. Update Account Balance
 	syncAccQuery := `
-		UPDATE finance.accounts a
+		UPDATE koin_finance.accounts a
 		SET 
 			current_balance = (
 				a.initial_balance + COALESCE((
@@ -546,7 +546,7 @@ func (r *Repository) ExecuteInstallmentTx(ctx context.Context, ruleID, profileID
 							ELSE 0
 						END
 					)
-					FROM finance.transactions t
+					FROM koin_finance.transactions t
 					WHERE t.account_id = a.id OR t.to_account_id = a.id
 				), 0)
 			),
@@ -568,7 +568,7 @@ func (r *Repository) ExecuteInstallmentTx(ctx context.Context, ruleID, profileID
 	}
 
 	updateRuleQuery := `
-		UPDATE finance.recurring_rules
+		UPDATE koin_finance.recurring_rules
 		SET 
 			current_installment = $2,
 			last_run_at = now(),
@@ -631,7 +631,7 @@ func CalculateNextRunDate(current time.Time, frequency string, targetDay int) ti
 func (r *Repository) ProcessDueRules(ctx context.Context, asOfDate time.Time) (int, error) {
 	query := `
 		SELECT id, profile_id 
-		FROM finance.recurring_rules
+		FROM koin_finance.recurring_rules
 		WHERE status = 'active'
 		  AND auto_apply = true
 		  AND next_run_date <= $1

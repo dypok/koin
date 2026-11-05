@@ -36,7 +36,7 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 func (r *Repository) FindUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := `
 		SELECT id, email, password_hash, full_name, created_at, updated_at
-		FROM auth.users
+		FROM koin_auth.users
 		WHERE LOWER(email) = LOWER(TRIM($1))
 		LIMIT 1
 	`
@@ -62,7 +62,7 @@ func (r *Repository) FindUserByEmail(ctx context.Context, email string) (*models
 func (r *Repository) FindUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	query := `
 		SELECT id, email, password_hash, full_name, created_at, updated_at
-		FROM auth.users
+		FROM koin_auth.users
 		WHERE id = $1
 		LIMIT 1
 	`
@@ -88,7 +88,7 @@ func (r *Repository) FindUserByID(ctx context.Context, id uuid.UUID) (*models.Us
 func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID) ([]models.Profile, error) {
 	query := `
 		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, pin_hash, use_biometrics, created_at, updated_at
-		FROM auth.profiles
+		FROM koin_auth.profiles
 		WHERE user_id = $1
 		ORDER BY created_at ASC
 	`
@@ -141,7 +141,7 @@ func (r *Repository) CreateUserWithSeedData(ctx context.Context, data CreateUser
 	// 1. Insert User
 	var newUser models.User
 	userQuery := `
-		INSERT INTO auth.users (email, password_hash, full_name)
+		INSERT INTO koin_auth.users (email, password_hash, full_name)
 		VALUES (LOWER(TRIM($1)), $2, TRIM($3))
 		RETURNING id, email, password_hash, full_name, created_at, updated_at
 	`
@@ -167,7 +167,7 @@ func (r *Repository) CreateUserWithSeedData(ctx context.Context, data CreateUser
 
 	var newProfile models.Profile
 	profileQuery := `
-		INSERT INTO auth.profiles (user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, use_biometrics)
+		INSERT INTO koin_auth.profiles (user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, use_biometrics)
 		VALUES ($1, 'Personal', 'User', $2, $3, false, 4, false)
 		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, pin_hash, use_biometrics, created_at, updated_at
 	`
@@ -202,12 +202,12 @@ func (r *Repository) CreateUserWithSeedData(ctx context.Context, data CreateUser
 
 	var insertedAccounts []models.Account
 	accountQuery := `
-		INSERT INTO finance.accounts (created_by_profile_id, name, type, currency, initial_balance, current_balance, is_shared, color, icon, is_archived)
+		INSERT INTO koin_finance.accounts (created_by_profile_id, name, type, currency, initial_balance, current_balance, is_shared, color, icon, is_archived)
 		VALUES ($1, $2, $3, $4, 0.00, 0.00, false, $5, $6, false)
 		RETURNING id, created_by_profile_id, name, institution_name, type, currency, initial_balance, current_balance, is_shared, color, icon, is_archived, created_at, updated_at
 	`
 	memberQuery := `
-		INSERT INTO finance.account_members (account_id, profile_id, role, status)
+		INSERT INTO koin_finance.account_members (account_id, profile_id, role, status)
 		VALUES ($1, $2, 'owner', 'accepted')
 	`
 
@@ -268,7 +268,7 @@ func (r *Repository) CreateUserWithSeedData(ctx context.Context, data CreateUser
 
 	var insertedCategories []models.Category
 	categoryQuery := `
-		INSERT INTO finance.categories (profile_id, name, type, icon, color, is_default, sort_order)
+		INSERT INTO koin_finance.categories (profile_id, name, type, icon, color, is_default, sort_order)
 		VALUES ($1, $2, $3, $4, $5, true, $6)
 		RETURNING id, profile_id, name, type, icon, color, is_default, sort_order, created_at
 	`
