@@ -22,6 +22,7 @@ import (
 	"koin/server/internal/database"
 	"koin/server/internal/middleware"
 	"koin/server/internal/profiles"
+	"koin/server/internal/recurring"
 	"koin/server/internal/response"
 	"koin/server/internal/transactions"
 )
@@ -68,6 +69,12 @@ func main() {
 	transactionRepo := transactions.NewRepository(db.Pool)
 	transactionService := transactions.NewService(transactionRepo)
 	transactionHandler := transactions.NewHandler(transactionService, db.Pool, func(r *http.Request) *auth.JWTClaims {
+		return middleware.GetUserClaims(r.Context())
+	})
+
+	recurringRepo := recurring.NewRepository(db.Pool)
+	recurringService := recurring.NewService(recurringRepo)
+	recurringHandler := recurring.NewHandler(recurringService, db.Pool, func(r *http.Request) *auth.JWTClaims {
 		return middleware.GetUserClaims(r.Context())
 	})
 
@@ -184,6 +191,18 @@ func main() {
 	r.Route("/api/v1/transfers", func(r chi.Router) {
 		r.Use(middleware.AuthenticateToken(cfg.JWTSecret))
 		r.Post("/", transactionHandler.CreateTransfer)
+	})
+
+	// Recurring Rules & Installment Debts Subrouter
+	r.Route("/api/v1/recurring", func(r chi.Router) {
+		r.Use(middleware.AuthenticateToken(cfg.JWTSecret))
+		r.Get("/", recurringHandler.List)
+		r.Post("/", recurringHandler.Create)
+		r.Post("/process-due", recurringHandler.ProcessDue)
+		r.Get("/{id}", recurringHandler.GetByID)
+		r.Patch("/{id}", recurringHandler.Update)
+		r.Delete("/{id}", recurringHandler.Delete)
+		r.Post("/{id}/apply", recurringHandler.ApplyNow)
 	})
 
 	// Currencies & Exchange Rates Subrouter (TXN-03)

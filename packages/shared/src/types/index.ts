@@ -110,6 +110,10 @@ export interface TransactionDTO {
   note: string | null;
   tags: string[] | null;
   isRecurring: boolean;
+  recurringRuleId?: string | null;
+  installmentNumber?: number | null;
+  principalPortion?: string | null;
+  interestPortion?: string | null;
   createdAt: string;
   updatedAt: string;
   // Included relations for UI convenience
@@ -121,6 +125,45 @@ export interface TransactionDTO {
   toAccountColor?: string;
   toAccountIcon?: string;
   toAccountCurrency?: string;
+  categoryName?: string;
+  categoryIcon?: string;
+  categoryColor?: string;
+}
+
+export type RecurrenceFrequency = 'monthly' | 'biweekly' | 'weekly' | 'yearly';
+export type RecurringRuleStatus = 'active' | 'paused' | 'completed';
+
+export interface RecurringRuleDTO {
+  id: string;
+  profileId: string;
+  accountId: string;
+  categoryId?: string | null;
+  name: string;
+  type: TransactionType;
+  amount: string;
+  currency: string;
+  frequency: RecurrenceFrequency;
+  dayOfMonth: number;
+  isInstallment: boolean;
+  totalInstallments?: number | null;
+  currentInstallment: number;
+  principalAmount?: string | null;
+  totalInterestAmount?: string | null;
+  installmentPrincipal?: string | null;
+  installmentInterest?: string | null;
+  interestRate?: string | null;
+  autoApply: boolean;
+  nextRunDate: string;
+  lastRunAt?: string | null;
+  status: RecurringRuleStatus;
+  note?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Enriched UI relations
+  accountName?: string;
+  accountColor?: string;
+  accountIcon?: string;
+  accountInstitutionName?: string | null;
   categoryName?: string;
   categoryIcon?: string;
   categoryColor?: string;
