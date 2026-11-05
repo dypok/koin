@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { RecurringRuleDTO } from '@koin/shared';
 import { KoinIcon } from '../../lib/icons';
+import { ModalPortal } from '../common/ModalPortal';
 
 interface RecurringRuleDetailModalProps {
   isOpen: boolean;
@@ -86,8 +87,9 @@ export const RecurringRuleDetailModal: React.FC<RecurringRuleDetailModalProps> =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="w-full max-w-lg border border-border/80 bg-background shadow-2xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
+    <ModalPortal>
+      <div className="fixed inset-0 w-screen h-screen z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+        <div className="w-full max-w-lg border border-border/80 bg-background shadow-2xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="p-6 border-b border-border/40 flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -374,5 +376,6 @@ export const RecurringRuleDetailModal: React.FC<RecurringRuleDetailModalProps> =
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 };

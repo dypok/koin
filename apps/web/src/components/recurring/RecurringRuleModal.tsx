@@ -9,6 +9,7 @@ import { useAccountStore } from '../../stores/accountStore';
 import { useTransactionStore } from '../../stores/transactionStore';
 import { useRecurringStore } from '../../stores/recurringStore';
 import { useAuthStore } from '../../stores/authStore';
+import { ModalPortal } from '../common/ModalPortal';
 
 interface RecurringRuleModalProps {
   isOpen: boolean;
@@ -275,8 +276,9 @@ export const RecurringRuleModal: React.FC<RecurringRuleModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-background border border-border/60 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <ModalPortal>
+      <div className="fixed inset-0 w-screen h-screen z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div className="w-full max-w-lg bg-background border border-border/60 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-border/40 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -659,5 +661,6 @@ export const RecurringRuleModal: React.FC<RecurringRuleModalProps> = ({
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 };

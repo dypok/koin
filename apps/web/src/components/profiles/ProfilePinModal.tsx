@@ -4,6 +4,7 @@ import { ProfileDTO } from '@koin/shared';
 import { apiRequest } from '../../lib/api';
 import { KoinIcon } from '../../lib/icons';
 import { getProfileAvatarStyle } from '../../lib/theme';
+import { ModalPortal } from '../common/ModalPortal';
 
 interface ProfilePinModalProps {
   isOpen: boolean;
@@ -147,12 +148,13 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
   if (!isOpen || !profile) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-sm flex items-center justify-center p-4">
-      <div
-        className={`w-full max-w-xs bg-background border border-border/60 shadow-2xl flex flex-col p-6 animate-in fade-in zoom-in-95 duration-150 ${
-          shake ? 'translate-x-1 transition-transform' : ''
-        }`}
-      >
+    <ModalPortal>
+      <div className="fixed inset-0 w-screen h-screen z-50 bg-background/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div
+          className={`w-full max-w-xs bg-background border border-border/60 shadow-2xl flex flex-col p-6 animate-in fade-in zoom-in-95 duration-150 ${
+            shake ? 'translate-x-1 transition-transform' : ''
+          }`}
+        >
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-border/40">
           <div className="flex items-center gap-2">
@@ -262,5 +264,6 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 };

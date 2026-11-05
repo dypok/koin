@@ -20,6 +20,7 @@ import { useTransactionStore } from '../../stores/transactionStore';
 import { useRecurringStore } from '../../stores/recurringStore';
 import { KoinIcon } from '../../lib/icons';
 import { CategoryWithUsageDTO } from '@koin/shared';
+import { ModalPortal } from '../common/ModalPortal';
 
 interface QuickTransactionModalProps {
   isOpen: boolean;
@@ -329,8 +330,9 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="w-full max-w-lg bg-background border border-border shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+    <ModalPortal>
+      <div className="fixed inset-0 w-screen h-screen z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto">
+        <div className="w-full max-w-lg bg-background border border-border shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
         {/* Header & Mode Switcher */}
         <div className="p-4 border-b border-border/50 flex items-center justify-between gap-3 shrink-0">
           {/* Mode Switcher Tabs */}
@@ -842,5 +844,6 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
         )}
       </div>
     </div>
+    </ModalPortal>
   );
 };

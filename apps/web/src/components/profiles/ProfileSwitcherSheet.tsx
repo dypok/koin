@@ -4,6 +4,7 @@ import { ProfileDTO } from '@koin/shared';
 import { useAuthStore } from '../../stores/authStore';
 import { KoinIcon } from '../../lib/icons';
 import { getProfileAvatarStyle } from '../../lib/theme';
+import { ModalPortal } from '../common/ModalPortal';
 
 interface ProfileSwitcherSheetProps {
   isOpen: boolean;
@@ -41,8 +42,9 @@ export const ProfileSwitcherSheet: React.FC<ProfileSwitcherSheetProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex flex-col justify-end md:justify-center md:items-center p-0 md:p-4 animate-in fade-in duration-150">
-      <div className="w-full md:max-w-md bg-background border-t md:border border-border/60 shadow-2xl flex flex-col max-h-[85vh] animate-in slide-in-from-bottom duration-200">
+    <ModalPortal>
+      <div className="fixed inset-0 w-screen h-screen z-50 bg-background/80 backdrop-blur-sm flex flex-col justify-end md:justify-center md:items-center p-0 md:p-4 animate-in fade-in duration-150 overflow-y-auto">
+        <div className="w-full md:max-w-md bg-background border-t md:border border-border/60 shadow-2xl flex flex-col max-h-[85vh] animate-in slide-in-from-bottom duration-200">
         {/* Sheet Header */}
         <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -139,5 +141,6 @@ export const ProfileSwitcherSheet: React.FC<ProfileSwitcherSheetProps> = ({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 };

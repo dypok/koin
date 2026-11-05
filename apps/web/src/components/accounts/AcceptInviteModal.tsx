@@ -5,6 +5,7 @@ import { useAccountStore } from '../../stores/accountStore';
 import { useAuthStore } from '../../stores/authStore';
 import { KoinIcon } from '../../lib/icons';
 import { getProfileAvatarStyle } from '../../lib/theme';
+import { ModalPortal } from '../common/ModalPortal';
 
 interface AcceptInviteModalProps {
   token: string;
@@ -89,8 +90,9 @@ export const AcceptInviteModal: React.FC<AcceptInviteModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-background border border-border/60 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <ModalPortal>
+      <div className="fixed inset-0 w-screen h-screen z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div className="w-full max-w-md bg-background border border-border/60 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="px-6 py-4 border-b border-border/40 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -232,5 +234,6 @@ export const AcceptInviteModal: React.FC<AcceptInviteModalProps> = ({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 };

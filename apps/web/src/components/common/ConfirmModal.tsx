@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { AlertTriangle, Trash2, Info, X } from 'lucide-react';
+import { ModalPortal } from './ModalPortal';
 
 export interface ConfirmModalProps {
   isOpen: boolean;
@@ -70,69 +71,71 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   const styles = getVariantStyles();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs animate-in fade-in duration-150">
-      <div
-        className="w-full max-w-md border border-border/80 bg-background p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="confirm-modal-title"
-      >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          disabled={isLoading}
-          className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-          aria-label="Cerrar modal"
+    <ModalPortal>
+      <div className="fixed inset-0 w-screen h-screen z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+        <div
+          className="w-full max-w-md border border-border/80 bg-background p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-modal-title"
         >
-          <X className="w-4 h-4" />
-        </button>
-
-        {/* Header Icon + Title */}
-        <div className="flex items-start gap-4">
-          <div
-            className={`w-10 h-10 rounded-full border flex items-center justify-center shrink-0 ${styles.iconBg}`}
-          >
-            {styles.icon}
-          </div>
-
-          <div className="flex-1 pr-4">
-            <h3
-              id="confirm-modal-title"
-              className="text-base font-bold text-foreground tracking-tight leading-snug"
-            >
-              {title}
-            </h3>
-
-            <div className="mt-2 text-xs text-muted-foreground leading-relaxed">
-              {description}
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-end gap-2.5">
+          {/* Close Button */}
           <button
-            type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-xs font-semibold border border-border/70 text-muted-foreground hover:text-foreground hover:border-border transition-colors disabled:opacity-50"
+            className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            aria-label="Cerrar modal"
           >
-            {cancelText}
+            <X className="w-4 h-4" />
           </button>
 
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={isLoading}
-            className={`px-4 py-2 text-xs font-semibold shadow-xs transition-all flex items-center gap-2 disabled:opacity-50 ${styles.confirmBtn}`}
-          >
-            {isLoading && (
-              <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            )}
-            <span>{confirmText}</span>
-          </button>
+          {/* Header Icon + Title */}
+          <div className="flex items-start gap-4">
+            <div
+              className={`w-10 h-10 rounded-full border flex items-center justify-center shrink-0 ${styles.iconBg}`}
+            >
+              {styles.icon}
+            </div>
+
+            <div className="flex-1 pr-4">
+              <h3
+                id="confirm-modal-title"
+                className="text-base font-bold text-foreground tracking-tight leading-snug"
+              >
+                {title}
+              </h3>
+
+              <div className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                {description}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isLoading}
+              className="px-4 py-2 text-xs font-semibold border border-border/70 text-muted-foreground hover:text-foreground hover:border-border transition-colors disabled:opacity-50"
+            >
+              {cancelText}
+            </button>
+
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={isLoading}
+              className={`px-4 py-2 text-xs font-semibold shadow-xs transition-all flex items-center gap-2 disabled:opacity-50 ${styles.confirmBtn}`}
+            >
+              {isLoading && (
+                <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              )}
+              <span>{confirmText}</span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </ModalPortal>
   );
 };

@@ -34,7 +34,15 @@
      - Arquitectura SPA, navbar retráctil y scrollbar personalizado.
      - Historial de versiones y releases hasta la v0.4.2.
 
-3. **Cierre de Versión 0.4.2:**
+3. **Corrección de Cobertura de Modales (100% Pantalla) con React Portal (`ModalPortal.tsx`):**
+   - **Problema detectado:** Al estar anidados dentro de componentes con animaciones o layouts restringidos (`AccountsView`, `TransactionsView`, etc.), los contenedores con `fixed inset-0` se confinaban a su contenedor padre debido a contextos de apilamiento CSS, dejando la barra lateral de escritorio y/o el navbar fuera del backdrop semi-transparente.
+   - **Solución implementada:**
+     - Se creó el componente `ModalPortal` utilizando `createPortal(children, document.body)`.
+     - Se migraron los 10 componentes modales (`ConfirmModal`, `QuickTransactionModal`, `RecurringRuleModal`, `RecurringRuleDetailModal`, `AccountModal`, `AccountShareModal`, `AcceptInviteModal`, `ProfileModal`, `ProfilePinModal`, `ProfileSwitcherSheet`) para renderizarse directamente en el `document.body`.
+     - Se asignaron dimensiones de cobertura absoluta `w-screen h-screen fixed inset-0 z-50 overflow-y-auto`.
+     - Se implementó bloqueo automático del scroll de fondo (`document.body.style.overflow = 'hidden'`) mientras cualquier modal permanezca abierto, restaurándolo al cerrar.
+
+4. **Cierre de Versión 0.4.2:**
    - Actualización de versiones de paquete a `0.4.2` en `package.json`, `apps/web/package.json` y `packages/shared/package.json`.
 
 ---
