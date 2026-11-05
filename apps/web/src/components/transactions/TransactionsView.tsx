@@ -30,9 +30,17 @@ import { ConfirmModal } from '../common/ConfirmModal';
 
 interface TransactionsViewProps {
   onNewTransaction: (type?: 'expense' | 'income' | 'transfer', accountId?: string) => void;
+  activeMainTab?: 'history' | 'recurring';
+  onTabChange?: (tab: 'history' | 'recurring') => void;
+  openRecurringModalTrigger?: number;
 }
 
-export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransaction }) => {
+export const TransactionsView: React.FC<TransactionsViewProps> = ({
+  onNewTransaction,
+  activeMainTab: activeMainTabProp,
+  onTabChange,
+  openRecurringModalTrigger,
+}) => {
   const { activeProfile } = useAuthStore();
   const { accounts, fetchAccounts } = useAccountStore();
   const {
@@ -55,7 +63,13 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
   } = useRecurringStore();
 
   // Main View Tabs: History vs Recurring/Debts
-  const [activeMainTab, setActiveMainTab] = useState<'history' | 'recurring'>('history');
+  const [internalTab, setInternalTab] = useState<'history' | 'recurring'>('history');
+  const activeMainTab = activeMainTabProp !== undefined ? activeMainTabProp : internalTab;
+
+  const handleTabChange = (tab: 'history' | 'recurring') => {
+    setInternalTab(tab);
+    onTabChange?.(tab);
+  };
 
   // History Tab Filters
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income' | 'transfer'>('all');
@@ -86,6 +100,14 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
     }, 4000);
     return () => clearTimeout(timer);
   }, [toastMessage]);
+
+  // Open recurring rule creation modal triggered from navbar or quick actions
+  useEffect(() => {
+    if (openRecurringModalTrigger && openRecurringModalTrigger > 0) {
+      setRuleToEdit(null);
+      setIsRecurringModalOpen(true);
+    }
+  }, [openRecurringModalTrigger]);
 
   // Debounce search query 250ms
   useEffect(() => {
@@ -270,7 +292,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
             <h1 className="text-xl font-bold tracking-tight text-foreground">Movimientos</h1>
             <div className="flex items-center border border-border/60 bg-muted/10 p-0.5 text-xs font-semibold">
               <button
-                onClick={() => setActiveMainTab('history')}
+                onClick={() => handleTabChange('history')}
                 className={`px-3 py-1 flex items-center gap-1.5 transition-colors ${
                   activeMainTab === 'history'
                     ? 'bg-background text-foreground shadow-xs font-bold'
@@ -283,7 +305,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
               </button>
 
               <button
-                onClick={() => setActiveMainTab('recurring')}
+                onClick={() => handleTabChange('recurring')}
                 className={`px-3 py-1 flex items-center gap-1.5 transition-colors ${
                   activeMainTab === 'recurring'
                     ? 'bg-background text-foreground shadow-xs font-bold'
@@ -293,7 +315,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
                 <Calendar className="w-3.5 h-3.5" />
                 <span>Fijos y Deudas</span>
                 {activeRulesCount > 0 && (
-                  <span className="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] flex items-center justify-center font-mono font-bold">
+                  <span className="px-1.5 py-0.2 bg-purple-500/20 text-purple-400 text-[10px] font-mono font-bold">
                     {activeRulesCount}
                   </span>
                 )}
@@ -307,27 +329,29 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {activeMainTab === 'history' ? (
-            <button
-              onClick={() => onNewTransaction('expense')}
-              className="px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Nuevo Movimiento</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                setRuleToEdit(null);
-                setIsRecurringModalOpen(true);
-              }}
-              className="px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Programar Compromiso</span>
-            </button>
-          )}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => onNewTransaction('expense')}
+            className="px-3.5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm"
+            title="Registrar gasto, ingreso o transferencia puntual"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nuevo Movimiento</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setRuleToEdit(null);
+              setIsRecurringModalOpen(true);
+            }}
+            className="px-3.5 py-2 text-xs font-semibold border border-purple-500/50 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors flex items-center gap-1.5 shadow-2xs"
+            title="Programar salario fijo nómina, suscripción recurrente o deuda a cuotas con amortización"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Programar Compromiso</span>
+          </button>
         </div>
       </div>
 

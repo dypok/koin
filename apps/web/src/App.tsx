@@ -8,9 +8,11 @@ import {
   LogOut,
   ChevronDown,
   Plus,
+  Calendar,
 } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
 import { useAuthStore } from './stores/authStore';
+import { useRecurringStore } from './stores/recurringStore';
 import { AuthPage } from './components/auth/AuthPage';
 import { KoinIcon } from './lib/icons';
 import { KoinLogo } from './components/common/KoinLogo';
@@ -35,6 +37,9 @@ type NavigationTab =
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<NavigationTab>('accounts');
+  const [transactionsSubTab, setTransactionsSubTab] = useState<'history' | 'recurring'>('history');
+  const [isMovimientosDropdownOpen, setIsMovimientosDropdownOpen] = useState(false);
+  const [recurringTrigger, setRecurringTrigger] = useState(0);
   const [settingsSubTab, setSettingsSubTab] = useState<'profiles' | 'appearance' | 'security'>('profiles');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isCreateProfileModalOpen, setIsCreateProfileModalOpen] = useState(false);
@@ -91,6 +96,16 @@ export default function App() {
     profile?.themeConfig?.primaryHex,
     profile?.themeConfig?.baseMode
   );
+
+  const { rules, fetchRules } = useRecurringStore();
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchRules(profile.id);
+    }
+  }, [profile?.id, fetchRules]);
+
+  const activeRulesCount = rules.filter((r) => r.status === 'active').length;
 
   const handleGoToSettings = (subTab: 'profiles' | 'appearance' | 'security' = 'profiles') => {
     setSettingsSubTab(subTab);
@@ -167,17 +182,73 @@ export default function App() {
               <span>Cuentas Financieras</span>
             </button>
 
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium transition-colors ${
-                activeTab === 'history'
-                  ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-              }`}
-            >
-              <History className="w-4 h-4" />
-              <span>Movimientos</span>
-            </button>
+            {/* Movimientos with Sub-navigation */}
+            <div className="space-y-0.5">
+              <button
+                onClick={() => {
+                  setActiveTab('history');
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-medium transition-colors ${
+                  activeTab === 'history'
+                    ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <History className="w-4 h-4" />
+                  <span>Movimientos</span>
+                </div>
+                {activeRulesCount > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-purple-500/20 text-purple-400 text-[10px] flex items-center justify-center font-mono font-bold">
+                    {activeRulesCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Sub-items in Sidebar */}
+              {activeTab === 'history' && (
+                <div className="ml-7 space-y-0.5 border-l border-border/40 pl-3 py-1 animate-in fade-in duration-100">
+                  <button
+                    onClick={() => setTransactionsSubTab('history')}
+                    className={`w-full text-left py-1 text-[11px] transition-colors flex items-center gap-2 ${
+                      transactionsSubTab === 'history'
+                        ? 'text-primary font-bold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        transactionsSubTab === 'history' ? 'bg-primary' : 'bg-transparent'
+                      }`}
+                    />
+                    <span>Historial</span>
+                  </button>
+
+                  <button
+                    onClick={() => setTransactionsSubTab('recurring')}
+                    className={`w-full text-left py-1 text-[11px] transition-colors flex items-center justify-between ${
+                      transactionsSubTab === 'recurring'
+                        ? 'text-purple-400 font-bold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          transactionsSubTab === 'recurring' ? 'bg-purple-400' : 'bg-transparent'
+                        }`}
+                      />
+                      <span>Compromisos y Deudas</span>
+                    </div>
+                    {activeRulesCount > 0 && (
+                      <span className="text-[10px] font-mono text-purple-400 font-bold">
+                        ({activeRulesCount})
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={() => setActiveTab('budgets')}
@@ -269,25 +340,127 @@ export default function App() {
         {/* Desktop Top Header Bar */}
         <header className="hidden md:flex items-center justify-between px-8 py-4 border-b border-border/40 bg-background sticky top-0 z-10">
           <div>
-            <h2 className="text-sm font-bold tracking-tight text-foreground uppercase">
-              {activeTab === 'home' && 'Inicio y Balance'}
-              {activeTab === 'accounts' && 'Cuentas Financieras'}
-              {activeTab === 'history' && 'Historial de Movimientos'}
-              {activeTab === 'budgets' && 'Presupuestos'}
-              {activeTab === 'settings' && 'Configuración'}
-            </h2>
+            {activeTab === 'history' ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsMovimientosDropdownOpen(!isMovimientosDropdownOpen)}
+                  className="flex items-center gap-2.5 px-3 py-1.5 border border-border/80 bg-muted/15 hover:border-border text-foreground font-bold text-xs uppercase tracking-wider transition-colors shadow-2xs"
+                  aria-expanded={isMovimientosDropdownOpen}
+                  title="Cambiar vista de Movimientos"
+                >
+                  {transactionsSubTab === 'history' ? (
+                    <>
+                      <History className="w-3.5 h-3.5 text-primary" />
+                      <span>Historial de Movimientos</span>
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Compromisos, Fijos y Deudas</span>
+                    </>
+                  )}
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${
+                      isMovimientosDropdownOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isMovimientosDropdownOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-20"
+                      onClick={() => setIsMovimientosDropdownOpen(false)}
+                    />
+                    <div className="absolute left-0 top-full mt-1.5 w-72 border border-border/80 bg-background shadow-xl p-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTransactionsSubTab('history');
+                          setIsMovimientosDropdownOpen(false);
+                        }}
+                        className={`w-full p-2.5 text-left text-xs flex items-start gap-2.5 transition-colors border ${
+                          transactionsSubTab === 'history'
+                            ? 'border-primary/40 bg-primary/10 text-primary font-bold'
+                            : 'border-transparent hover:bg-muted/15 text-foreground'
+                        }`}
+                      >
+                        <History className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
+                        <div>
+                          <p className="font-bold">Historial de Movimientos</p>
+                          <p className="text-[10px] text-muted-foreground font-normal mt-0.5">
+                            Ingresos, gastos y transferencias registradas
+                          </p>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTransactionsSubTab('recurring');
+                          setIsMovimientosDropdownOpen(false);
+                        }}
+                        className={`w-full p-2.5 text-left text-xs flex items-start gap-2.5 transition-colors border mt-1 ${
+                          transactionsSubTab === 'recurring'
+                            ? 'border-purple-500/40 bg-purple-500/10 text-purple-400 font-bold'
+                            : 'border-transparent hover:bg-muted/15 text-foreground'
+                        }`}
+                      >
+                        <Calendar className="w-4 h-4 shrink-0 mt-0.5 text-purple-400" />
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold">Compromisos, Fijos y Deudas</p>
+                            {activeRulesCount > 0 && (
+                              <span className="text-[10px] font-mono px-1 bg-purple-500/20 text-purple-400 font-bold">
+                                {activeRulesCount}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground font-normal mt-0.5">
+                            Salarios nómina, gastos mensuales y amortización de deudas
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <h2 className="text-sm font-bold tracking-tight text-foreground uppercase">
+                {activeTab === 'home' && 'Inicio y Balance'}
+                {activeTab === 'accounts' && 'Cuentas Financieras'}
+                {activeTab === 'budgets' && 'Presupuestos'}
+                {activeTab === 'settings' && 'Configuración'}
+              </h2>
+            )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => {
                 setQuickTxConfig({ type: 'expense' });
                 setIsQuickTxModalOpen(true);
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
+              title="Registrar gasto, ingreso o transferencia puntual"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Nuevo Movimiento</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('history');
+                setTransactionsSubTab('recurring');
+                setRecurringTrigger((prev) => prev + 1);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-purple-500/50 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors shadow-2xs"
+              title="Programar salario fijo mensual, gasto recurrente o deuda a cuotas con intereses"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Programar Compromiso</span>
             </button>
           </div>
         </header>
@@ -304,6 +477,9 @@ export default function App() {
 
           {activeTab === 'history' && (
             <TransactionsView
+              activeMainTab={transactionsSubTab}
+              onTabChange={(t) => setTransactionsSubTab(t)}
+              openRecurringModalTrigger={recurringTrigger}
               onNewTransaction={(type = 'expense', accountId) => {
                 setQuickTxConfig({ type, accountId });
                 setIsQuickTxModalOpen(true);
