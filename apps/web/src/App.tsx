@@ -45,34 +45,38 @@ function parseRoute(pathname: string): {
 } {
   const clean = pathname.toLowerCase().replace(/\/+$/, '') || '/';
 
-  if (clean === '/inicio' || clean === '/home') {
+  if (clean === '/home' || clean === '/inicio') {
     return { tab: 'home', txSubTab: 'history', settingsSubTab: 'profiles' };
   }
-  if (clean === '/presupuestos' || clean === '/budgets') {
+  if (clean === '/budgets' || clean === '/presupuestos') {
     return { tab: 'budgets', txSubTab: 'history', settingsSubTab: 'profiles' };
   }
-  if (clean.startsWith('/movimientos') || clean.startsWith('/history')) {
+  if (
+    clean.startsWith('/transactions') ||
+    clean.startsWith('/history') ||
+    clean.startsWith('/movimientos')
+  ) {
     if (
+      clean.includes('recurring') ||
       clean.includes('compromiso') ||
       clean.includes('fijo') ||
-      clean.includes('deuda') ||
-      clean.includes('recurring')
+      clean.includes('deuda')
     ) {
       return { tab: 'history', txSubTab: 'recurring', settingsSubTab: 'profiles' };
     }
     return { tab: 'history', txSubTab: 'history', settingsSubTab: 'profiles' };
   }
-  if (clean.startsWith('/configuracion') || clean.startsWith('/settings')) {
-    if (clean.includes('apariencia') || clean.includes('appearance') || clean.includes('colores')) {
+  if (clean.startsWith('/settings') || clean.startsWith('/configuracion')) {
+    if (clean.includes('appearance') || clean.includes('apariencia') || clean.includes('colores')) {
       return { tab: 'settings', txSubTab: 'history', settingsSubTab: 'appearance' };
     }
-    if (clean.includes('seguridad') || clean.includes('security') || clean.includes('pin')) {
+    if (clean.includes('security') || clean.includes('seguridad') || clean.includes('pin')) {
       return { tab: 'settings', txSubTab: 'history', settingsSubTab: 'security' };
     }
     return { tab: 'settings', txSubTab: 'history', settingsSubTab: 'profiles' };
   }
 
-  // Default to accounts ('/cuentas' or '/')
+  // Default to accounts ('/accounts')
   return { tab: 'accounts', txSubTab: 'history', settingsSubTab: 'profiles' };
 }
 
@@ -83,19 +87,19 @@ function getPathForState(
 ): string {
   switch (tab) {
     case 'home':
-      return '/inicio';
+      return '/home';
     case 'accounts':
-      return '/cuentas';
+      return '/accounts';
     case 'history':
-      return txSubTab === 'recurring' ? '/movimientos/compromisos' : '/movimientos';
+      return txSubTab === 'recurring' ? '/transactions/recurring' : '/transactions';
     case 'budgets':
-      return '/presupuestos';
+      return '/budgets';
     case 'settings':
-      if (settingsSubTab === 'appearance') return '/configuracion/apariencia';
-      if (settingsSubTab === 'security') return '/configuracion/seguridad';
-      return '/configuracion/perfiles';
+      if (settingsSubTab === 'appearance') return '/settings/appearance';
+      if (settingsSubTab === 'security') return '/settings/security';
+      return '/settings/profiles';
     default:
-      return '/cuentas';
+      return '/accounts';
   }
 }
 
@@ -213,11 +217,29 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Normalize initial root URL to /cuentas if on /
+  // Normalize initial root URL or legacy Spanish URL to canonical English route
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.pathname === '/') {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
       const search = window.location.search;
-      window.history.replaceState(null, '', '/cuentas' + (search || ''));
+      if (path === '/' || path === '/cuentas') {
+        window.history.replaceState(null, '', '/accounts' + (search || ''));
+      } else if (path === '/inicio') {
+        window.history.replaceState(null, '', '/home' + (search || ''));
+      } else if (path === '/movimientos') {
+        window.history.replaceState(null, '', '/transactions' + (search || ''));
+      } else if (path === '/movimientos/compromisos') {
+        window.history.replaceState(null, '', '/transactions/recurring' + (search || ''));
+      } else if (path === '/presupuestos') {
+        window.history.replaceState(null, '', '/budgets' + (search || ''));
+      } else if (path.startsWith('/configuracion')) {
+        const canonical = path
+          .replace('/configuracion', '/settings')
+          .replace('/apariencia', '/appearance')
+          .replace('/seguridad', '/security')
+          .replace('/perfiles', '/profiles');
+        window.history.replaceState(null, '', canonical + (search || ''));
+      }
     }
   }, []);
 
