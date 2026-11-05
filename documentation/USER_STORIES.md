@@ -467,8 +467,8 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [ ] [FRONTEND] Acción de guardado al tocar categoría: mutación optimista con TanStack Query
 - [ ] [FRONTEND] Cierre inmediato del modal con vibración háptica de éxito en Android
 - [ ] [FRONTEND] Componente Toast con temporizador de 5 segundos y botón de acción "Deshacer"
-- [ ] [BACKEND] Endpoint `POST /api/v1/transactions`: inserción y actualización atómica del balance de cuenta
-- [ ] [BACKEND] Endpoint `DELETE /api/v1/transactions/:id`: eliminación y reversión del saldo
+- [x] [BACKEND] Endpoint `POST /api/v1/transactions`: inserción y actualización atómica del balance de cuenta
+- [x] [BACKEND] Endpoint `DELETE /api/v1/transactions/:id`: eliminación y reversión del saldo
 
 **DoD adicional para esta US:**
 - Medir cronometrado en video: Toque (+) → "15" → Tocar "Comida" → Guardado. Total: < 3 segundos reales
@@ -490,9 +490,9 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - El usuario puede editar manualmente la tasa de cambio si el banco le cobró una tarifa diferente
 
 **Subtasks:**
-- [ ] [BD] Migración Drizzle de tabla `exchange_rates` con pares de divisas (`pair VARCHAR(7) PK`, ej: `'USD_COP'`)
-- [ ] [BACKEND] `currency.service.ts`: servicio que consulta tasas de cambio y computa `base_amount`
-- [ ] [BACKEND] Carga de seed data con tasas de cambio comunes (USD, EUR, COP, MXN)
+- [x] [BD] Migración SQL de tabla `exchange_rates` con pares de divisas (`pair VARCHAR(7) PK`, ej: `'USD_COP'`)
+- [x] [BACKEND] Servicio en Go que consulta tasas de cambio y computa `base_amount`
+- [x] [BACKEND] Carga de seed data con tasas de cambio comunes (USD, EUR, COP, MXN, BRL, ARS, CLP, PEN, GBP, CAD)
 - [ ] [FRONTEND] En el modal de gasto: si la cuenta tiene divisa distinta a la base, mostrar campo sutil de tasa de cambio y equivalente calculado
 - [ ] [FRONTEND] Permitir edición manual de la tasa de cambio con recálculo en vivo
 - [ ] [TEST] Test unitario: verificar que 100 USD con tasa 4,150.25 produce exactamente 415,025.00 COP
@@ -516,8 +516,8 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Soporte para transferencias entre cuentas con divisas distintas aplicando tasa de conversión
 
 **Subtasks:**
-- [ ] [BACKEND] Endpoint `POST /api/v1/transfers`: recibe `fromAccountId`, `toAccountId`, `amount`, `convertedAmount`
-- [ ] [BACKEND] `transfer.service.ts`: ejecución atómica dentro de `db.transaction()` con verificación de permisos en cuentas compartidas
+- [x] [BACKEND] Endpoint `POST /api/v1/transfers`: recibe `fromAccountId`, `toAccountId`, `amount`, `toAmount`
+- [x] [BACKEND] `transactions.service`: ejecución atómica dentro de `db.Begin()` con verificación de permisos en cuentas compartidas
 - [ ] [FRONTEND] Selector de modo "Transferencia" en el modal rápido
 - [ ] [FRONTEND] Selectores de cuenta origen y cuenta destino
 - [ ] [FRONTEND] Actualización optimista de ambos balances en pantalla
@@ -543,7 +543,7 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Renderizado virtualizado con TanStack Virtual manteniendo 60 fps constantes con más de 2,000 registros
 
 **Subtasks:**
-- [ ] [BACKEND] Endpoint `GET /api/v1/transactions`: paginación cursor-based con soporte de filtros combinados
+- [x] [BACKEND] Endpoint `GET /api/v1/transactions`: paginación con soporte de filtros combinados y cursor/offset
 - [ ] [FRONTEND] Barra de búsqueda plana integrada en la cabecera de la sección
 - [ ] [FRONTEND] Filtros de texto horizontales desplazables (Todo, Gastos, Ingresos, Cuentas)
 - [ ] [FRONTEND] Lista virtualizada con `@tanstack/react-virtual`

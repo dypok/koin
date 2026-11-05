@@ -17,11 +17,13 @@ import (
 
 	"koin/server/internal/accounts"
 	"koin/server/internal/auth"
+	"koin/server/internal/categories"
 	"koin/server/internal/config"
 	"koin/server/internal/database"
 	"koin/server/internal/middleware"
 	"koin/server/internal/profiles"
 	"koin/server/internal/response"
+	"koin/server/internal/transactions"
 )
 
 var startTime = time.Now()
@@ -56,6 +58,18 @@ func main() {
 	accountHandler := accounts.NewHandler(accountService, db.Pool, func(r *http.Request) *auth.JWTClaims {
 		return middleware.GetUserClaims(r.Context())
 	}, "http://localhost:5173")
+
+	categoryRepo := categories.NewRepository(db.Pool)
+	categoryService := categories.NewService(categoryRepo)
+	categoryHandler := categories.NewHandler(categoryService, db.Pool, func(r *http.Request) *auth.JWTClaims {
+		return middleware.GetUserClaims(r.Context())
+	})
+
+	transactionRepo := transactions.NewRepository(db.Pool)
+	transactionService := transactions.NewService(transactionRepo)
+	transactionHandler := transactions.NewHandler(transactionService, db.Pool, func(r *http.Request) *auth.JWTClaims {
+		return middleware.GetUserClaims(r.Context())
+	})
 
 	// Rate Limiters
 	loginLimiter := middleware.NewIPRateLimiter(5, 15*time.Minute, "Demasiados intentos fallidos. Por seguridad, intente de nuevo en 15 minutos.")
@@ -144,6 +158,37 @@ func main() {
 	r.Route("/api/v1/invitations", func(r chi.Router) {
 		r.Get("/validate", accountHandler.ValidateInvitation)
 		r.With(middleware.AuthenticateToken(cfg.JWTSecret)).Post("/accept", accountHandler.AcceptInvitation)
+	})
+
+	// Categories Subrouter (TXN-02 & BUD-01)
+	r.Route("/api/v1/categories", func(r chi.Router) {
+		r.Use(middleware.AuthenticateToken(cfg.JWTSecret))
+		r.Get("/", categoryHandler.List)
+		r.Post("/", categoryHandler.Create)
+		r.Get("/{id}", categoryHandler.GetByID)
+		r.Patch("/{id}", categoryHandler.Update)
+		r.Delete("/{id}", categoryHandler.Delete)
+	})
+
+	// Transactions Subrouter (TXN-02, TXN-03, TXN-05)
+	r.Route("/api/v1/transactions", func(r chi.Router) {
+		r.Use(middleware.AuthenticateToken(cfg.JWTSecret))
+		r.Get("/", transactionHandler.List)
+		r.Post("/", transactionHandler.Create)
+		r.Get("/{id}", transactionHandler.GetByID)
+		r.Patch("/{id}", transactionHandler.Update)
+		r.Delete("/{id}", transactionHandler.Delete)
+	})
+
+	// Transfers Subrouter (TXN-04)
+	r.Route("/api/v1/transfers", func(r chi.Router) {
+		r.Use(middleware.AuthenticateToken(cfg.JWTSecret))
+		r.Post("/", transactionHandler.CreateTransfer)
+	})
+
+	// Currencies & Exchange Rates Subrouter (TXN-03)
+	r.Route("/api/v1/currencies", func(r chi.Router) {
+		r.Get("/rates", transactionHandler.ListRates)
 	})
 
 	// Frontend SPA Serving & Fallback

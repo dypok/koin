@@ -128,10 +128,12 @@ export const TransactionTypeEnum = z.enum(['expense', 'income', 'transfer']);
 export const BaseTransactionSchema = z.object({
   accountId: z.string().uuid('ID de cuenta inválido'),
   toAccountId: z.string().uuid('ID de cuenta destino inválido').optional().nullable(),
-  categoryId: z.string().uuid('ID de categoría inválido'),
+  categoryId: z.string().uuid('ID de categoría inválido').optional().nullable(),
   type: TransactionTypeEnum,
   amount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Monto decimal positivo inválido'),
+  toAmount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Monto destino decimal positivo inválido').optional().nullable(),
   currency: z.string().length(3).default('USD'),
+  exchangeRateToBase: z.string().regex(/^\d+(\.\d{1,6})?$/, 'Tasa de cambio inválida').optional().nullable(),
   date: z.string().datetime().or(z.date()).transform((val) => (typeof val === 'string' ? val : val.toISOString())),
   note: z.string().max(500).optional().nullable(),
   tags: z.array(z.string().trim().max(30)).max(10).optional().nullable(),
@@ -143,17 +145,31 @@ export const CreateTransactionSchema = BaseTransactionSchema.refine(
     if (data.type === 'transfer' && !data.toAccountId) {
       return false;
     }
+    if ((data.type === 'expense' || data.type === 'income') && !data.categoryId) {
+      return false;
+    }
     return true;
   },
   {
-    message: 'Una transferencia requiere una cuenta de destino (toAccountId)',
-    path: ['toAccountId'],
+    message: 'Transacción inválida: los gastos e ingresos requieren categoría, y las transferencias requieren cuenta de destino',
   }
 );
 export type CreateTransactionInput = z.infer<typeof CreateTransactionSchema>;
 
 export const UpdateTransactionSchema = BaseTransactionSchema.partial();
 export type UpdateTransactionInput = z.infer<typeof UpdateTransactionSchema>;
+
+export const CreateTransferSchema = z.object({
+  fromAccountId: z.string().uuid('ID de cuenta origen inválido'),
+  toAccountId: z.string().uuid('ID de cuenta destino inválido'),
+  amount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Monto decimal positivo inválido'),
+  toAmount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Monto destino decimal positivo inválido').optional().nullable(),
+  exchangeRate: z.string().regex(/^\d+(\.\d{1,6})?$/, 'Tasa de cambio inválida').optional().nullable(),
+  date: z.string().datetime().or(z.date()).transform((val) => (typeof val === 'string' ? val : val.toISOString())).optional(),
+  note: z.string().max(500).optional().nullable(),
+  tags: z.array(z.string().trim().max(30)).max(10).optional().nullable(),
+});
+export type CreateTransferInput = z.infer<typeof CreateTransferSchema>;
 
 // ------------------------------------------------------
 // Budget DTOs

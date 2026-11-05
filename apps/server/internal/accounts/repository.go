@@ -45,7 +45,7 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID) ([]
 						CASE 
 							WHEN t.type = 'income' THEN t.amount
 							WHEN t.type = 'expense' THEN -t.amount
-							WHEN t.type = 'transfer' AND t.to_account_id = a.id THEN t.amount
+							WHEN t.type = 'transfer' AND t.to_account_id = a.id THEN COALESCE(t.to_amount, t.amount)
 							WHEN t.type = 'transfer' AND t.account_id = a.id THEN -t.amount
 							ELSE 0
 						END
@@ -124,7 +124,7 @@ func (r *Repository) GetByID(ctx context.Context, accountID, profileID uuid.UUID
 						CASE 
 							WHEN t.type = 'income' THEN t.amount
 							WHEN t.type = 'expense' THEN -t.amount
-							WHEN t.type = 'transfer' AND t.to_account_id = a.id THEN t.amount
+							WHEN t.type = 'transfer' AND t.to_account_id = a.id THEN COALESCE(t.to_amount, t.amount)
 							WHEN t.type = 'transfer' AND t.account_id = a.id THEN -t.amount
 							ELSE 0
 						END

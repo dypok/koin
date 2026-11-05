@@ -217,3 +217,126 @@ type AcceptInvitationRequest struct {
 type UpdateMemberRoleRequest struct {
 	Role string `json:"role"`
 }
+
+// ------------------------------------------------------
+// Transaction Models & DTOs (TXN-02 to TXN-05)
+// ------------------------------------------------------
+
+type Transaction struct {
+	ID                 uuid.UUID        `json:"id"`
+	ProfileID          uuid.UUID        `json:"profileId"`
+	AccountID          uuid.UUID        `json:"accountId"`
+	ToAccountID        *uuid.UUID       `json:"toAccountId,omitempty"`
+	CategoryID         *uuid.UUID       `json:"categoryId,omitempty"`
+	Type               string           `json:"type"` // expense, income, transfer
+	Amount             decimal.Decimal  `json:"amount"`
+	ToAmount           *decimal.Decimal `json:"toAmount,omitempty"`
+	Currency           string           `json:"currency"`
+	ExchangeRateToBase decimal.Decimal  `json:"exchangeRateToBase"`
+	BaseAmount         decimal.Decimal  `json:"baseAmount"`
+	Date               time.Time        `json:"date"`
+	Note               *string          `json:"note,omitempty"`
+	Tags               []string         `json:"tags"`
+	IsRecurring        bool             `json:"isRecurring"`
+	CreatedAt          time.Time        `json:"createdAt"`
+	UpdatedAt          time.Time        `json:"updatedAt"`
+
+	// Relational fields for UX & history
+	AccountName       *string `json:"accountName,omitempty"`
+	AccountColor      *string `json:"accountColor,omitempty"`
+	AccountIcon       *string `json:"accountIcon,omitempty"`
+	AccountCurrency   *string `json:"accountCurrency,omitempty"`
+	ToAccountName     *string `json:"toAccountName,omitempty"`
+	ToAccountColor    *string `json:"toAccountColor,omitempty"`
+	ToAccountIcon     *string `json:"toAccountIcon,omitempty"`
+	ToAccountCurrency *string `json:"toAccountCurrency,omitempty"`
+	CategoryName      *string `json:"categoryName,omitempty"`
+	CategoryIcon      *string `json:"categoryIcon,omitempty"`
+	CategoryColor     *string `json:"categoryColor,omitempty"`
+}
+
+type ExchangeRate struct {
+	Pair         string          `json:"pair"`
+	FromCurrency string          `json:"fromCurrency"`
+	ToCurrency   string          `json:"toCurrency"`
+	Rate         decimal.Decimal `json:"rate"`
+	UpdatedAt    time.Time       `json:"updatedAt"`
+}
+
+type CategoryWithUsage struct {
+	Category
+	UsageCount int `json:"usageCount"`
+}
+
+type CreateTransactionRequest struct {
+	AccountID          uuid.UUID        `json:"accountId"`
+	ToAccountID        *uuid.UUID       `json:"toAccountId,omitempty"`
+	CategoryID         *uuid.UUID       `json:"categoryId,omitempty"`
+	Type               string           `json:"type"` // expense, income, transfer
+	Amount             decimal.Decimal  `json:"amount"`
+	ToAmount           *decimal.Decimal `json:"toAmount,omitempty"`
+	Currency           *string          `json:"currency,omitempty"`
+	ExchangeRateToBase *decimal.Decimal `json:"exchangeRateToBase,omitempty"`
+	Date               *time.Time       `json:"date,omitempty"`
+	Note               *string          `json:"note,omitempty"`
+	Tags               []string         `json:"tags,omitempty"`
+	IsRecurring        bool             `json:"isRecurring"`
+}
+
+type UpdateTransactionRequest struct {
+	AccountID          *uuid.UUID       `json:"accountId,omitempty"`
+	ToAccountID        *uuid.UUID       `json:"toAccountId,omitempty"`
+	CategoryID         *uuid.UUID       `json:"categoryId,omitempty"`
+	Amount             *decimal.Decimal `json:"amount,omitempty"`
+	ToAmount           *decimal.Decimal `json:"toAmount,omitempty"`
+	ExchangeRateToBase *decimal.Decimal `json:"exchangeRateToBase,omitempty"`
+	Date               *time.Time       `json:"date,omitempty"`
+	Note               *string          `json:"note,omitempty"`
+	Tags               *[]string        `json:"tags,omitempty"`
+}
+
+type CreateTransferRequest struct {
+	FromAccountID uuid.UUID        `json:"fromAccountId"`
+	ToAccountID   uuid.UUID        `json:"toAccountId"`
+	Amount        decimal.Decimal  `json:"amount"`
+	ToAmount      *decimal.Decimal `json:"toAmount,omitempty"`
+	ExchangeRate  *decimal.Decimal `json:"exchangeRate,omitempty"`
+	Date          *time.Time       `json:"date,omitempty"`
+	Note          *string          `json:"note,omitempty"`
+	Tags          []string         `json:"tags,omitempty"`
+}
+
+type TransactionFilter struct {
+	ProfileID  uuid.UUID
+	AccountID  *uuid.UUID
+	CategoryID *uuid.UUID
+	Type       *string
+	StartDate  *time.Time
+	EndDate    *time.Time
+	Search     *string
+	Limit      int
+	Offset     int
+}
+
+type PaginatedTransactions struct {
+	Items      []Transaction `json:"items"`
+	TotalCount int           `json:"totalCount"`
+	Limit      int           `json:"limit"`
+	Offset     int           `json:"offset"`
+	HasMore    bool          `json:"hasMore"`
+}
+
+type CreateCategoryRequest struct {
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	Icon      string `json:"icon"`
+	Color     string `json:"color"`
+	SortOrder int    `json:"sortOrder"`
+}
+
+type UpdateCategoryRequest struct {
+	Name      *string `json:"name,omitempty"`
+	Icon      *string `json:"icon,omitempty"`
+	Color     *string `json:"color,omitempty"`
+	SortOrder *int    `json:"sortOrder,omitempty"`
+}

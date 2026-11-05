@@ -128,9 +128,10 @@ CREATE TABLE IF NOT EXISTS finance.transactions (
 	profile_id uuid NOT NULL,
 	account_id uuid NOT NULL,
 	to_account_id uuid,
-	category_id uuid NOT NULL,
+	category_id uuid,
 	type varchar(20) NOT NULL,
 	amount numeric(14, 2) NOT NULL,
+	to_amount numeric(14, 2),
 	currency varchar(3) DEFAULT 'USD' NOT NULL,
 	exchange_rate_to_base numeric(18, 6) DEFAULT '1.000000' NOT NULL,
 	base_amount numeric(14, 2) NOT NULL,
@@ -254,3 +255,32 @@ LEFT JOIN finance.transactions t ON t.category_id = b.category_id
     AND t.type = 'expense'
     AND to_char(t.date, 'YYYY-MM') = to_char(CURRENT_DATE, 'YYYY-MM')
 GROUP BY b.id, b.profile_id, b.category_id, c.name, c.color, b.limit_amount, b.alert_threshold_percent;
+
+-- ==============================================================================
+-- SEED: system.exchange_rates
+-- ==============================================================================
+INSERT INTO system.exchange_rates (pair, from_currency, to_currency, rate) VALUES
+('USD_USD', 'USD', 'USD', 1.000000),
+('USD_EUR', 'USD', 'EUR', 0.920000),
+('EUR_USD', 'EUR', 'USD', 1.086957),
+('USD_COP', 'USD', 'COP', 4150.250000),
+('COP_USD', 'COP', 'USD', 0.000241),
+('USD_MXN', 'USD', 'MXN', 19.500000),
+('MXN_USD', 'MXN', 'USD', 0.051282),
+('USD_BRL', 'USD', 'BRL', 5.500000),
+('BRL_USD', 'BRL', 'USD', 0.181818),
+('USD_ARS', 'USD', 'ARS', 980.000000),
+('ARS_USD', 'ARS', 'USD', 0.001020),
+('USD_CLP', 'USD', 'CLP', 940.000000),
+('CLP_USD', 'CLP', 'USD', 0.001064),
+('USD_PEN', 'USD', 'PEN', 3.750000),
+('PEN_USD', 'PEN', 'USD', 0.266667),
+('USD_GBP', 'USD', 'GBP', 0.770000),
+('GBP_USD', 'GBP', 'USD', 1.298701),
+('USD_CAD', 'USD', 'CAD', 1.380000),
+('CAD_USD', 'CAD', 'USD', 0.724638),
+('EUR_COP', 'EUR', 'COP', 4511.140000),
+('COP_EUR', 'COP', 'EUR', 0.000222),
+('EUR_MXN', 'EUR', 'MXN', 21.195652),
+('MXN_EUR', 'MXN', 'EUR', 0.047180)
+ON CONFLICT (pair) DO UPDATE SET rate = EXCLUDED.rate, updated_at = NOW();
