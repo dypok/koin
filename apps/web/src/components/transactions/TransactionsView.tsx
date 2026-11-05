@@ -15,6 +15,7 @@ import {
   TrendingDown,
   Clock,
   Sparkles,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAccountStore } from '../../stores/accountStore';
@@ -24,6 +25,8 @@ import { KoinIcon } from '../../lib/icons';
 import { TransactionDTO, RecurringRuleDTO } from '@koin/shared';
 import { InstallmentCard } from '../recurring/InstallmentCard';
 import { RecurringRuleModal } from '../recurring/RecurringRuleModal';
+import { RecurringRuleDetailModal } from '../recurring/RecurringRuleDetailModal';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 interface TransactionsViewProps {
   onNewTransaction: (type?: 'expense' | 'income' | 'transfer', accountId?: string) => void;
@@ -62,10 +65,27 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Dialog & Selection Modals State
+  const [txToDelete, setTxToDelete] = useState<TransactionDTO | null>(null);
+  const [isDeletingTx, setIsDeletingTx] = useState(false);
+  const [ruleToDelete, setRuleToDelete] = useState<RecurringRuleDTO | null>(null);
+  const [isDeletingRule, setIsDeletingRule] = useState(false);
+  const [selectedRuleForDetail, setSelectedRuleForDetail] = useState<RecurringRuleDTO | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ text: string; isError?: boolean } | null>(null);
+
   // Recurring Tab State & Filters
   const [recurringFilter, setRecurringFilter] = useState<'all' | 'income' | 'expense' | 'debt'>('all');
   const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
   const [ruleToEdit, setRuleToEdit] = useState<RecurringRuleDTO | null>(null);
+
+  // Auto-dismiss toast after 4s
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
 
   // Debounce search query 250ms
   useEffect(() => {
@@ -139,44 +159,77 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
     setSearchQuery('');
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('¿Estás seguro de eliminar este movimiento? Su saldo se revertirá automáticamente.')) {
-      setDeletingId(id);
-      try {
-        await deleteTransaction(id);
-      } finally {
-        setDeletingId(null);
-      }
+  // Execute Transaction Deletion from ConfirmModal
+  const confirmDeleteTransaction = async () => {
+    if (!txToDelete) return;
+    setIsDeletingTx(true);
+    try {
+      await deleteTransaction(txToDelete.id);
+      setToastMessage({ text: 'Movimiento eliminado y saldo revertido correctamente' });
+      setTxToDelete(null);
+    } catch (err: any) {
+      setToastMessage({ text: err.message || 'Error al eliminar movimiento', isError: true });
+    } finally {
+      setIsDeletingTx(false);
     }
   };
 
-  // Recurring Handlers
+  // Recurring Handlers (No alerts, uses toasts & modals)
   const handleApplyRecurringNow = async (ruleId: string) => {
     try {
-      await applyRuleNow(ruleId);
+      const result = await applyRuleNow(ruleId);
       if (activeProfile?.id) {
         fetchAccounts(activeProfile.id);
       }
       fetchTransactions();
+      setToastMessage({
+        text: `Compromiso "${result.recurringRule.name}" aplicado correctamente`,
+      });
+      // Update selected rule details if currently open
+      if (selectedRuleForDetail && selectedRuleForDetail.id === ruleId) {
+        setSelectedRuleForDetail(result.recurringRule);
+      }
     } catch (err: any) {
-      alert(err.message || 'Error al aplicar movimiento');
+      setToastMessage({
+        text: err.message || 'Error al aplicar movimiento recurrente',
+        isError: true,
+      });
     }
   };
 
   const handleToggleRecurringStatus = async (ruleId: string, currentStatus: string) => {
     try {
       const newStatus = currentStatus === 'active' ? 'paused' : 'active';
-      await updateRule(ruleId, { status: newStatus as any });
+      const updated = await updateRule(ruleId, { status: newStatus as any });
+      setToastMessage({
+        text: `Compromiso "${updated.name}" ${newStatus === 'paused' ? 'pausado' : 'reanudado'}`,
+      });
+      if (selectedRuleForDetail && selectedRuleForDetail.id === ruleId) {
+        setSelectedRuleForDetail(updated);
+      }
     } catch (err: any) {
-      alert(err.message || 'Error al cambiar estado');
+      setToastMessage({
+        text: err.message || 'Error al cambiar estado del compromiso',
+        isError: true,
+      });
     }
   };
 
-  const handleDeleteRecurringRule = async (ruleId: string) => {
+  // Execute Recurring Rule Deletion from ConfirmModal
+  const confirmDeleteRecurringRule = async () => {
+    if (!ruleToDelete) return;
+    setIsDeletingRule(true);
     try {
-      await deleteRule(ruleId);
+      await deleteRule(ruleToDelete.id);
+      setToastMessage({ text: `Compromiso "${ruleToDelete.name}" eliminado correctamente` });
+      setRuleToDelete(null);
+      if (selectedRuleForDetail?.id === ruleToDelete.id) {
+        setSelectedRuleForDetail(null);
+      }
     } catch (err: any) {
-      alert(err.message || 'Error al eliminar compromiso');
+      setToastMessage({ text: err.message || 'Error al eliminar compromiso', isError: true });
+    } finally {
+      setIsDeletingRule(false);
     }
   };
 
@@ -523,8 +576,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
                             </div>
 
                             <button
-                              disabled={deletingId === tx.id}
-                              onClick={() => handleDelete(tx.id)}
+                              disabled={isDeletingTx && txToDelete?.id === tx.id}
+                              onClick={() => setTxToDelete(tx)}
                               className="p-1.5 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                               title="Eliminar movimiento"
                             >
@@ -649,9 +702,14 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
                 <InstallmentCard
                   key={rule.id}
                   rule={rule}
+                  onSelect={(r) => setSelectedRuleForDetail(r)}
+                  onEdit={(r) => {
+                    setRuleToEdit(r);
+                    setIsRecurringModalOpen(true);
+                  }}
                   onApplyNow={handleApplyRecurringNow}
                   onToggleStatus={handleToggleRecurringStatus}
-                  onDelete={handleDeleteRecurringRule}
+                  onDeleteRequest={(r) => setRuleToDelete(r)}
                 />
               ))}
             </div>
@@ -659,7 +717,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
         </div>
       )}
 
-      {/* Recurring Rule Modal */}
+      {/* Recurring Rule Modal (Create / Edit) */}
       <RecurringRuleModal
         isOpen={isRecurringModalOpen}
         onClose={() => {
@@ -673,6 +731,112 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({ onNewTransac
           }
         }}
       />
+
+      {/* Recurring Rule Detail & Action Modal (Selected Rule) */}
+      <RecurringRuleDetailModal
+        isOpen={!!selectedRuleForDetail}
+        rule={selectedRuleForDetail}
+        onClose={() => setSelectedRuleForDetail(null)}
+        onEdit={(rule) => {
+          setSelectedRuleForDetail(null);
+          setRuleToEdit(rule);
+          setIsRecurringModalOpen(true);
+        }}
+        onApplyNow={handleApplyRecurringNow}
+        onToggleStatus={handleToggleRecurringStatus}
+        onDeleteRequest={(rule) => {
+          setSelectedRuleForDetail(null);
+          setRuleToDelete(rule);
+        }}
+      />
+
+      {/* Confirm Modal: Delete Transaction */}
+      <ConfirmModal
+        isOpen={!!txToDelete}
+        onClose={() => setTxToDelete(null)}
+        onConfirm={confirmDeleteTransaction}
+        title="¿Eliminar movimiento financiero?"
+        description={
+          txToDelete ? (
+            <div className="space-y-1.5">
+              <p>
+                Estás a punto de eliminar el registro de{' '}
+                <strong className="text-foreground">
+                  {txToDelete.currency} {txToDelete.amount}
+                </strong>{' '}
+                ({txToDelete.categoryName || (txToDelete.type === 'income' ? 'Ingreso' : 'Gasto')}).
+              </p>
+              <p className="text-muted-foreground/80">
+                El saldo de la cuenta <strong>{txToDelete.accountName}</strong> se revertirá automáticamente.
+              </p>
+            </div>
+          ) : null
+        }
+        confirmText="Eliminar Movimiento"
+        cancelText="Conservar"
+        variant="danger"
+        isLoading={isDeletingTx}
+      />
+
+      {/* Confirm Modal: Delete Recurring Rule */}
+      <ConfirmModal
+        isOpen={!!ruleToDelete}
+        onClose={() => setRuleToDelete(null)}
+        onConfirm={confirmDeleteRecurringRule}
+        title="¿Eliminar compromiso programado?"
+        description={
+          ruleToDelete ? (
+            <div className="space-y-1.5">
+              <p>
+                Estás a punto de eliminar la regla{' '}
+                <strong className="text-foreground">"{ruleToDelete.name}"</strong> por un importe de{' '}
+                <strong className="text-foreground">
+                  {ruleToDelete.currency} {ruleToDelete.amount}
+                </strong>.
+              </p>
+              {ruleToDelete.isInstallment ? (
+                <p className="text-purple-400 font-mono text-[11px]">
+                  Esta deuda tiene{' '}
+                  {Math.max(0, (ruleToDelete.totalInstallments || 1) - ruleToDelete.currentInstallment)} cuotas
+                  pendientes. Las transacciones ya abonadas permanecerán en tu historial contable.
+                </p>
+              ) : (
+                <p className="text-muted-foreground/80">
+                  Ya no se generarán cobros ni notificaciones automáticas para este compromiso.
+                </p>
+              )}
+            </div>
+          ) : null
+        }
+        confirmText="Eliminar Regla"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={isDeletingRule}
+      />
+
+      {/* Non-blocking Floating Toast Notification */}
+      {toastMessage && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 p-4 border shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom duration-200 ${
+            toastMessage.isError
+              ? 'border-destructive/50 bg-background text-destructive'
+              : 'border-emerald-500/50 bg-background text-foreground'
+          }`}
+        >
+          {toastMessage.isError ? (
+            <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
+          ) : (
+            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+          )}
+          <span className="text-xs font-medium">{toastMessage.text}</span>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="text-muted-foreground hover:text-foreground ml-2"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

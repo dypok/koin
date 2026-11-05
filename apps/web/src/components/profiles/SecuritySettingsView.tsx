@@ -3,6 +3,7 @@ import { Shield, ShieldAlert, ShieldCheck, Lock, Unlock, KeyRound, Check } from 
 import { useAuthStore } from '../../stores/authStore';
 import { apiRequest } from '../../lib/api';
 import { ProfilePinModal } from './ProfilePinModal';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 export const SecuritySettingsView: React.FC = () => {
   const { activeProfile, updateProfile } = useAuthStore();
@@ -13,6 +14,8 @@ export const SecuritySettingsView: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [showRemovePinModal, setShowRemovePinModal] = useState(false);
+  const [isRemovingPin, setIsRemovingPin] = useState(false);
 
   if (!activeProfile) {
     return (
@@ -59,25 +62,24 @@ export const SecuritySettingsView: React.FC = () => {
     }
   };
 
-  const handleRemovePin = async () => {
-    const confirmed = window.confirm(
-      '¿Deseas deshabilitar la protección por PIN para este perfil? Cualquier usuario podrá acceder sin clave.'
-    );
-    if (!confirmed) return;
-
+  const handleRemovePin = () => {
     setSuccessMsg(null);
     setErrorMsg(null);
-    setLoading(true);
+    setShowRemovePinModal(true);
+  };
 
+  const confirmRemovePin = async () => {
+    setIsRemovingPin(true);
     try {
       await updateProfile(activeProfile.id, {
         pin: '',
       });
       setSuccessMsg('Protección por PIN deshabilitada para este perfil.');
+      setShowRemovePinModal(false);
     } catch (err: any) {
       setErrorMsg(err.message || 'Error al eliminar el PIN.');
     } finally {
-      setLoading(false);
+      setIsRemovingPin(false);
     }
   };
 
@@ -251,6 +253,19 @@ export const SecuritySettingsView: React.FC = () => {
           setIsTestModalOpen(false);
           setSuccessMsg('Verificación de PIN exitosa. Perfil desbloqueado correctamente.');
         }}
+      />
+
+      {/* Confirm Modal: Remove PIN */}
+      <ConfirmModal
+        isOpen={showRemovePinModal}
+        onClose={() => setShowRemovePinModal(false)}
+        onConfirm={confirmRemovePin}
+        title="¿Deshabilitar PIN de seguridad?"
+        description="Cualquier persona que use esta aplicación podrá acceder y gestionar las finanzas de este perfil sin necesidad de clave o autorización."
+        confirmText="Deshabilitar PIN"
+        cancelText="Conservar PIN"
+        variant="warning"
+        isLoading={isRemovingPin}
       />
     </div>
   );

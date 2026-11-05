@@ -6,6 +6,7 @@ import { useAccountStore } from '../../stores/accountStore';
 import { useAuthStore } from '../../stores/authStore';
 import { AccountModal } from './AccountModal';
 import { AccountShareModal } from './AccountShareModal';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 interface AccountsViewProps {
   onGoToSettings?: () => void;
@@ -30,6 +31,11 @@ export const AccountsView: React.FC<AccountsViewProps> = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [accountToShare, setAccountToShare] = useState<AccountDTO | null>(null);
 
+  // Confirm delete modal state
+  const [accountToDelete, setAccountToDelete] = useState<AccountDTO | null>(null);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   useEffect(() => {
     if (activeProfile?.id) {
       fetchAccounts(activeProfile.id);
@@ -51,14 +57,21 @@ export const AccountsView: React.FC<AccountsViewProps> = () => {
     setShareModalOpen(true);
   };
 
-  const handleDelete = async (acc: AccountDTO) => {
-    const ok = window.confirm(`¿Estás seguro de eliminar la cuenta "${acc.name}"?`);
-    if (!ok) return;
+  const handleDelete = (acc: AccountDTO) => {
+    setErrorMessage(null);
+    setAccountToDelete(acc);
+  };
 
+  const confirmDeleteAccount = async () => {
+    if (!accountToDelete) return;
+    setIsDeletingAccount(true);
     try {
-      await deleteAccount(acc.id);
+      await deleteAccount(accountToDelete.id);
+      setAccountToDelete(null);
     } catch (err: any) {
-      alert(err.message || 'Error al eliminar la cuenta');
+      setErrorMessage(err.message || 'Error al eliminar la cuenta');
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -317,6 +330,44 @@ export const AccountsView: React.FC<AccountsViewProps> = () => {
           }
         }}
       />
+
+      {/* Confirm Modal: Delete Account */}
+      <ConfirmModal
+        isOpen={!!accountToDelete}
+        onClose={() => setAccountToDelete(null)}
+        onConfirm={confirmDeleteAccount}
+        title="¿Eliminar cuenta financiera?"
+        description={
+          accountToDelete ? (
+            <div className="space-y-1.5">
+              <p>
+                Estás a punto de eliminar la cuenta{' '}
+                <strong className="text-foreground">"{accountToDelete.name}"</strong> ({accountToDelete.currency}).
+              </p>
+              <p className="text-muted-foreground/80">
+                Esta acción eliminará sus movimientos asociados y su saldo dejará de computarse en tu patrimonio neto.
+              </p>
+            </div>
+          ) : null
+        }
+        confirmText="Eliminar Cuenta"
+        cancelText="Conservar"
+        variant="danger"
+        isLoading={isDeletingAccount}
+      />
+
+      {/* Error notification banner */}
+      {errorMessage && (
+        <div className="fixed bottom-6 right-6 z-50 p-4 border border-destructive/50 bg-background text-destructive shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom duration-200">
+          <span className="text-xs font-medium">{errorMessage}</span>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-muted-foreground hover:text-foreground ml-2"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,33 +1,34 @@
 import React, { useState } from 'react';
-import {
-  RecurringRuleDTO,
-} from '@koin/shared';
+import { RecurringRuleDTO } from '@koin/shared';
 import {
   Calendar,
   CheckCircle2,
   Pause,
   Play,
   Trash2,
+  Edit2,
   ArrowUpRight,
   ArrowDownLeft,
   CreditCard,
-  Building2,
-  AlertCircle,
+  ChevronRight,
 } from 'lucide-react';
-import { KoinIcon } from '../../lib/icons';
 
 interface InstallmentCardProps {
   rule: RecurringRuleDTO;
+  onSelect: (rule: RecurringRuleDTO) => void;
+  onEdit: (rule: RecurringRuleDTO) => void;
   onApplyNow: (ruleId: string) => Promise<void>;
   onToggleStatus: (ruleId: string, currentStatus: string) => Promise<void>;
-  onDelete: (ruleId: string) => Promise<void>;
+  onDeleteRequest: (rule: RecurringRuleDTO) => void;
 }
 
 export const InstallmentCard: React.FC<InstallmentCardProps> = ({
   rule,
+  onSelect,
+  onEdit,
   onApplyNow,
   onToggleStatus,
-  onDelete,
+  onDeleteRequest,
 }) => {
   const [loading, setLoading] = useState(false);
 
@@ -52,7 +53,8 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
       })
     : 'N/A';
 
-  const handleApply = async () => {
+  const handleApply = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (loading || isCompleted) return;
     setLoading(true);
     try {
@@ -62,7 +64,8 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
     }
   };
 
-  const handleToggle = async () => {
+  const handleToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (loading || isCompleted) return;
     setLoading(true);
     try {
@@ -72,36 +75,44 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
     }
   };
 
-  const handleDelete = async () => {
-    if (confirm(`¿Estás seguro de eliminar el compromiso "${rule.name}"?`)) {
-      setLoading(true);
-      try {
-        await onDelete(rule.id);
-      } finally {
-        setLoading(false);
-      }
-    }
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit(rule);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDeleteRequest(rule);
   };
 
   return (
     <div
-      className={`p-5 border transition-all ${
+      onClick={() => onSelect(rule)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect(rule);
+        }
+      }}
+      className={`p-5 border transition-all text-left cursor-pointer group relative ${
         isCompleted
           ? 'border-border/30 bg-muted/5 opacity-75'
           : isPaused
           ? 'border-amber-500/30 bg-amber-500/5'
           : isDebt
-          ? 'border-purple-500/40 bg-purple-500/5 hover:border-purple-500/60'
+          ? 'border-purple-500/40 bg-purple-500/5 hover:border-purple-500/70 hover:shadow-sm'
           : isIncome
-          ? 'border-emerald-500/40 bg-emerald-500/5 hover:border-emerald-500/60'
-          : 'border-border/50 bg-background hover:border-border'
+          ? 'border-emerald-500/40 bg-emerald-500/5 hover:border-emerald-500/70 hover:shadow-sm'
+          : 'border-border/60 bg-background hover:border-border hover:shadow-sm'
       }`}
     >
-      {/* Top Header: Badge, Title, Status & Menu */}
+      {/* Top Header: Badge, Title, Status & Amount */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div
-            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border"
+            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105"
             style={{
               backgroundColor: isDebt
                 ? 'rgba(168, 85, 247, 0.15)'
@@ -127,7 +138,9 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
 
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-bold text-foreground tracking-tight">{rule.name}</span>
+              <span className="text-sm font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">
+                {rule.name}
+              </span>
               {isDebt ? (
                 <span className="text-[10px] font-mono px-1.5 py-0.5 border border-purple-500/40 bg-purple-500/10 text-purple-400 font-semibold">
                   Deuda / Cuotas
@@ -173,7 +186,7 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
         </div>
 
         {/* Amount Display */}
-        <div className="text-right">
+        <div className="text-right shrink-0">
           <p
             className={`text-base font-mono font-bold ${
               isIncome ? 'text-emerald-400' : 'text-foreground'
@@ -207,16 +220,16 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 text-[10px] font-mono text-muted-foreground">
             {rule.principalAmount && (
               <div>
-                Capital inicial: <strong className="text-foreground">${rule.principalAmount}</strong>
+                Capital: <strong className="text-foreground">${rule.principalAmount}</strong>
               </div>
             )}
             {rule.totalInterestAmount && parseFloat(rule.totalInterestAmount) > 0 && (
               <div>
-                Intereses totales: <strong className="text-purple-400">+${rule.totalInterestAmount}</strong>
+                Intereses: <strong className="text-purple-400">+${rule.totalInterestAmount}</strong>
               </div>
             )}
             <div>
-              Saldo restante: <strong className="text-foreground">${remainingBalance} {rule.currency}</strong>
+              Saldo: <strong className="text-foreground">${remainingBalance} {rule.currency}</strong>
             </div>
           </div>
         </div>
@@ -234,9 +247,21 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2 self-end sm:self-auto">
+          {/* Edit Button */}
+          <button
+            type="button"
+            onClick={handleEdit}
+            disabled={loading}
+            title="Editar compromiso"
+            className="p-1.5 border border-border/50 hover:border-border text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+          </button>
+
           {/* Pause / Resume Button */}
           {!isCompleted && (
             <button
+              type="button"
               onClick={handleToggle}
               disabled={loading}
               title={isPaused ? 'Reanudar compromiso' : 'Pausar compromiso'}
@@ -248,6 +273,7 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
 
           {/* Delete Button */}
           <button
+            type="button"
             onClick={handleDelete}
             disabled={loading}
             title="Eliminar regla"
@@ -259,6 +285,7 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
           {/* Apply Now Primary Action */}
           {!isCompleted && (
             <button
+              type="button"
               onClick={handleApply}
               disabled={loading || isPaused}
               className={`px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50 ${
