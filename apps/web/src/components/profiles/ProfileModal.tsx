@@ -3,7 +3,7 @@ import { X, Lock, Shield, Check, Sparkles } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
 import { ALLOWED_AVATAR_ICONS } from '@koin/shared';
 import { SUPPORTED_CURRENCIES } from '@koin/shared';
-import { THEME_PRESETS } from '../../lib/theme';
+import { THEME_PRESETS, getProfileAvatarStyle } from '../../lib/theme';
 import { KoinIcon } from '../../lib/icons';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -115,13 +115,27 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     }
   };
 
+  const selectedPreset = THEME_PRESETS.find((p) => p.id === selectedPresetId) || THEME_PRESETS[0];
+  const isLightMode = typeof document !== 'undefined' && document.documentElement.classList.contains('light');
+  const avatarStyle = getProfileAvatarStyle(
+    selectedPreset.primaryHex,
+    isLightMode ? 'light' : 'dark'
+  );
+
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-lg bg-background border border-border/60 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-border/40 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <div
+              className="w-8 h-8 rounded-full border flex items-center justify-center shrink-0"
+              style={{
+                backgroundColor: avatarStyle.bg,
+                borderColor: avatarStyle.border,
+                color: avatarStyle.color,
+              }}
+            >
               <KoinIcon name={avatarIcon} className="w-4 h-4" />
             </div>
             <div>
@@ -180,7 +194,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     className={`p-3 flex items-center justify-center border transition-all ${
                       isSelected
                         ? 'border-primary bg-primary/15 text-primary scale-105 shadow-sm'
-                        : 'border-border/40 hover:border-border text-muted-foreground hover:text-foreground bg-muted/10'
+                        : 'border-border/60 hover:border-border text-foreground/75 hover:text-foreground bg-muted/10'
                     }`}
                     title={iconName}
                   >

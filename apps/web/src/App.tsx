@@ -18,6 +18,7 @@ import { ProfilePinModal } from './components/profiles/ProfilePinModal';
 import { ProfileSwitcherSheet } from './components/profiles/ProfileSwitcherSheet';
 import { SettingsHub } from './components/profiles/SettingsHub';
 import { UnimplementedView } from './components/common/UnimplementedView';
+import { getProfileAvatarStyle } from './lib/theme';
 
 type NavigationTab =
   | 'home'
@@ -64,6 +65,10 @@ export default function App() {
   }
 
   const profile = activeProfile || profiles[0];
+  const activeAvatarStyle = getProfileAvatarStyle(
+    profile?.themeConfig?.primaryHex,
+    profile?.themeConfig?.baseMode
+  );
 
   const handleGoToSettings = (subTab: 'profiles' | 'appearance' | 'security' = 'profiles') => {
     setSettingsSubTab(subTab);
@@ -93,7 +98,14 @@ export default function App() {
               title="Cambiar perfil"
             >
               <div className="flex items-center gap-3 overflow-hidden">
-                <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                <div
+                  className="w-8 h-8 rounded-full border flex items-center justify-center shrink-0"
+                  style={{
+                    backgroundColor: activeAvatarStyle.bg,
+                    borderColor: activeAvatarStyle.border,
+                    color: activeAvatarStyle.color,
+                  }}
+                >
                   <KoinIcon name={profile?.avatarIcon || 'User'} className="w-4 h-4" />
                 </div>
                 <div className="truncate">
@@ -198,7 +210,14 @@ export default function App() {
             onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
             className="flex items-center gap-3 text-left focus:outline-none"
           >
-            <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center">
+            <div
+              className="w-8 h-8 rounded-full border flex items-center justify-center shrink-0"
+              style={{
+                backgroundColor: activeAvatarStyle.bg,
+                borderColor: activeAvatarStyle.border,
+                color: activeAvatarStyle.color,
+              }}
+            >
               <KoinIcon name={profile?.avatarIcon || 'User'} className="w-4 h-4" />
             </div>
             <div>

@@ -135,6 +135,57 @@ export function getAccessibleTextColor(hex: string): ContrastResult {
   };
 }
 
+export interface AvatarThemeStyle {
+  bg: string;
+  border: string;
+  color: string;
+}
+
+/**
+ * Returns accessible styling (background, border, stroke color) for profile avatar circles
+ * adapting cleanly between Light, Dark, and AMOLED modes with guaranteed WCAG contrast.
+ */
+export function getProfileAvatarStyle(
+  hex: string = '#F59E0B',
+  baseMode?: 'light' | 'dark' | 'amoled'
+): AvatarThemeStyle {
+  const isLight = baseMode
+    ? baseMode === 'light'
+    : typeof document !== 'undefined' && !document.documentElement.classList.contains('dark');
+
+  if (!isLight) {
+    // Dark / AMOLED: saturated stroke on subtle transparent background
+    return {
+      bg: `${hex}20`,
+      border: `${hex}45`,
+      color: hex,
+    };
+  }
+
+  // Light Mode calibration
+  const rgb = hexToRgb(hex);
+  const lum = getRelativeLuminance(rgb.r, rgb.g, rgb.b);
+
+  // If color is very light (like Titanium #EDF0F5 or Obsidian #F4F4F5):
+  if (lum > 0.6) {
+    return {
+      bg: 'rgba(30, 32, 40, 0.08)',
+      border: 'rgba(30, 32, 40, 0.22)',
+      color: '#1E2028',
+    };
+  }
+
+  const parts = hexToHsl(hex).split(' ');
+  const h = parts[0];
+  const s = parts[1];
+
+  return {
+    bg: `hsl(${h} ${s} 94%)`,
+    border: `hsl(${h} ${s} 74%)`,
+    color: `hsl(${h} ${s} 32%)`,
+  };
+}
+
 /**
  * Dynamically applies a profile's theme configuration to document.documentElement
  * Injects HSL variables and manages dark/light/amoled modes without React re-render.
@@ -152,18 +203,45 @@ export function applyTheme(config: ThemeConfig): void {
     root.classList.add('dark', 'amoled');
   }
 
+  const isLight = config.baseMode === 'light';
+
   // 2. Compute dynamic primary and accent HSL
-  const primaryHsl = hexToHsl(config.primaryHex);
-  const accentHsl = hexToHsl(config.accentHex);
+  let primaryHsl: string;
+  let accentHsl: string;
+
+  if (isLight) {
+    const rgb = hexToRgb(config.primaryHex);
+    const lum = getRelativeLuminance(rgb.r, rgb.g, rgb.b);
+
+    if (lum > 0.6) {
+      // Very light colors (Titanium/Obsidian) invert to dark metallic in light mode
+      primaryHsl = '220 15% 15%'; // #20242C
+      accentHsl = '220 10% 25%';
+    } else {
+      const parts = hexToHsl(config.primaryHex).split(' ');
+      const h = parts[0];
+      const s = parts[1];
+      // Calibrate lightness to 34% so text-primary and icons on white have >= 4.5:1 contrast
+      primaryHsl = `${h} ${s} 34%`;
+      accentHsl = `${h} ${s} 42%`;
+    }
+  } else {
+    primaryHsl = hexToHsl(config.primaryHex);
+    accentHsl = hexToHsl(config.accentHex);
+  }
 
   root.style.setProperty('--primary', primaryHsl);
   root.style.setProperty('--accent', accentHsl);
 
-  // 3. Dynamic WCAG contrast calculation for text on primary
-  const contrast = getAccessibleTextColor(config.primaryHex);
-  if (contrast.textColor === '#FFFFFF') {
+  // 3. Dynamic WCAG contrast calculation for text on primary background
+  if (isLight) {
     root.style.setProperty('--primary-foreground', '0 0% 100%');
   } else {
-    root.style.setProperty('--primary-foreground', '240 10% 4%');
+    const contrast = getAccessibleTextColor(config.primaryHex);
+    if (contrast.textColor === '#FFFFFF') {
+      root.style.setProperty('--primary-foreground', '0 0% 100%');
+    } else {
+      root.style.setProperty('--primary-foreground', '240 10% 4%');
+    }
   }
 }

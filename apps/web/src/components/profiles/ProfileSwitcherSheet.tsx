@@ -3,6 +3,7 @@ import { X, Plus, Lock, Check, Settings, ChevronRight } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
 import { useAuthStore } from '../../stores/authStore';
 import { KoinIcon } from '../../lib/icons';
+import { getProfileAvatarStyle } from '../../lib/theme';
 
 interface ProfileSwitcherSheetProps {
   isOpen: boolean;
@@ -61,6 +62,7 @@ export const ProfileSwitcherSheet: React.FC<ProfileSwitcherSheetProps> = ({
         <div className="overflow-y-auto divide-y divide-border/25 max-h-[55vh]">
           {profiles.map((p) => {
             const isActive = p.id === activeProfile?.id;
+            const avatarStyle = getProfileAvatarStyle(p.themeConfig?.primaryHex, activeProfile?.themeConfig?.baseMode);
             return (
               <button
                 key={p.id}
@@ -73,9 +75,9 @@ export const ProfileSwitcherSheet: React.FC<ProfileSwitcherSheetProps> = ({
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border"
                     style={{
-                      backgroundColor: `${p.themeConfig?.primaryHex || '#F59E0B'}20`,
-                      borderColor: `${p.themeConfig?.primaryHex || '#F59E0B'}50`,
-                      color: p.themeConfig?.primaryHex || '#F59E0B',
+                      backgroundColor: avatarStyle.bg,
+                      borderColor: avatarStyle.border,
+                      color: avatarStyle.color,
                     }}
                   >
                     <KoinIcon name={p.avatarIcon} className="w-5 h-5" />

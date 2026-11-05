@@ -91,7 +91,7 @@ interface KoinIconProps extends LucideProps {
  * Universal Vector SVG Icon Component for Koin.
  * Enforces strictly 100% SVG Lucide icons - ZERO EMOJIS.
  */
-export const KoinIcon: React.FC<KoinIconProps> = ({ name, ...props }) => {
+export const KoinIcon: React.FC<KoinIconProps> = ({ name, strokeWidth = 2, ...props }) => {
   const IconComponent = ICON_MAP[name] || HelpCircle;
-  return <IconComponent {...props} />;
+  return <IconComponent strokeWidth={strokeWidth} {...props} />;
 };

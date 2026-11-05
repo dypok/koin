@@ -3,6 +3,7 @@ import { Plus, Edit2, Trash2, Lock, Check, Settings2 } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
 import { useAuthStore } from '../../stores/authStore';
 import { KoinIcon } from '../../lib/icons';
+import { getProfileAvatarStyle } from '../../lib/theme';
 import { ProfileModal } from './ProfileModal';
 import { ProfilePinModal } from './ProfilePinModal';
 
@@ -98,7 +99,7 @@ export const ProfileStreamingView: React.FC = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {profiles.map((p) => {
           const isActive = p.id === activeProfile?.id;
-          const profileColor = p.themeConfig?.primaryHex || '#F59E0B';
+          const avatarStyle = getProfileAvatarStyle(p.themeConfig?.primaryHex, activeProfile?.themeConfig?.baseMode);
 
           return (
             <div
@@ -114,9 +115,9 @@ export const ProfileStreamingView: React.FC = () => {
               <div
                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center border transition-transform group-hover:scale-105"
                 style={{
-                  backgroundColor: `${profileColor}15`,
-                  borderColor: `${profileColor}40`,
-                  color: profileColor,
+                  backgroundColor: avatarStyle.bg,
+                  borderColor: avatarStyle.border,
+                  color: avatarStyle.color,
                 }}
               >
                 <KoinIcon name={p.avatarIcon} className="w-8 h-8 sm:w-10 sm:h-10" />

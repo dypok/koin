@@ -3,6 +3,7 @@ import { Plus, Edit2, Trash2, Lock, Check, Shield, Users } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
 import { useAuthStore } from '../../stores/authStore';
 import { KoinIcon } from '../../lib/icons';
+import { getProfileAvatarStyle } from '../../lib/theme';
 import { ProfileModal } from './ProfileModal';
 import { ProfilePinModal } from './ProfilePinModal';
 
@@ -93,6 +94,7 @@ export const ProfileManagerView: React.FC = () => {
       <div className="border border-border/40 divide-y divide-border/30 bg-background">
         {profiles.map((p) => {
           const isActive = p.id === activeProfile?.id;
+          const avatarStyle = getProfileAvatarStyle(p.themeConfig?.primaryHex, activeProfile?.themeConfig?.baseMode);
           return (
             <div
               key={p.id}
@@ -105,9 +107,9 @@ export const ProfileManagerView: React.FC = () => {
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border"
                   style={{
-                    backgroundColor: `${p.themeConfig?.primaryHex || '#F59E0B'}20`,
-                    borderColor: `${p.themeConfig?.primaryHex || '#F59E0B'}40`,
-                    color: p.themeConfig?.primaryHex || '#F59E0B',
+                    backgroundColor: avatarStyle.bg,
+                    borderColor: avatarStyle.border,
+                    color: avatarStyle.color,
                   }}
                 >
                   <KoinIcon name={p.avatarIcon} className="w-5 h-5" />

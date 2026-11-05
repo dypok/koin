@@ -40,19 +40,19 @@ export const AppearanceSettingsView: React.FC = () => {
   }, [activeProfile?.id]);
 
   // Live preview whenever selections change
-  const handlePreviewTheme = (presetId: string, p分Hex: string, aHex: string, mode: 'dark' | 'light' | 'amoled') => {
+  const handlePreviewTheme = (presetId: string, pHex: string, aHex: string, mode: 'dark' | 'light' | 'amoled') => {
     setSelectedPresetId(presetId);
-    setPrimaryHex(p分Hex);
+    setPrimaryHex(pHex);
     setAccentHex(aHex);
     setBaseMode(mode);
 
-    const newContrast = getAccessibleTextColor(p分Hex);
+    const newContrast = getAccessibleTextColor(pHex);
     setContrast(newContrast);
 
     // Apply directly to DOM for instantaneous live feedback without reloading
     applyTheme({
       preset: presetId,
-      primaryHex: p分Hex,
+      primaryHex: pHex,
       accentHex: aHex,
       baseMode: mode,
     });

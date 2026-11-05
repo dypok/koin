@@ -3,6 +3,7 @@ import { Lock, X, Delete, ArrowRight, ShieldAlert } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
 import { apiRequest } from '../../lib/api';
 import { KoinIcon } from '../../lib/icons';
+import { getProfileAvatarStyle } from '../../lib/theme';
 
 interface ProfilePinModalProps {
   isOpen: boolean;
@@ -171,15 +172,25 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
 
         {/* Profile Info */}
         <div className="py-6 flex flex-col items-center gap-2 text-center">
-          <div
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-              isLocked
-                ? 'bg-destructive/15 text-destructive'
-                : 'bg-primary/15 text-primary'
-            }`}
-          >
-            <KoinIcon name={profile.avatarIcon} className="w-6 h-6" />
-          </div>
+          {(() => {
+            const avatarStyle = getProfileAvatarStyle(profile.themeConfig?.primaryHex, profile.themeConfig?.baseMode);
+            return (
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors border ${
+                  isLocked
+                    ? 'bg-destructive/15 border-destructive/30 text-destructive'
+                    : ''
+                }`}
+                style={!isLocked ? {
+                  backgroundColor: avatarStyle.bg,
+                  borderColor: avatarStyle.border,
+                  color: avatarStyle.color,
+                } : undefined}
+              >
+                <KoinIcon name={profile.avatarIcon} className="w-6 h-6" />
+              </div>
+            );
+          })()}
           <h3 className="text-sm font-semibold">{profile.name}</h3>
           <p className="text-[11px] text-muted-foreground">
             {isLocked

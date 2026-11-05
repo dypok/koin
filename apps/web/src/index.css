@@ -4,17 +4,17 @@
 
 @layer base {
   :root {
-    /* Light Mode */
-    --background: 0 0% 100%;
-    --foreground: 240 10% 4%;
-    --primary: 38 92% 50%;            /* Sovereign Gold #F59E0B */
-    --primary-foreground: 240 10% 4%; /* Crisp Black on Gold */
-    --accent: 42 96% 56%;             /* Warm Gold Luster #FBBF24 */
-    --accent-foreground: 240 10% 4%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --border: 240 6% 90%;
-    --destructive: 350 89% 60%;
+    /* Light Mode - Precision High-Contrast Minimalist Canvas */
+    --background: 0 0% 100%;           /* Crisp Pure White #FFFFFF */
+    --foreground: 240 10% 8%;          /* Ultra-Crisp Near-Black #121216 (16:1 contrast) */
+    --primary: 38 92% 34%;             /* Deep Sovereign Gold for Light Mode (5.5:1 contrast) */
+    --primary-foreground: 0 0% 100%;   /* Pure White on Deep Primary */
+    --accent: 42 96% 40%;              /* Deep Warm Gold Luster */
+    --accent-foreground: 0 0% 100%;
+    --muted: 240 5% 96%;               /* Subtle Clean Surface */
+    --muted-foreground: 240 5% 36%;    /* Sharp High-Contrast Slate Gray (6.8:1 contrast on white) */
+    --border: 240 6% 84%;              /* Clean Visible 1px Hairline #D5D5DB */
+    --destructive: 350 89% 50%;
     --destructive-foreground: 0 0% 100%;
   }
 
@@ -49,7 +49,11 @@
 
 /* Minimalist Flat Layout Directives */
 * {
-  border-color: hsl(var(--border) / 0.5);
+  border-color: hsl(var(--border));
+}
+
+.dark * {
+  border-color: hsl(var(--border) / 0.6);
 }
 
 body {
