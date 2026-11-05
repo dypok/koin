@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Users,
-  Palette,
-  Shield,
   Wallet,
   History,
   PieChart,
   Layers,
+  Settings,
   LogOut,
   ChevronDown,
   Plus,
@@ -20,22 +18,19 @@ import { KoinLogo } from './components/common/KoinLogo';
 import { ProfileModal } from './components/profiles/ProfileModal';
 import { ProfilePinModal } from './components/profiles/ProfilePinModal';
 import { ProfileSwitcherSheet } from './components/profiles/ProfileSwitcherSheet';
-import { ProfileStreamingView } from './components/profiles/ProfileStreamingView';
-import { AppearanceSettingsView } from './components/profiles/AppearanceSettingsView';
-import { SecuritySettingsView } from './components/profiles/SecuritySettingsView';
+import { SettingsHub } from './components/profiles/SettingsHub';
 import { UnimplementedView } from './components/common/UnimplementedView';
 
 type NavigationTab =
-  | 'profiles'
-  | 'appearance'
-  | 'security'
+  | 'home'
   | 'accounts'
   | 'history'
   | 'budgets'
-  | 'home';
+  | 'settings';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<NavigationTab>('profiles');
+  const [activeTab, setActiveTab] = useState<NavigationTab>('settings');
+  const [settingsSubTab, setSettingsSubTab] = useState<'profiles' | 'appearance' | 'security'>('profiles');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isCreateProfileModalOpen, setIsCreateProfileModalOpen] = useState(false);
   const [pinModalProfile, setPinModalProfile] = useState<ProfileDTO | null>(null);
@@ -82,6 +77,11 @@ export default function App() {
 
   const profile = activeProfile || profiles[0];
 
+  const handleGoToSettings = (subTab: 'profiles' | 'appearance' | 'security' = 'profiles') => {
+    setSettingsSubTab(subTab);
+    setActiveTab('settings');
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row">
       {/* ---------------------------------------------------- */}
@@ -89,7 +89,7 @@ export default function App() {
       {/* ---------------------------------------------------- */}
       <aside className="hidden md:flex md:w-64 lg:w-72 border-r border-border/40 bg-background flex-col justify-between shrink-0 p-5">
         <div className="space-y-6">
-          {/* Logo (Sin textos redundantes como "Desktop & Cloud") */}
+          {/* Logo */}
           <div className="flex items-center gap-3 pb-3 border-b border-border/30">
             <KoinLogo size={36} />
             <div>
@@ -160,11 +160,11 @@ export default function App() {
                   <button
                     onClick={() => {
                       setIsProfileMenuOpen(false);
-                      setActiveTab('profiles');
+                      handleGoToSettings('profiles');
                     }}
                     className="w-full py-1.5 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors text-center font-medium block"
                   >
-                    Gestionar Perfiles
+                    Configurar Perfiles
                   </button>
                 </div>
               </div>
@@ -172,104 +172,66 @@ export default function App() {
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-4">
-            {/* Active Group: Perfiles */}
-            <div className="space-y-1">
-              <span className="px-3 text-[10px] uppercase font-bold tracking-widest text-muted-foreground/80 block pb-1">
-                Perfiles &amp; Personalización
-              </span>
+          <nav className="space-y-1">
+            <button
+              onClick={() => setActiveTab('home')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium transition-colors ${
+                activeTab === 'home'
+                  ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+              }`}
+            >
+              <Wallet className="w-4 h-4" />
+              <span>Inicio y Balance</span>
+            </button>
 
-              <button
-                onClick={() => setActiveTab('profiles')}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
-                  activeTab === 'profiles'
-                    ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                <span>Perfiles de Usuario</span>
-              </button>
+            <button
+              onClick={() => setActiveTab('accounts')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium transition-colors ${
+                activeTab === 'accounts'
+                  ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              <span>Cuentas Financieras</span>
+            </button>
 
-              <button
-                onClick={() => setActiveTab('appearance')}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
-                  activeTab === 'appearance'
-                    ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-                }`}
-              >
-                <Palette className="w-4 h-4" />
-                <span>Apariencia y Colores</span>
-              </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium transition-colors ${
+                activeTab === 'history'
+                  ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+              }`}
+            >
+              <History className="w-4 h-4" />
+              <span>Movimientos</span>
+            </button>
 
-              <button
-                onClick={() => setActiveTab('security')}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
-                  activeTab === 'security'
-                    ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-                }`}
-              >
-                <Shield className="w-4 h-4" />
-                <span>Seguridad y Bloqueo PIN</span>
-              </button>
-            </div>
+            <button
+              onClick={() => setActiveTab('budgets')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium transition-colors ${
+                activeTab === 'budgets'
+                  ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+              }`}
+            >
+              <PieChart className="w-4 h-4" />
+              <span>Presupuestos</span>
+            </button>
 
-            {/* Unimplemented Group: En desarrollo */}
-            <div className="space-y-1 pt-2 border-t border-border/30">
-              <span className="px-3 text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60 block pb-1">
-                Próximamente
-              </span>
-
-              <button
-                onClick={() => setActiveTab('accounts')}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
-                  activeTab === 'accounts'
-                    ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
-                    : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/10'
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                <span>Cuentas Financieras</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
-                  activeTab === 'history'
-                    ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
-                    : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/10'
-                }`}
-              >
-                <History className="w-4 h-4" />
-                <span>Movimientos</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('budgets')}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
-                  activeTab === 'budgets'
-                    ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
-                    : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/10'
-                }`}
-              >
-                <PieChart className="w-4 h-4" />
-                <span>Presupuestos</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('home')}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
-                  activeTab === 'home'
-                    ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
-                    : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/10'
-                }`}
-              >
-                <Wallet className="w-4 h-4" />
-                <span>Inicio y Balance</span>
-              </button>
-            </div>
+            <button
+              onClick={() => handleGoToSettings('profiles')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium transition-colors ${
+                activeTab === 'settings'
+                  ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+              }`}
+            >
+              <Settings className="w-4 h-4" />
+              <span>Configuración</span>
+            </button>
           </nav>
         </div>
 
@@ -323,7 +285,7 @@ export default function App() {
           isOpen={isProfileMenuOpen}
           onClose={() => setIsProfileMenuOpen(false)}
           onOpenCreateProfile={() => setIsCreateProfileModalOpen(true)}
-          onOpenManageProfiles={() => setActiveTab('profiles')}
+          onOpenManageProfiles={() => handleGoToSettings('profiles')}
           onRequestPin={(p) => setPinModalProfile(p)}
         />
 
@@ -331,13 +293,11 @@ export default function App() {
         <header className="hidden md:flex items-center justify-between px-8 py-4 border-b border-border/40 bg-background sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <h2 className="text-sm font-bold tracking-tight text-foreground uppercase">
-              {activeTab === 'profiles' && 'Perfiles de Usuario'}
-              {activeTab === 'appearance' && 'Apariencia y Colores'}
-              {activeTab === 'security' && 'Seguridad y PIN'}
+              {activeTab === 'home' && 'Inicio y Balance'}
               {activeTab === 'accounts' && 'Cuentas Financieras'}
               {activeTab === 'history' && 'Historial de Movimientos'}
               {activeTab === 'budgets' && 'Presupuestos'}
-              {activeTab === 'home' && 'Inicio y Balance'}
+              {activeTab === 'settings' && 'Configuración del Sistema'}
             </h2>
             <div className="h-4 w-[1px] bg-border/60" />
             <button
@@ -370,42 +330,35 @@ export default function App() {
 
         {/* Main Content Area */}
         <main className="p-4 md:p-8 max-w-6xl w-full mx-auto space-y-8 flex-1">
-          {activeTab === 'profiles' && (
-            <ProfileStreamingView
-              onNavigateToAppearance={() => setActiveTab('appearance')}
-              onNavigateToSecurity={() => setActiveTab('security')}
-            />
+          {activeTab === 'settings' && (
+            <SettingsHub initialSubTab={settingsSubTab} />
           )}
-
-          {activeTab === 'appearance' && <AppearanceSettingsView />}
-
-          {activeTab === 'security' && <SecuritySettingsView />}
 
           {activeTab === 'accounts' && (
             <UnimplementedView
               moduleName="Cuentas Financieras"
-              onGoToProfiles={() => setActiveTab('profiles')}
+              onGoToSettings={() => handleGoToSettings('profiles')}
             />
           )}
 
           {activeTab === 'history' && (
             <UnimplementedView
               moduleName="Historial de Movimientos"
-              onGoToProfiles={() => setActiveTab('profiles')}
+              onGoToSettings={() => handleGoToSettings('profiles')}
             />
           )}
 
           {activeTab === 'budgets' && (
             <UnimplementedView
-              moduleName="Presupuestos y Metas"
-              onGoToProfiles={() => setActiveTab('profiles')}
+              moduleName="Presupuestos"
+              onGoToSettings={() => handleGoToSettings('profiles')}
             />
           )}
 
           {activeTab === 'home' && (
             <UnimplementedView
               moduleName="Inicio y Balance"
-              onGoToProfiles={() => setActiveTab('profiles')}
+              onGoToSettings={() => handleGoToSettings('profiles')}
             />
           )}
         </main>
@@ -413,33 +366,13 @@ export default function App() {
         {/* Mobile Bottom Navigation Bar (md:hidden) */}
         <nav className="md:hidden border-t border-border/40 bg-background py-2 px-3 flex items-center justify-around sticky bottom-0 z-20">
           <button
-            onClick={() => setActiveTab('profiles')}
+            onClick={() => setActiveTab('home')}
             className={`flex flex-col items-center gap-1 py-1 transition-colors ${
-              activeTab === 'profiles' ? 'text-primary' : 'text-muted-foreground'
+              activeTab === 'home' ? 'text-primary' : 'text-muted-foreground'
             }`}
           >
-            <Users className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Perfiles</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('appearance')}
-            className={`flex flex-col items-center gap-1 py-1 transition-colors ${
-              activeTab === 'appearance' ? 'text-primary' : 'text-muted-foreground'
-            }`}
-          >
-            <Palette className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Apariencia</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('security')}
-            className={`flex flex-col items-center gap-1 py-1 transition-colors ${
-              activeTab === 'security' ? 'text-primary' : 'text-muted-foreground'
-            }`}
-          >
-            <Shield className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Seguridad</span>
+            <Wallet className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Inicio</span>
           </button>
 
           <button
@@ -460,6 +393,26 @@ export default function App() {
           >
             <History className="w-5 h-5" />
             <span className="text-[10px] font-medium">Movimientos</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('budgets')}
+            className={`flex flex-col items-center gap-1 py-1 transition-colors ${
+              activeTab === 'budgets' ? 'text-primary' : 'text-muted-foreground'
+            }`}
+          >
+            <PieChart className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Presupuestos</span>
+          </button>
+
+          <button
+            onClick={() => handleGoToSettings('profiles')}
+            className={`flex flex-col items-center gap-1 py-1 transition-colors ${
+              activeTab === 'settings' ? 'text-primary' : 'text-muted-foreground'
+            }`}
+          >
+            <Settings className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Configuración</span>
           </button>
         </nav>
       </div>

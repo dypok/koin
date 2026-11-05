@@ -2,12 +2,12 @@ import React from 'react';
 
 interface UnimplementedViewProps {
   moduleName: string;
-  onGoToProfiles: () => void;
+  onGoToSettings: () => void;
 }
 
 export const UnimplementedView: React.FC<UnimplementedViewProps> = ({
   moduleName,
-  onGoToProfiles,
+  onGoToSettings,
 }) => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh] space-y-5 animate-in fade-in duration-200">
@@ -25,10 +25,10 @@ export const UnimplementedView: React.FC<UnimplementedViewProps> = ({
 
       <div className="pt-2">
         <button
-          onClick={onGoToProfiles}
+          onClick={onGoToSettings}
           className="px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity active:scale-95"
         >
-          Volver a Perfiles
+          Ir a Configuración
         </button>
       </div>
     </div>

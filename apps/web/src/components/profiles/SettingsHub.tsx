@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Palette, Shield } from 'lucide-react';
 import { ProfileStreamingView } from './ProfileStreamingView';
 import { AppearanceSettingsView } from './AppearanceSettingsView';
@@ -11,9 +11,25 @@ interface SettingsHubProps {
 export const SettingsHub: React.FC<SettingsHubProps> = ({ initialSubTab = 'profiles' }) => {
   const [subTab, setSubTab] = useState<'profiles' | 'appearance' | 'security'>(initialSubTab);
 
+  useEffect(() => {
+    if (initialSubTab) {
+      setSubTab(initialSubTab);
+    }
+  }, [initialSubTab]);
+
   return (
-    <div className="space-y-6">
-      {/* Subtab Navigation (Flat typographic tabs with 1px border) */}
+    <div className="space-y-6 animate-in fade-in duration-200">
+      {/* Settings Section Header */}
+      <div className="pb-4 border-b border-border/40">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+          Configuración
+        </h1>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Administra tus perfiles de usuario, personalización visual y seguridad.
+        </p>
+      </div>
+
+      {/* Subtab Navigation (Flat typographic tabs with 1px border, zero cards) */}
       <div className="flex items-center gap-1 border-b border-border/40 pb-2 overflow-x-auto">
         <button
           onClick={() => setSubTab('profiles')}
@@ -53,14 +69,16 @@ export const SettingsHub: React.FC<SettingsHubProps> = ({ initialSubTab = 'profi
       </div>
 
       {/* Render active subview */}
-      {subTab === 'profiles' && (
-        <ProfileStreamingView
-          onNavigateToAppearance={() => setSubTab('appearance')}
-          onNavigateToSecurity={() => setSubTab('security')}
-        />
-      )}
-      {subTab === 'appearance' && <AppearanceSettingsView />}
-      {subTab === 'security' && <SecuritySettingsView />}
+      <div>
+        {subTab === 'profiles' && (
+          <ProfileStreamingView
+            onNavigateToAppearance={() => setSubTab('appearance')}
+            onNavigateToSecurity={() => setSubTab('security')}
+          />
+        )}
+        {subTab === 'appearance' && <AppearanceSettingsView />}
+        {subTab === 'security' && <SecuritySettingsView />}
+      </div>
     </div>
   );
 };
