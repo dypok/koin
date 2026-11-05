@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Wallet,
   History,
@@ -35,12 +35,88 @@ type NavigationTab =
   | 'budgets'
   | 'settings';
 
+type TransactionsSubTab = 'history' | 'recurring';
+type SettingsSubTab = 'profiles' | 'appearance' | 'security';
+
+function parseRoute(pathname: string): {
+  tab: NavigationTab;
+  txSubTab: TransactionsSubTab;
+  settingsSubTab: SettingsSubTab;
+} {
+  const clean = pathname.toLowerCase().replace(/\/+$/, '') || '/';
+
+  if (clean === '/inicio' || clean === '/home') {
+    return { tab: 'home', txSubTab: 'history', settingsSubTab: 'profiles' };
+  }
+  if (clean === '/presupuestos' || clean === '/budgets') {
+    return { tab: 'budgets', txSubTab: 'history', settingsSubTab: 'profiles' };
+  }
+  if (clean.startsWith('/movimientos') || clean.startsWith('/history')) {
+    if (
+      clean.includes('compromiso') ||
+      clean.includes('fijo') ||
+      clean.includes('deuda') ||
+      clean.includes('recurring')
+    ) {
+      return { tab: 'history', txSubTab: 'recurring', settingsSubTab: 'profiles' };
+    }
+    return { tab: 'history', txSubTab: 'history', settingsSubTab: 'profiles' };
+  }
+  if (clean.startsWith('/configuracion') || clean.startsWith('/settings')) {
+    if (clean.includes('apariencia') || clean.includes('appearance') || clean.includes('colores')) {
+      return { tab: 'settings', txSubTab: 'history', settingsSubTab: 'appearance' };
+    }
+    if (clean.includes('seguridad') || clean.includes('security') || clean.includes('pin')) {
+      return { tab: 'settings', txSubTab: 'history', settingsSubTab: 'security' };
+    }
+    return { tab: 'settings', txSubTab: 'history', settingsSubTab: 'profiles' };
+  }
+
+  // Default to accounts ('/cuentas' or '/')
+  return { tab: 'accounts', txSubTab: 'history', settingsSubTab: 'profiles' };
+}
+
+function getPathForState(
+  tab: NavigationTab,
+  txSubTab: TransactionsSubTab,
+  settingsSubTab: SettingsSubTab
+): string {
+  switch (tab) {
+    case 'home':
+      return '/inicio';
+    case 'accounts':
+      return '/cuentas';
+    case 'history':
+      return txSubTab === 'recurring' ? '/movimientos/compromisos' : '/movimientos';
+    case 'budgets':
+      return '/presupuestos';
+    case 'settings':
+      if (settingsSubTab === 'appearance') return '/configuracion/apariencia';
+      if (settingsSubTab === 'security') return '/configuracion/seguridad';
+      return '/configuracion/perfiles';
+    default:
+      return '/cuentas';
+  }
+}
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState<NavigationTab>('accounts');
-  const [transactionsSubTab, setTransactionsSubTab] = useState<'history' | 'recurring'>('history');
+  const initialRoute = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return parseRoute(window.location.pathname);
+    }
+    return {
+      tab: 'accounts' as NavigationTab,
+      txSubTab: 'history' as TransactionsSubTab,
+      settingsSubTab: 'profiles' as SettingsSubTab,
+    };
+  }, []);
+
+  const [activeTab, setActiveTabState] = useState<NavigationTab>(initialRoute.tab);
+  const [transactionsSubTab, setTransactionsSubTabState] = useState<TransactionsSubTab>(initialRoute.txSubTab);
+  const [settingsSubTab, setSettingsSubTabState] = useState<SettingsSubTab>(initialRoute.settingsSubTab);
+
   const [isMovimientosDropdownOpen, setIsMovimientosDropdownOpen] = useState(false);
   const [recurringTrigger, setRecurringTrigger] = useState(0);
-  const [settingsSubTab, setSettingsSubTab] = useState<'profiles' | 'appearance' | 'security'>('profiles');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isCreateProfileModalOpen, setIsCreateProfileModalOpen] = useState(false);
   const [pinModalProfile, setPinModalProfile] = useState<ProfileDTO | null>(null);
@@ -50,6 +126,74 @@ export default function App() {
     type?: 'expense' | 'income' | 'transfer';
     accountId?: string;
   }>({ type: 'expense' });
+
+  // SPA Route navigation dispatcher
+  const navigate = useCallback(
+    (
+      tab: NavigationTab,
+      txSub?: TransactionsSubTab,
+      setSub?: SettingsSubTab,
+      replace = false
+    ) => {
+      setActiveTabState(tab);
+      const nextTx = txSub || (tab === 'history' ? transactionsSubTab : 'history');
+      const nextSet = setSub || (tab === 'settings' ? settingsSubTab : 'profiles');
+      if (txSub) setTransactionsSubTabState(txSub);
+      if (setSub) setSettingsSubTabState(setSub);
+
+      if (typeof window !== 'undefined') {
+        const targetPath = getPathForState(tab, nextTx, nextSet);
+        const search = window.location.search;
+        const fullUrl = targetPath + (search || '');
+
+        if (window.location.pathname !== targetPath) {
+          if (replace) {
+            window.history.replaceState({ tab, txSub: nextTx, setSub: nextSet }, '', fullUrl);
+          } else {
+            window.history.pushState({ tab, txSub: nextTx, setSub: nextSet }, '', fullUrl);
+          }
+        }
+      }
+    },
+    [transactionsSubTab, settingsSubTab]
+  );
+
+  const setActiveTab = (tab: NavigationTab) => {
+    navigate(tab);
+  };
+
+  const setTransactionsSubTab = (txSub: TransactionsSubTab) => {
+    navigate('history', txSub);
+  };
+
+  const setSettingsSubTab = (setSub: SettingsSubTab) => {
+    navigate('settings', undefined, setSub);
+  };
+
+  const handleGoToSettings = (subTab: SettingsSubTab = 'profiles') => {
+    navigate('settings', undefined, subTab);
+  };
+
+  // Sync route on browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const route = parseRoute(window.location.pathname);
+      setActiveTabState(route.tab);
+      setTransactionsSubTabState(route.txSubTab);
+      setSettingsSubTabState(route.settingsSubTab);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Normalize initial root URL to /cuentas if on /
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.pathname === '/') {
+      const search = window.location.search;
+      window.history.replaceState(null, '', '/cuentas' + (search || ''));
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -107,11 +251,6 @@ export default function App() {
   );
 
   const activeRulesCount = rules.filter((r) => r.status === 'active').length;
-
-  const handleGoToSettings = (subTab: 'profiles' | 'appearance' | 'security' = 'profiles') => {
-    setSettingsSubTab(subTab);
-    setActiveTab('settings');
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row">
@@ -460,7 +599,10 @@ export default function App() {
         {/* Main Content Area */}
         <main className="p-4 md:p-8 max-w-6xl w-full mx-auto space-y-8 flex-1">
           {activeTab === 'settings' && (
-            <SettingsHub initialSubTab={settingsSubTab} />
+            <SettingsHub
+              initialSubTab={settingsSubTab}
+              onSubTabChange={(sub) => setSettingsSubTab(sub)}
+            />
           )}
 
           {activeTab === 'accounts' && (
@@ -482,6 +624,7 @@ export default function App() {
           {activeTab === 'budgets' && (
             <UnimplementedView
               moduleName="Presupuestos"
+              onGoToAccounts={() => setActiveTab('accounts')}
               onGoToSettings={() => handleGoToSettings('profiles')}
             />
           )}
@@ -489,6 +632,7 @@ export default function App() {
           {activeTab === 'home' && (
             <UnimplementedView
               moduleName="Inicio y Balance"
+              onGoToAccounts={() => setActiveTab('accounts')}
               onGoToSettings={() => handleGoToSettings('profiles')}
             />
           )}
