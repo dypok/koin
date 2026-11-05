@@ -11,8 +11,13 @@ CREATE SCHEMA IF NOT EXISTS koin_analytics;
 CREATE SCHEMA IF NOT EXISTS koin_system;
 
 -- 2. Configure Default Search Path
-ALTER DATABASE koin SET search_path TO koin_finance, koin_auth, koin_analytics, koin_system, public;
-ALTER USER postgres SET search_path TO koin_finance, koin_auth, koin_analytics, koin_system, public;
+DO $$ 
+BEGIN
+    EXECUTE 'ALTER DATABASE ' || current_database() || ' SET search_path TO koin_finance, koin_auth, koin_analytics, koin_system, public';
+    EXECUTE 'ALTER USER ' || current_user || ' SET search_path TO koin_finance, koin_auth, koin_analytics, koin_system, public';
+EXCEPTION WHEN OTHERS THEN 
+    NULL;
+END $$;
 SET search_path TO koin_finance, koin_auth, koin_analytics, koin_system, public;
 
 -- ==============================================================================
