@@ -7,8 +7,6 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  Plus,
-  Lock,
 } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
 import { useAuthStore } from './stores/authStore';
@@ -45,16 +43,6 @@ export default function App() {
     setActiveProfile,
     logout,
   } = useAuthStore();
-
-  const handleSelectProfile = (p: ProfileDTO) => {
-    setIsProfileMenuOpen(false);
-    if (p.id === activeProfile?.id) return;
-    if (p.hasPin) {
-      setPinModalProfile(p);
-    } else {
-      setActiveProfile(p);
-    }
-  };
 
   useEffect(() => {
     checkSession();
@@ -98,10 +86,11 @@ export default function App() {
           </div>
 
           {/* Profile Switcher Trigger in Sidebar */}
-          <div className="relative">
+          <div>
             <button
-              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              onClick={() => setIsProfileMenuOpen(true)}
               className="w-full p-2.5 flex items-center justify-between border border-border/50 hover:border-primary/50 transition-colors text-left bg-muted/20"
+              title="Cambiar perfil"
             >
               <div className="flex items-center gap-3 overflow-hidden">
                 <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
@@ -116,59 +105,6 @@ export default function App() {
               </div>
               <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
             </button>
-
-            {/* Profile Dropdown */}
-            {isProfileMenuOpen && (
-              <div className="absolute top-14 left-0 w-full bg-background border border-border/60 shadow-xl py-1 z-30 divide-y divide-border/30">
-                <div className="px-3 py-2 text-[10px] uppercase font-bold tracking-wider text-muted-foreground flex items-center justify-between">
-                  <span>Perfiles ({profiles.length})</span>
-                  <button
-                    onClick={() => {
-                      setIsProfileMenuOpen(false);
-                      setIsCreateProfileModalOpen(true);
-                    }}
-                    className="text-primary hover:underline flex items-center gap-1 font-semibold text-[10px]"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <span>Nuevo</span>
-                  </button>
-                </div>
-                <div className="max-h-56 overflow-y-auto divide-y divide-border/20">
-                  {profiles.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => handleSelectProfile(p)}
-                      className={`w-full px-3 py-2 flex items-center justify-between text-left hover:bg-muted/40 transition-colors ${
-                        p.id === profile?.id ? 'bg-primary/10 text-primary' : 'text-foreground'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <KoinIcon name={p.avatarIcon} className="w-4 h-4" />
-                        <div>
-                          <div className="flex items-center gap-1">
-                            <p className="text-xs font-medium">{p.name}</p>
-                            {p.hasPin && <Lock className="w-2.5 h-2.5 text-muted-foreground" />}
-                          </div>
-                          <p className="text-[10px] text-muted-foreground font-mono">{p.baseCurrency}</p>
-                        </div>
-                      </div>
-                      {p.id === profile?.id && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                    </button>
-                  ))}
-                </div>
-                <div className="p-1.5 bg-muted/10">
-                  <button
-                    onClick={() => {
-                      setIsProfileMenuOpen(false);
-                      handleGoToSettings('profiles');
-                    }}
-                    className="w-full py-1.5 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors text-center font-medium block"
-                  >
-                    Configurar Perfiles
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Navigation Links */}
@@ -291,7 +227,7 @@ export default function App() {
 
         {/* Desktop Top Header Bar */}
         <header className="hidden md:flex items-center justify-between px-8 py-4 border-b border-border/40 bg-background sticky top-0 z-10">
-          <div className="flex items-center gap-4">
+          <div>
             <h2 className="text-sm font-bold tracking-tight text-foreground uppercase">
               {activeTab === 'home' && 'Inicio y Balance'}
               {activeTab === 'accounts' && 'Cuentas Financieras'}
@@ -299,19 +235,6 @@ export default function App() {
               {activeTab === 'budgets' && 'Presupuestos'}
               {activeTab === 'settings' && 'Configuración'}
             </h2>
-            <div className="h-4 w-[1px] bg-border/60" />
-            <button
-              onClick={() => setIsProfileMenuOpen(true)}
-              className="flex items-center gap-2 px-2.5 py-1 text-xs border border-border/40 hover:border-primary/50 transition-colors bg-muted/10 group"
-              title="Conmutar perfil rápido (<100ms)"
-            >
-              <KoinIcon name={profile?.avatarIcon || 'User'} className="w-3.5 h-3.5 text-primary" />
-              <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                {profile?.name}
-              </span>
-              <span className="text-[10px] text-muted-foreground font-mono">({profile?.baseCurrency})</span>
-              <ChevronDown className="w-3 h-3 text-muted-foreground" />
-            </button>
           </div>
         </header>
 
