@@ -124,6 +124,37 @@ CREATE TABLE IF NOT EXISTS finance.budgets (
 	CONSTRAINT budgets_category_id_fk FOREIGN KEY (category_id) REFERENCES finance.categories(id) ON DELETE cascade
 );
 
+CREATE TABLE IF NOT EXISTS finance.recurring_rules (
+	id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	profile_id uuid NOT NULL,
+	account_id uuid NOT NULL,
+	category_id uuid,
+	name varchar(100) NOT NULL,
+	type varchar(20) NOT NULL,
+	amount numeric(14, 2) NOT NULL,
+	currency varchar(3) DEFAULT 'USD' NOT NULL,
+	frequency varchar(20) DEFAULT 'monthly' NOT NULL,
+	day_of_month integer DEFAULT 1 NOT NULL,
+	is_installment boolean DEFAULT false NOT NULL,
+	total_installments integer,
+	current_installment integer DEFAULT 0 NOT NULL,
+	principal_amount numeric(14, 2),
+	total_interest_amount numeric(14, 2),
+	installment_principal numeric(14, 2),
+	installment_interest numeric(14, 2),
+	interest_rate numeric(6, 3),
+	auto_apply boolean DEFAULT true NOT NULL,
+	next_run_date date NOT NULL,
+	last_run_at timestamp with time zone,
+	status varchar(20) DEFAULT 'active' NOT NULL,
+	note text,
+	created_at timestamp with time zone DEFAULT now() NOT NULL,
+	updated_at timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT recurring_profile_id_fk FOREIGN KEY (profile_id) REFERENCES auth.profiles(id) ON DELETE cascade,
+	CONSTRAINT recurring_account_id_fk FOREIGN KEY (account_id) REFERENCES finance.accounts(id) ON DELETE cascade,
+	CONSTRAINT recurring_category_id_fk FOREIGN KEY (category_id) REFERENCES finance.categories(id) ON DELETE set null
+);
+
 CREATE TABLE IF NOT EXISTS finance.transactions (
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	profile_id uuid NOT NULL,
@@ -140,12 +171,17 @@ CREATE TABLE IF NOT EXISTS finance.transactions (
 	note text,
 	tags text[],
 	is_recurring boolean DEFAULT false NOT NULL,
+	recurring_rule_id uuid,
+	installment_number integer,
+	principal_portion numeric(14, 2),
+	interest_portion numeric(14, 2),
 	created_at timestamp with time zone DEFAULT now() NOT NULL,
 	updated_at timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT transactions_profile_id_fk FOREIGN KEY (profile_id) REFERENCES auth.profiles(id) ON DELETE restrict,
 	CONSTRAINT transactions_account_id_fk FOREIGN KEY (account_id) REFERENCES finance.accounts(id) ON DELETE restrict,
 	CONSTRAINT transactions_to_account_id_fk FOREIGN KEY (to_account_id) REFERENCES finance.accounts(id) ON DELETE restrict,
-	CONSTRAINT transactions_category_id_fk FOREIGN KEY (category_id) REFERENCES finance.categories(id) ON DELETE restrict
+	CONSTRAINT transactions_category_id_fk FOREIGN KEY (category_id) REFERENCES finance.categories(id) ON DELETE restrict,
+	CONSTRAINT transactions_recurring_rule_id_fk FOREIGN KEY (recurring_rule_id) REFERENCES finance.recurring_rules(id) ON DELETE set null
 );
 
 CREATE INDEX IF NOT EXISTS idx_accounts_creator ON finance.accounts USING btree (created_by_profile_id, is_archived);

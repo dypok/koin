@@ -186,3 +186,36 @@ export type CreateBudgetInput = z.infer<typeof CreateBudgetSchema>;
 
 export const UpdateBudgetSchema = CreateBudgetSchema.partial();
 export type UpdateBudgetInput = z.infer<typeof UpdateBudgetSchema>;
+
+// ------------------------------------------------------
+// Recurring Rules & Debt Installments DTOs
+// ------------------------------------------------------
+
+export const CreateRecurringRuleSchema = z.object({
+  accountId: z.string().uuid('ID de cuenta inválido'),
+  categoryId: z.string().uuid('ID de categoría inválido').optional().nullable(),
+  name: z.string().min(1, 'El nombre es requerido').max(100).trim(),
+  type: z.enum(['expense', 'income', 'transfer']).default('expense'),
+  amount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Monto decimal positivo inválido'),
+  currency: z.string().length(3).default('USD'),
+  frequency: z.enum(['monthly', 'biweekly', 'weekly', 'yearly']).default('monthly'),
+  dayOfMonth: z.number().int().min(1).max(31).default(1),
+  isInstallment: z.boolean().default(false),
+  totalInstallments: z.number().int().min(1).max(360).optional().nullable(),
+  principalAmount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Capital decimal positivo inválido').optional().nullable(),
+  totalInterestAmount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Interés decimal positivo inválido').optional().nullable(),
+  installmentPrincipal: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Porción capital decimal inválida').optional().nullable(),
+  installmentInterest: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Porción interés decimal inválida').optional().nullable(),
+  interestRate: z.string().regex(/^\d+(\.\d{1,3})?$/, 'Tasa de interés inválida').optional().nullable(),
+  autoApply: z.boolean().default(true),
+  nextRunDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha AAAA-MM-DD inválida'),
+  note: z.string().max(500).optional().nullable(),
+});
+export type CreateRecurringRuleInput = z.infer<typeof CreateRecurringRuleSchema>;
+
+export const UpdateRecurringRuleSchema = CreateRecurringRuleSchema.partial().extend({
+  status: z.enum(['active', 'paused', 'completed']).optional(),
+  currentInstallment: z.number().int().min(0).optional(),
+});
+export type UpdateRecurringRuleInput = z.infer<typeof UpdateRecurringRuleSchema>;
+

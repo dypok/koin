@@ -241,6 +241,10 @@ type Transaction struct {
 	Note               *string          `json:"note,omitempty"`
 	Tags               []string         `json:"tags"`
 	IsRecurring        bool             `json:"isRecurring"`
+	RecurringRuleID    *uuid.UUID       `json:"recurringRuleId,omitempty"`
+	InstallmentNumber  *int             `json:"installmentNumber,omitempty"`
+	PrincipalPortion   *decimal.Decimal `json:"principalPortion,omitempty"`
+	InterestPortion    *decimal.Decimal `json:"interestPortion,omitempty"`
 	CreatedAt          time.Time        `json:"createdAt"`
 	UpdatedAt          time.Time        `json:"updatedAt"`
 
@@ -342,4 +346,79 @@ type UpdateCategoryRequest struct {
 	Icon      *string `json:"icon,omitempty"`
 	Color     *string `json:"color,omitempty"`
 	SortOrder *int    `json:"sortOrder,omitempty"`
+}
+
+// ------------------------------------------------------
+// Recurring Rules & Debt Installments Models & DTOs
+// ------------------------------------------------------
+
+type RecurringRule struct {
+	ID                   uuid.UUID        `json:"id"`
+	ProfileID            uuid.UUID        `json:"profileId"`
+	AccountID            uuid.UUID        `json:"accountId"`
+	CategoryID           *uuid.UUID       `json:"categoryId,omitempty"`
+	Name                 string           `json:"name"`
+	Type                 string           `json:"type"` // expense, income, transfer
+	Amount               decimal.Decimal  `json:"amount"`
+	Currency             string           `json:"currency"`
+	Frequency            string           `json:"frequency"` // monthly, biweekly, weekly, yearly
+	DayOfMonth           int              `json:"dayOfMonth"`
+	IsInstallment        bool             `json:"isInstallment"`
+	TotalInstallments    *int             `json:"totalInstallments,omitempty"`
+	CurrentInstallment   int              `json:"currentInstallment"`
+	PrincipalAmount      *decimal.Decimal `json:"principalAmount,omitempty"`
+	TotalInterestAmount  *decimal.Decimal `json:"totalInterestAmount,omitempty"`
+	InstallmentPrincipal *decimal.Decimal `json:"installmentPrincipal,omitempty"`
+	InstallmentInterest  *decimal.Decimal `json:"installmentInterest,omitempty"`
+	InterestRate         *decimal.Decimal `json:"interestRate,omitempty"`
+	AutoApply            bool             `json:"autoApply"`
+	NextRunDate          time.Time        `json:"nextRunDate"`
+	LastRunAt            *time.Time       `json:"lastRunAt,omitempty"`
+	Status               string           `json:"status"` // active, paused, completed
+	Note                 *string          `json:"note,omitempty"`
+	CreatedAt            time.Time        `json:"createdAt"`
+	UpdatedAt            time.Time        `json:"updatedAt"`
+
+	// Relational details
+	AccountName            *string `json:"accountName,omitempty"`
+	AccountColor           *string `json:"accountColor,omitempty"`
+	AccountIcon            *string `json:"accountIcon,omitempty"`
+	AccountInstitutionName *string `json:"accountInstitutionName,omitempty"`
+	CategoryName           *string `json:"categoryName,omitempty"`
+	CategoryIcon           *string `json:"categoryIcon,omitempty"`
+	CategoryColor          *string `json:"categoryColor,omitempty"`
+}
+
+type CreateRecurringRuleRequest struct {
+	AccountID            uuid.UUID        `json:"accountId"`
+	CategoryID           *uuid.UUID       `json:"categoryId,omitempty"`
+	Name                 string           `json:"name"`
+	Type                 string           `json:"type"`
+	Amount               decimal.Decimal  `json:"amount"`
+	Currency             string           `json:"currency"`
+	Frequency            string           `json:"frequency"`
+	DayOfMonth           int              `json:"dayOfMonth"`
+	IsInstallment        bool             `json:"isInstallment"`
+	TotalInstallments    *int             `json:"totalInstallments,omitempty"`
+	PrincipalAmount      *decimal.Decimal `json:"principalAmount,omitempty"`
+	TotalInterestAmount  *decimal.Decimal `json:"totalInterestAmount,omitempty"`
+	InstallmentPrincipal *decimal.Decimal `json:"installmentPrincipal,omitempty"`
+	InstallmentInterest  *decimal.Decimal `json:"installmentInterest,omitempty"`
+	InterestRate         *decimal.Decimal `json:"interestRate,omitempty"`
+	AutoApply            bool             `json:"autoApply"`
+	NextRunDate          string           `json:"nextRunDate"` // YYYY-MM-DD
+	Note                 *string          `json:"note,omitempty"`
+}
+
+type UpdateRecurringRuleRequest struct {
+	Name                *string          `json:"name,omitempty"`
+	AccountID           *uuid.UUID       `json:"accountId,omitempty"`
+	CategoryID          *uuid.UUID       `json:"categoryId,omitempty"`
+	Amount              *decimal.Decimal `json:"amount,omitempty"`
+	DayOfMonth          *int             `json:"dayOfMonth,omitempty"`
+	AutoApply           *bool            `json:"autoApply,omitempty"`
+	NextRunDate         *string          `json:"nextRunDate,omitempty"`
+	Status              *string          `json:"status,omitempty"`
+	CurrentInstallment  *int             `json:"currentInstallment,omitempty"`
+	Note                *string          `json:"note,omitempty"`
 }
