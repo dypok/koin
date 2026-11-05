@@ -438,32 +438,23 @@ export default function App() {
             )}
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => {
-                setQuickTxConfig({ type: 'expense' });
-                setIsQuickTxModalOpen(true);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
-              title="Registrar gasto, ingreso o transferencia puntual"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Nuevo Movimiento</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setActiveTab('history');
-                setTransactionsSubTab('recurring');
-                setRecurringTrigger((prev) => prev + 1);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-purple-500/50 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors shadow-2xs"
-              title="Programar salario fijo mensual, gasto recurrente o deuda a cuotas con intereses"
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Programar Compromiso</span>
-            </button>
-          </div>
+          {/* Global Quick Action: only on other views to avoid redundancy when already inside Movimientos */}
+          {activeTab !== 'history' && (
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setQuickTxConfig({ type: 'expense' });
+                  setIsQuickTxModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
+                title="Registrar gasto, ingreso o transferencia puntual"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Nuevo Movimiento</span>
+              </button>
+            </div>
+          )}
         </header>
 
         {/* Main Content Area */}

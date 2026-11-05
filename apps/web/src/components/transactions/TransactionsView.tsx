@@ -329,29 +329,31 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            onClick={() => onNewTransaction('expense')}
-            className="px-3.5 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm"
-            title="Registrar gasto, ingreso o transferencia puntual"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Nuevo Movimiento</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setRuleToEdit(null);
-              setIsRecurringModalOpen(true);
-            }}
-            className="px-3.5 py-2 text-xs font-semibold border border-purple-500/50 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors flex items-center gap-1.5 shadow-2xs"
-            title="Programar salario fijo nómina, suscripción recurrente o deuda a cuotas con amortización"
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>Programar Compromiso</span>
-          </button>
+        <div className="flex items-center gap-2">
+          {activeMainTab === 'history' ? (
+            <button
+              type="button"
+              onClick={() => onNewTransaction('expense')}
+              className="px-4 py-2 text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm"
+              title="Registrar gasto, ingreso o transferencia puntual"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Nuevo Movimiento</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setRuleToEdit(null);
+                setIsRecurringModalOpen(true);
+              }}
+              className="px-4 py-2 text-xs font-semibold border border-purple-500/50 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors flex items-center gap-1.5 shadow-2xs"
+              title="Programar salario fijo nómina, suscripción recurrente o deuda a cuotas con amortización"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Programar Compromiso</span>
+            </button>
+          )}
         </div>
       </div>
 
