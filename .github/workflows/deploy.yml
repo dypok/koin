@@ -1,0 +1,83 @@
+name: CI/CD Pipeline & Heroku Auto-Deployment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-build:
+    name: 🧪 Validate & Build Suite
+    runs-on: ubuntu-latest
+    env:
+      GOTOOLCHAIN: auto
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 12.6.0
+
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: ⚙️ Setup Go 1.24
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache-dependency-path: apps/server/go.sum
+
+      - name: 📦 Install Monorepo Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 Typecheck (TypeScript & Go Vet)
+        run: pnpm check-types
+
+      - name: 🧪 Run Tests
+        run: pnpm test
+
+      - name: 🏗️ Production Build (Vite SPA + Go Binary)
+        run: pnpm build
+
+      - name: 🐳 Validate Multi-stage Dockerfile
+        run: docker build -t koin-release:test .
+
+  deploy-heroku:
+    name: 🚀 Deploy to Heroku
+    needs: validate-and-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🚀 Deploy to Heroku Container via Git
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+        run: |
+          if [ -n "$HEROKU_API_KEY" ] && [ -n "$HEROKU_APP_NAME" ]; then
+            echo "::notice ::Configurando credenciales y desplegando a Heroku ($HEROKU_APP_NAME)..."
+            git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git || true
+            git push --force heroku main
+            echo "::notice ::Despliegue enviado a Heroku exitosamente."
+          else
+            echo "::notice ::HEROKU_API_KEY / HEROKU_APP_NAME no configurados en GitHub Secrets."
+            echo "::notice ::El despliegue automático se delega a la integración nativa de Heroku Dashboard (GitHub Auto-Deploy)."
+          fi

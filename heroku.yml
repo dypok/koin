@@ -4,6 +4,6 @@ setup:
       as: DATABASE
 build:
   docker:
-    web: apps/server/Dockerfile
+    web: Dockerfile
 run:
   web: /app/bin/api
