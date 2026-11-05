@@ -285,43 +285,12 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 1. Main Navigation Header with Dual Tabs */}
+      {/* 1. Main Navigation Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold tracking-tight text-foreground">Movimientos</h1>
-            <div className="flex items-center border border-border/60 bg-muted/10 p-0.5 text-xs font-semibold">
-              <button
-                onClick={() => handleTabChange('history')}
-                className={`px-3 py-1 flex items-center gap-1.5 transition-colors ${
-                  activeMainTab === 'history'
-                    ? 'bg-background text-foreground shadow-xs font-bold'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <History className="w-3.5 h-3.5" />
-                <span>Historial</span>
-                <span className="text-[10px] font-mono text-muted-foreground ml-0.5">({totalCount})</span>
-              </button>
-
-              <button
-                onClick={() => handleTabChange('recurring')}
-                className={`px-3 py-1 flex items-center gap-1.5 transition-colors ${
-                  activeMainTab === 'recurring'
-                    ? 'bg-background text-foreground shadow-xs font-bold'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Calendar className="w-3.5 h-3.5" />
-                <span>Fijos y Deudas</span>
-                {activeRulesCount > 0 && (
-                  <span className="px-1.5 py-0.2 bg-purple-500/20 text-purple-400 text-[10px] font-mono font-bold">
-                    {activeRulesCount}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            {activeMainTab === 'history' ? 'Historial de Movimientos' : 'Compromisos, Fijos y Deudas'}
+          </h1>
           <p className="text-xs text-muted-foreground mt-1">
             {activeMainTab === 'history'
               ? 'Historial cronológico de gastos, ingresos y transferencias'

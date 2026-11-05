@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface UnimplementedViewProps {
   moduleName: string;
@@ -14,22 +14,16 @@ export const UnimplementedView: React.FC<UnimplementedViewProps> = ({
 }) => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh] space-y-6 animate-in fade-in duration-200">
-      <div className="space-y-4 max-w-md mx-auto">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full border border-primary/30 bg-primary/10 text-primary mx-auto shadow-2xs">
-          <Sparkles className="w-6 h-6 animate-pulse" />
-        </div>
-
-        <div className="space-y-1.5">
-          <span className="text-xs font-mono font-bold tracking-widest text-primary uppercase block">
-            Próximamente
-          </span>
-          <h2 className="text-xl font-bold tracking-tight text-foreground">
-            {moduleName}
-          </h2>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Esta sección se encuentra en desarrollo activo y estará disponible en una próxima actualización de Koin.
-          </p>
-        </div>
+      <div className="space-y-2 max-w-md mx-auto">
+        <span className="text-[11px] font-mono font-bold tracking-widest text-primary uppercase block">
+          Próximamente
+        </span>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          {moduleName}
+        </h2>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Esta sección se encuentra en desarrollo activo y estará disponible en una próxima versión de Koin.
+        </p>
       </div>
 
       <div className="flex items-center gap-3 pt-2">

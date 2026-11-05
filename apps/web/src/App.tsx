@@ -127,6 +127,31 @@ export default function App() {
     accountId?: string;
   }>({ type: 'expense' });
 
+  // Retractable Navbar scroll state
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const lastScrollTopRef = React.useRef(0);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const currentScrollTop = e.currentTarget.scrollTop;
+    const lastScrollTop = lastScrollTopRef.current;
+    const delta = currentScrollTop - lastScrollTop;
+
+    // Near the top of the canvas: always show navbar
+    if (currentScrollTop <= 40) {
+      setIsNavbarVisible(true);
+    } else if (delta > 6 && currentScrollTop > 60) {
+      // Scrolling down significantly -> retract navbar and close dropdown
+      setIsNavbarVisible(false);
+      setIsMovimientosDropdownOpen(false);
+    } else if (delta < -6) {
+      // Scrolling up -> reveal navbar
+      setIsNavbarVisible(true);
+    }
+
+    lastScrollTopRef.current = currentScrollTop;
+  }, []);
+
   // SPA Route navigation dispatcher
   const navigate = useCallback(
     (
@@ -135,6 +160,7 @@ export default function App() {
       setSub?: SettingsSubTab,
       replace = false
     ) => {
+      setIsNavbarVisible(true);
       setActiveTabState(tab);
       const nextTx = txSub || (tab === 'history' ? transactionsSubTab : 'history');
       const nextSet = setSub || (tab === 'settings' ? settingsSubTab : 'profiles');
@@ -322,73 +348,25 @@ export default function App() {
               <span>Cuentas Financieras</span>
             </button>
 
-            {/* Movimientos with Sub-navigation */}
-            <div className="space-y-0.5">
-              <button
-                onClick={() => {
-                  setActiveTab('history');
-                }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-medium transition-colors ${
-                  activeTab === 'history'
-                    ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <History className="w-4 h-4" />
-                  <span>Movimientos</span>
-                </div>
-                {activeRulesCount > 0 && (
-                  <span className="w-4 h-4 rounded-full bg-purple-500/20 text-purple-400 text-[10px] flex items-center justify-center font-mono font-bold">
-                    {activeRulesCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Sub-items in Sidebar */}
-              {activeTab === 'history' && (
-                <div className="ml-7 space-y-0.5 border-l border-border/40 pl-3 py-1 animate-in fade-in duration-100">
-                  <button
-                    onClick={() => setTransactionsSubTab('history')}
-                    className={`w-full text-left py-1 text-[11px] transition-colors flex items-center gap-2 ${
-                      transactionsSubTab === 'history'
-                        ? 'text-primary font-bold'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        transactionsSubTab === 'history' ? 'bg-primary' : 'bg-transparent'
-                      }`}
-                    />
-                    <span>Historial</span>
-                  </button>
-
-                  <button
-                    onClick={() => setTransactionsSubTab('recurring')}
-                    className={`w-full text-left py-1 text-[11px] transition-colors flex items-center justify-between ${
-                      transactionsSubTab === 'recurring'
-                        ? 'text-purple-400 font-bold'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          transactionsSubTab === 'recurring' ? 'bg-purple-400' : 'bg-transparent'
-                        }`}
-                      />
-                      <span>Compromisos y Deudas</span>
-                    </div>
-                    {activeRulesCount > 0 && (
-                      <span className="text-[10px] font-mono text-purple-400 font-bold">
-                        ({activeRulesCount})
-                      </span>
-                    )}
-                  </button>
-                </div>
+            {/* Movimientos button (sub-views are controlled strictly from the navbar dropdown) */}
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-medium transition-colors ${
+                activeTab === 'history'
+                  ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <History className="w-4 h-4" />
+                <span>Movimientos</span>
+              </div>
+              {activeRulesCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-purple-500/20 text-purple-400 text-[10px] flex items-center justify-center font-mono font-bold">
+                  {activeRulesCount}
+                </span>
               )}
-            </div>
+            </button>
 
             <button
               onClick={() => setActiveTab('budgets')}
@@ -436,36 +414,137 @@ export default function App() {
       {/* ---------------------------------------------------- */}
       {/* Main Responsive Canvas (Mobile & Desktop)            */}
       {/* ---------------------------------------------------- */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
-        {/* Mobile Header (Hidden on md+) */}
-        <header className="md:hidden p-4 flex items-center justify-between border-b border-border/40 bg-background sticky top-0 z-20">
-          <button
-            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-            className="flex items-center gap-3 text-left focus:outline-none"
-          >
-            <div
-              className="w-8 h-8 rounded-full border flex items-center justify-center shrink-0"
-              style={{
-                backgroundColor: activeAvatarStyle.bg,
-                borderColor: activeAvatarStyle.border,
-                color: activeAvatarStyle.color,
-              }}
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto"
+      >
+        {/* Mobile Header (Hidden on md+, retractable on scroll) */}
+        <header
+          className={`md:hidden px-4 py-3 border-b border-border/40 bg-background/95 backdrop-blur-md sticky top-0 z-20 transition-transform duration-300 ease-in-out ${
+            isNavbarVisible ? 'translate-y-0 shadow-xs' : '-translate-y-full pointer-events-none'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="flex items-center gap-2.5 text-left focus:outline-none min-w-0"
             >
-              <KoinIcon name={profile?.avatarIcon || 'User'} className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-semibold">{profile?.name}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+              <div
+                className="w-7 h-7 rounded-full border flex items-center justify-center shrink-0"
+                style={{
+                  backgroundColor: activeAvatarStyle.bg,
+                  borderColor: activeAvatarStyle.border,
+                  color: activeAvatarStyle.color,
+                }}
+              >
+                <KoinIcon name={profile?.avatarIcon || 'User'} className="w-3.5 h-3.5" />
               </div>
-              <p className="text-[10px] text-muted-foreground font-mono">{profile?.baseCurrency} · Moneda Base</p>
-            </div>
-          </button>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-semibold truncate">{profile?.name}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
+                  <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
+                </div>
+                <p className="text-[9px] text-muted-foreground font-mono">{profile?.baseCurrency} · Moneda Base</p>
+              </div>
+            </button>
 
-          <button onClick={logout} className="p-2 text-muted-foreground hover:text-destructive">
-            <LogOut className="w-4 h-4" />
-          </button>
+            <button onClick={logout} className="p-1.5 text-muted-foreground hover:text-destructive shrink-0">
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Mobile Movimientos Sub-view Dropdown (sole control for Movimientos sub-views) */}
+          {activeTab === 'history' && (
+            <div className="mt-2.5 pt-2 border-t border-border/40 relative">
+              <button
+                type="button"
+                onClick={() => setIsMovimientosDropdownOpen(!isMovimientosDropdownOpen)}
+                className="w-full flex items-center justify-between px-3 py-1.5 border border-border/80 bg-muted/15 hover:border-border text-foreground font-bold text-xs uppercase tracking-wider transition-colors shadow-2xs"
+                aria-expanded={isMovimientosDropdownOpen}
+              >
+                <div className="flex items-center gap-2 truncate">
+                  {transactionsSubTab === 'history' ? (
+                    <>
+                      <History className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="truncate">Historial de Movimientos</span>
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                      <span className="truncate">Compromisos, Fijos y Deudas</span>
+                    </>
+                  )}
+                </div>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-muted-foreground transition-transform shrink-0 ${
+                    isMovimientosDropdownOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Mobile Dropdown Options */}
+              {isMovimientosDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-20"
+                    onClick={() => setIsMovimientosDropdownOpen(false)}
+                  />
+                  <div className="absolute left-0 right-0 top-full mt-1 border border-border/80 bg-background shadow-xl p-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTransactionsSubTab('history');
+                        setIsMovimientosDropdownOpen(false);
+                      }}
+                      className={`w-full p-2.5 text-left text-xs flex items-start gap-2.5 transition-colors border ${
+                        transactionsSubTab === 'history'
+                          ? 'border-primary/40 bg-primary/10 text-primary font-bold'
+                          : 'border-transparent hover:bg-muted/15 text-foreground'
+                      }`}
+                    >
+                      <History className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
+                      <div>
+                        <p className="font-bold">Historial de Movimientos</p>
+                        <p className="text-[10px] text-muted-foreground font-normal mt-0.5">
+                          Ingresos, gastos y transferencias registradas
+                        </p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTransactionsSubTab('recurring');
+                        setIsMovimientosDropdownOpen(false);
+                      }}
+                      className={`w-full p-2.5 text-left text-xs flex items-start gap-2.5 transition-colors border mt-1 ${
+                        transactionsSubTab === 'recurring'
+                          ? 'border-purple-500/40 bg-purple-500/10 text-purple-400 font-bold'
+                          : 'border-transparent hover:bg-muted/15 text-foreground'
+                      }`}
+                    >
+                      <Calendar className="w-4 h-4 shrink-0 mt-0.5 text-purple-400" />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-bold">Compromisos, Fijos y Deudas</p>
+                          {activeRulesCount > 0 && (
+                            <span className="text-[10px] font-mono px-1 bg-purple-500/20 text-purple-400 font-bold">
+                              {activeRulesCount}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground font-normal mt-0.5">
+                          Salarios nómina, gastos mensuales y amortización de deudas
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </header>
 
         {/* Profile Switcher Bottom Sheet / Popover (<100ms switching) */}
@@ -477,8 +556,12 @@ export default function App() {
           onRequestPin={(p) => setPinModalProfile(p)}
         />
 
-        {/* Desktop Top Header Bar */}
-        <header className="hidden md:flex items-center justify-between px-8 py-4 border-b border-border/40 bg-background sticky top-0 z-10">
+        {/* Desktop Top Header Bar (Retractable on scroll) */}
+        <header
+          className={`hidden md:flex items-center justify-between px-8 py-3.5 border-b border-border/40 bg-background/95 backdrop-blur-md sticky top-0 z-30 transition-transform duration-300 ease-in-out ${
+            isNavbarVisible ? 'translate-y-0 shadow-xs' : '-translate-y-full pointer-events-none'
+          }`}
+        >
           <div>
             {activeTab === 'history' ? (
               <div className="relative">
