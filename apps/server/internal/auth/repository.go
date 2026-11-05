@@ -204,7 +204,7 @@ func (r *Repository) CreateUserWithSeedData(ctx context.Context, data CreateUser
 	accountQuery := `
 		INSERT INTO finance.accounts (created_by_profile_id, name, type, currency, initial_balance, current_balance, is_shared, color, icon, is_archived)
 		VALUES ($1, $2, $3, $4, 0.00, 0.00, false, $5, $6, false)
-		RETURNING id, created_by_profile_id, name, type, currency, initial_balance, current_balance, is_shared, color, icon, is_archived, created_at, updated_at
+		RETURNING id, created_by_profile_id, name, institution_name, type, currency, initial_balance, current_balance, is_shared, color, icon, is_archived, created_at, updated_at
 	`
 	memberQuery := `
 		INSERT INTO finance.account_members (account_id, profile_id, role, status)
@@ -217,6 +217,7 @@ func (r *Repository) CreateUserWithSeedData(ctx context.Context, data CreateUser
 			&a.ID,
 			&a.CreatedByProfileID,
 			&a.Name,
+			&a.InstitutionName,
 			&a.Type,
 			&a.Currency,
 			&a.InitialBalance,

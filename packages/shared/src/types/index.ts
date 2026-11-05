@@ -37,6 +37,7 @@ export interface AccountDTO {
   id: string;
   createdByProfileId: string;
   name: string;
+  institutionName?: string | null;
   type: AccountType;
   currency: string;
   initialBalance: string;
