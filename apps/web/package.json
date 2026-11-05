@@ -1,6 +1,6 @@
 {
   "name": "@koin/web",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,6 +15,7 @@
     "@capacitor/core": "^7.6.10",
     "@koin/shared": "workspace:*",
     "@tanstack/react-query": "^5.66.9",
+    "@tanstack/react-virtual": "^3.14.26",
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",

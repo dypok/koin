@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   Plus,
   Search,
@@ -173,6 +174,48 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
 
     return Object.entries(groups).sort(([dateA], [dateB]) => dateB.localeCompare(dateA));
   }, [transactions]);
+
+  // Flattened virtual rows for TanStack Virtual (headers and transactions) (TXN-05)
+  interface FlatHeaderItem {
+    type: 'header';
+    key: string;
+    label: string;
+    count: number;
+  }
+  interface FlatTxItem {
+    type: 'transaction';
+    key: string;
+    tx: TransactionDTO;
+  }
+  type FlatItem = FlatHeaderItem | FlatTxItem;
+
+  const flatItems = useMemo<FlatItem[]>(() => {
+    const list: FlatItem[] = [];
+    groupedTransactions.forEach(([dateKey, group]) => {
+      list.push({
+        type: 'header',
+        key: `header-${dateKey}`,
+        label: group.label,
+        count: group.items.length,
+      });
+      group.items.forEach((tx) => {
+        list.push({
+          type: 'transaction',
+          key: `tx-${tx.id}`,
+          tx,
+        });
+      });
+    });
+    return list;
+  }, [groupedTransactions]);
+
+  const virtualScrollRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: flatItems.length,
+    getScrollElement: () => virtualScrollRef.current,
+    estimateSize: (index) => (flatItems[index]?.type === 'header' ? 36 : 72),
+    overscan: 10,
+  });
 
   const resetFilters = () => {
     setTypeFilter('all');
@@ -450,141 +493,171 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
               </button>
             </div>
           ) : (
-            <div className="space-y-6">
-              {groupedTransactions.map(([dateKey, group]) => (
-                <div key={dateKey} className="space-y-2">
-                  <div className="flex items-center gap-2 px-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground font-mono">
-                      {group.label}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground/60 font-mono">
-                      ({group.items.length})
-                    </span>
-                    <div className="h-px bg-border/40 flex-1 ml-2" />
-                  </div>
+            <div
+              ref={virtualScrollRef}
+              className="max-h-[68vh] overflow-y-auto border border-border/40 bg-background shadow-2xs divide-y divide-border/20 pr-0.5"
+            >
+              <div
+                style={{
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const item = flatItems[virtualRow.index];
+                  if (!item) return null;
 
-                  <div className="border border-border/40 divide-y divide-border/30 bg-background">
-                    {group.items.map((tx) => {
-                      const isExpense = tx.type === 'expense';
-                      const isIncome = tx.type === 'income';
-                      const isTransfer = tx.type === 'transfer';
-                      const isCrossCurrency = tx.currency !== profileBaseCurrency;
+                  if (item.type === 'header') {
+                    return (
+                      <div
+                        key={item.key}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
+                        className="h-9 px-3 flex items-center gap-2 bg-muted/30 border-b border-border/40 z-10 select-none"
+                      >
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground font-mono">
+                          {item.label}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/60 font-mono">
+                          ({item.count})
+                        </span>
+                        <div className="h-px bg-border/40 flex-1 ml-2" />
+                      </div>
+                    );
+                  }
 
-                      return (
+                  const tx = item.tx;
+                  const isExpense = tx.type === 'expense';
+                  const isIncome = tx.type === 'income';
+                  const isTransfer = tx.type === 'transfer';
+                  const isCrossCurrency = tx.currency !== profileBaseCurrency;
+
+                  return (
+                    <div
+                      key={item.key}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                      className="p-3.5 flex items-center justify-between gap-4 hover:bg-muted/5 transition-colors group border-b border-border/20 bg-background"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
                         <div
-                          key={tx.id}
-                          className="p-3.5 flex items-center justify-between gap-4 hover:bg-muted/5 transition-colors group"
+                          className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border"
+                          style={{
+                            backgroundColor: isTransfer
+                              ? 'rgba(59, 130, 246, 0.12)'
+                              : isIncome
+                              ? 'rgba(16, 185, 129, 0.12)'
+                              : 'rgba(239, 68, 68, 0.12)',
+                            borderColor: isTransfer
+                              ? 'rgba(59, 130, 246, 0.3)'
+                              : isIncome
+                              ? 'rgba(16, 185, 129, 0.3)'
+                              : 'rgba(239, 68, 68, 0.3)',
+                            color: isTransfer
+                              ? '#3B82F6'
+                              : isIncome
+                              ? '#10B981'
+                              : '#EF4444',
+                          }}
                         >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div
-                              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border"
-                              style={{
-                                backgroundColor: isTransfer
-                                  ? 'rgba(59, 130, 246, 0.12)'
-                                  : isIncome
-                                  ? 'rgba(16, 185, 129, 0.12)'
-                                  : 'rgba(239, 68, 68, 0.12)',
-                                borderColor: isTransfer
-                                  ? 'rgba(59, 130, 246, 0.3)'
-                                  : isIncome
-                                  ? 'rgba(16, 185, 129, 0.3)'
-                                  : 'rgba(239, 68, 68, 0.3)',
-                                color: isTransfer
-                                  ? '#3B82F6'
-                                  : isIncome
-                                  ? '#10B981'
-                                  : '#EF4444',
-                              }}
-                            >
-                              {isTransfer ? (
-                                <ArrowLeftRight className="w-4 h-4" />
-                              ) : tx.categoryIcon ? (
-                                <KoinIcon name={tx.categoryIcon} className="w-4 h-4" />
-                              ) : isIncome ? (
-                                <ArrowDownLeft className="w-4 h-4" />
-                              ) : (
-                                <ArrowUpRight className="w-4 h-4" />
-                              )}
-                            </div>
+                          {isTransfer ? (
+                            <ArrowLeftRight className="w-4 h-4" />
+                          ) : tx.categoryIcon ? (
+                            <KoinIcon name={tx.categoryIcon} className="w-4 h-4" />
+                          ) : isIncome ? (
+                            <ArrowDownLeft className="w-4 h-4" />
+                          ) : (
+                            <ArrowUpRight className="w-4 h-4" />
+                          )}
+                        </div>
 
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs font-semibold text-foreground truncate">
-                                  {isTransfer
-                                    ? `Transferencia: ${tx.accountName} → ${tx.toAccountName}`
-                                    : tx.categoryName || 'Sin categoría'}
-                                </span>
-                                {tx.isRecurring && (
-                                  <span className="text-[9px] font-mono uppercase px-1 py-0.2 border border-purple-500/40 bg-purple-500/10 text-purple-400 font-bold shrink-0">
-                                    {tx.installmentNumber ? `Cuota ${tx.installmentNumber}` : 'Recurrente'}
-                                  </span>
-                                )}
-                              </div>
-
-                              {tx.note && (
-                                <p className="text-[11px] text-muted-foreground truncate max-w-md">
-                                  {tx.note}
-                                </p>
-                              )}
-
-                              <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground font-mono">
-                                {!isTransfer && (
-                                  <span>
-                                    {tx.accountName} ({tx.currency})
-                                  </span>
-                                )}
-                                {tx.tags && tx.tags.length > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <span>·</span>
-                                    {tx.tags.map((tag) => (
-                                      <span key={tag} className="text-muted-foreground/80">
-                                        #{tag}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-foreground truncate">
+                              {isTransfer
+                                ? `Transferencia: ${tx.accountName} → ${tx.toAccountName}`
+                                : tx.categoryName || 'Sin categoría'}
+                            </span>
+                            {tx.isRecurring && (
+                              <span className="text-[9px] font-mono uppercase px-1 py-0.2 border border-purple-500/40 bg-purple-500/10 text-purple-400 font-bold shrink-0">
+                                {tx.installmentNumber ? `Cuota ${tx.installmentNumber}` : 'Recurrente'}
+                              </span>
+                            )}
                           </div>
 
-                          <div className="flex items-center gap-3 shrink-0 text-right">
-                            <div>
-                              <p
-                                className={`text-sm font-bold font-mono ${
-                                  isExpense
-                                    ? 'text-destructive'
-                                    : isIncome
-                                    ? 'text-primary'
-                                    : 'text-foreground'
-                                }`}
-                              >
-                                {isExpense && '-'}
-                                {isIncome && '+'}
-                                {tx.currency} {tx.amount}
-                              </p>
+                          {tx.note && (
+                            <p className="text-[11px] text-muted-foreground truncate max-w-md">
+                              {tx.note}
+                            </p>
+                          )}
 
-                              {isCrossCurrency && tx.baseAmount && (
-                                <p className="text-[10px] text-muted-foreground font-mono">
-                                  ≈ {profileBaseCurrency} {tx.baseAmount}
-                                </p>
-                              )}
-                            </div>
-
-                            <button
-                              disabled={isDeletingTx && txToDelete?.id === tx.id}
-                              onClick={() => setTxToDelete(tx)}
-                              className="p-1.5 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                              title="Eliminar movimiento"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                          <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground font-mono">
+                            {!isTransfer && (
+                              <span>
+                                {tx.accountName} ({tx.currency})
+                              </span>
+                            )}
+                            {tx.tags && tx.tags.length > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span>·</span>
+                                {tx.tags.map((tag) => (
+                                  <span key={tag} className="text-muted-foreground/80">
+                                    #{tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0 text-right">
+                        <div>
+                          <p
+                            className={`text-sm font-bold font-mono ${
+                              isExpense
+                                ? 'text-destructive'
+                                : isIncome
+                                ? 'text-primary'
+                                : 'text-foreground'
+                            }`}
+                          >
+                            {isExpense && '-'}
+                            {isIncome && '+'}
+                            {tx.currency} {tx.amount}
+                          </p>
+
+                          {isCrossCurrency && tx.baseAmount && (
+                            <p className="text-[10px] text-muted-foreground font-mono">
+                              ≈ {profileBaseCurrency} {tx.baseAmount}
+                            </p>
+                          )}
+                        </div>
+
+                        <button
+                          disabled={isDeletingTx && txToDelete?.id === tx.id}
+                          onClick={() => setTxToDelete(tx)}
+                          className="p-1.5 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                          title="Eliminar movimiento"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
