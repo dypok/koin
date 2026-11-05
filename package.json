@@ -1,6 +1,6 @@
 {
   "name": "koin-monorepo",
-  "version": "0.5.0",
+  "version": "0.5.0-1",
   "private": true,
   "description": "Koin - High-velocity multi-profile personal finance application",
   "scripts": {
@@ -9,8 +9,6 @@
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
     "test": "turbo run test",
-    "db:generate": "turbo run db:generate --filter=@koin/server",
-    "db:migrate": "turbo run db:migrate --filter=@koin/server",
     "start": "./apps/server/bin/api"
   },
   "devDependencies": {
