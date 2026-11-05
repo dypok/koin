@@ -25,7 +25,7 @@ func Connect(databaseURL string) (*DB, error) {
 	if config.ConnConfig.RuntimeParams == nil {
 		config.ConnConfig.RuntimeParams = make(map[string]string)
 	}
-	config.ConnConfig.RuntimeParams["search_path"] = "finance,auth,analytics,system,public"
+	config.ConnConfig.RuntimeParams["search_path"] = "koin_finance,koin_auth,koin_analytics,koin_system,public"
 
 	config.MaxConns = 25
 	config.MinConns = 2

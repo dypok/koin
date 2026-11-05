@@ -51,7 +51,7 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID) ([]
 							ELSE 0
 						END
 					)
-					FROM finance.transactions t
+					FROM koin_finance.transactions t
 					WHERE t.account_id = a.id OR t.to_account_id = a.id
 				), 0)
 			) AS current_balance,
@@ -65,8 +65,8 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID) ([]
 				WHEN a.created_by_profile_id = $1 THEN 'owner'
 				ELSE COALESCE(am.role, 'viewer')
 			END AS role
-		FROM finance.accounts a
-		LEFT JOIN finance.account_members am ON am.account_id = a.id AND am.profile_id = $1 AND am.status = 'accepted'
+		FROM koin_finance.accounts a
+		LEFT JOIN koin_finance.account_members am ON am.account_id = a.id AND am.profile_id = $1 AND am.status = 'accepted'
 		WHERE a.created_by_profile_id = $1 OR am.profile_id = $1
 		ORDER BY a.is_archived ASC, a.created_at ASC
 	`
@@ -132,7 +132,7 @@ func (r *Repository) GetByID(ctx context.Context, accountID, profileID uuid.UUID
 							ELSE 0
 						END
 					)
-					FROM finance.transactions t
+					FROM koin_finance.transactions t
 					WHERE t.account_id = a.id OR t.to_account_id = a.id
 				), 0)
 			) AS current_balance,
@@ -146,8 +146,8 @@ func (r *Repository) GetByID(ctx context.Context, accountID, profileID uuid.UUID
 				WHEN a.created_by_profile_id = $2 THEN 'owner'
 				ELSE COALESCE(am.role, 'viewer')
 			END AS role
-		FROM finance.accounts a
-		LEFT JOIN finance.account_members am ON am.account_id = a.id AND am.profile_id = $2 AND am.status = 'accepted'
+		FROM koin_finance.accounts a
+		LEFT JOIN koin_finance.account_members am ON am.account_id = a.id AND am.profile_id = $2 AND am.status = 'accepted'
 		WHERE a.id = $1 AND (a.created_by_profile_id = $2 OR am.profile_id = $2)
 	`
 
@@ -188,8 +188,8 @@ func (r *Repository) GetMemberRole(ctx context.Context, accountID, profileID uui
 				WHEN a.created_by_profile_id = $2 THEN 'owner'
 				ELSE COALESCE(am.role, '')
 			END AS role
-		FROM finance.accounts a
-		LEFT JOIN finance.account_members am ON am.account_id = a.id AND am.profile_id = $2 AND am.status = 'accepted'
+		FROM koin_finance.accounts a
+		LEFT JOIN koin_finance.account_members am ON am.account_id = a.id AND am.profile_id = $2 AND am.status = 'accepted'
 		WHERE a.id = $1
 	`
 	var role string
@@ -213,7 +213,7 @@ func (r *Repository) Create(ctx context.Context, profileID uuid.UUID, req models
 
 	var acc models.Account
 	accountQuery := `
-		INSERT INTO finance.accounts (
+		INSERT INTO koin_finance.accounts (
 			created_by_profile_id,
 			name,
 			institution_name,
@@ -263,7 +263,7 @@ func (r *Repository) Create(ctx context.Context, profileID uuid.UUID, req models
 
 	// Insert owner member entry
 	memberQuery := `
-		INSERT INTO finance.account_members (account_id, profile_id, role, status)
+		INSERT INTO koin_finance.account_members (account_id, profile_id, role, status)
 		VALUES ($1, $2, 'owner', 'accepted')
 		ON CONFLICT (account_id, profile_id) DO NOTHING
 	`
@@ -282,7 +282,7 @@ func (r *Repository) Create(ctx context.Context, profileID uuid.UUID, req models
 // Update updates mutable fields of an account.
 func (r *Repository) Update(ctx context.Context, accountID uuid.UUID, req models.UpdateAccountRequest) (*models.Account, error) {
 	query := `
-		UPDATE finance.accounts
+		UPDATE koin_finance.accounts
 		SET
 			name = COALESCE($2, name),
 			institution_name = COALESCE($3, institution_name),
@@ -335,7 +335,7 @@ func (r *Repository) Update(ctx context.Context, accountID uuid.UUID, req models
 
 // Delete removes an account. Returns error if foreign key constraints block deletion (e.g. existing transactions).
 func (r *Repository) Delete(ctx context.Context, accountID uuid.UUID) error {
-	query := `DELETE FROM finance.accounts WHERE id = $1`
+	query := `DELETE FROM koin_finance.accounts WHERE id = $1`
 	cmdTag, err := r.pool.Exec(ctx, query, accountID)
 	if err != nil {
 		return fmt.Errorf("error deleting account: %w", err)
@@ -349,7 +349,7 @@ func (r *Repository) Delete(ctx context.Context, accountID uuid.UUID) error {
 // CreateInvitation inserts a new signed invitation token.
 func (r *Repository) CreateInvitation(ctx context.Context, accountID, inviterProfileID uuid.UUID, role, token string, expiresAt time.Time) (*models.AccountInvitation, error) {
 	query := `
-		INSERT INTO finance.account_invitations (
+		INSERT INTO koin_finance.account_invitations (
 			account_id,
 			inviter_profile_id,
 			role,
@@ -393,9 +393,9 @@ func (r *Repository) GetInvitationByToken(ctx context.Context, token string) (*m
 			(i.expires_at < now()) AS is_expired,
 			(i.accepted_at IS NOT NULL) AS is_accepted,
 			i.created_at
-		FROM finance.account_invitations i
-		JOIN finance.accounts a ON a.id = i.account_id
-		JOIN auth.profiles p ON p.id = i.inviter_profile_id
+		FROM koin_finance.account_invitations i
+		JOIN koin_finance.accounts a ON a.id = i.account_id
+		JOIN koin_auth.profiles p ON p.id = i.inviter_profile_id
 		WHERE i.token = $1
 	`
 
@@ -439,7 +439,7 @@ func (r *Repository) AcceptInvitation(ctx context.Context, token string, accepte
 	// Select invitation with lock
 	lockQuery := `
 		SELECT id, account_id, role, expires_at, accepted_at
-		FROM finance.account_invitations
+		FROM koin_finance.account_invitations
 		WHERE token = $1
 		FOR UPDATE
 	`
@@ -467,7 +467,7 @@ func (r *Repository) AcceptInvitation(ctx context.Context, token string, accepte
 
 	// Update invitation status
 	updateInvQuery := `
-		UPDATE finance.account_invitations
+		UPDATE koin_finance.account_invitations
 		SET accepted_by_profile_id = $2, accepted_at = now()
 		WHERE id = $1
 	`
@@ -478,7 +478,7 @@ func (r *Repository) AcceptInvitation(ctx context.Context, token string, accepte
 
 	// Insert or update account member
 	memberQuery := `
-		INSERT INTO finance.account_members (account_id, profile_id, role, status)
+		INSERT INTO koin_finance.account_members (account_id, profile_id, role, status)
 		VALUES ($1, $2, $3, 'accepted')
 		ON CONFLICT (account_id, profile_id) 
 		DO UPDATE SET role = EXCLUDED.role, status = 'accepted'
@@ -489,7 +489,7 @@ func (r *Repository) AcceptInvitation(ctx context.Context, token string, accepte
 	}
 
 	// Mark account as shared
-	updateAccQuery := `UPDATE finance.accounts SET is_shared = true WHERE id = $1`
+	updateAccQuery := `UPDATE koin_finance.accounts SET is_shared = true WHERE id = $1`
 	_, err = tx.Exec(ctx, updateAccQuery, accountID)
 	if err != nil {
 		return nil, fmt.Errorf("error marking account as shared: %w", err)
@@ -516,8 +516,8 @@ func (r *Repository) ListMembers(ctx context.Context, accountID uuid.UUID) ([]mo
 			p.name AS profile_name,
 			p.avatar_icon AS profile_avatar_icon,
 			am.created_at
-		FROM finance.account_members am
-		LEFT JOIN auth.profiles p ON p.id = am.profile_id
+		FROM koin_finance.account_members am
+		LEFT JOIN koin_auth.profiles p ON p.id = am.profile_id
 		WHERE am.account_id = $1
 		ORDER BY 
 			CASE WHEN am.role = 'owner' THEN 1 WHEN am.role = 'editor' THEN 2 ELSE 3 END,
@@ -560,7 +560,7 @@ func (r *Repository) ListMembers(ctx context.Context, accountID uuid.UUID) ([]mo
 // UpdateMemberRole modifies a member's role ('editor' or 'viewer').
 func (r *Repository) UpdateMemberRole(ctx context.Context, accountID, memberID uuid.UUID, newRole string) error {
 	query := `
-		UPDATE finance.account_members
+		UPDATE koin_finance.account_members
 		SET role = $3
 		WHERE account_id = $1 AND id = $2 AND role != 'owner'
 	`
@@ -577,7 +577,7 @@ func (r *Repository) UpdateMemberRole(ctx context.Context, accountID, memberID u
 // RemoveMember removes an invited member from an account.
 func (r *Repository) RemoveMember(ctx context.Context, accountID, memberID uuid.UUID) error {
 	query := `
-		DELETE FROM finance.account_members
+		DELETE FROM koin_finance.account_members
 		WHERE account_id = $1 AND id = $2 AND role != 'owner'
 	`
 	cmdTag, err := r.pool.Exec(ctx, query, accountID, memberID)
@@ -594,7 +594,7 @@ func (r *Repository) RemoveMember(ctx context.Context, accountID, memberID uuid.
 func (r *Repository) LeaveAccount(ctx context.Context, accountID, profileID uuid.UUID) error {
 	// Verify not creator
 	var creatorID uuid.UUID
-	err := r.pool.QueryRow(ctx, "SELECT created_by_profile_id FROM finance.accounts WHERE id = $1", accountID).Scan(&creatorID)
+	err := r.pool.QueryRow(ctx, "SELECT created_by_profile_id FROM koin_finance.accounts WHERE id = $1", accountID).Scan(&creatorID)
 	if err != nil {
 		return ErrAccountNotFound
 	}
@@ -603,7 +603,7 @@ func (r *Repository) LeaveAccount(ctx context.Context, accountID, profileID uuid
 	}
 
 	query := `
-		DELETE FROM finance.account_members
+		DELETE FROM koin_finance.account_members
 		WHERE account_id = $1 AND profile_id = $2
 	`
 	cmdTag, err := r.pool.Exec(ctx, query, accountID, profileID)

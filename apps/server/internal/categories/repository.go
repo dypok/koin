@@ -40,10 +40,10 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID) ([]
 			c.created_at,
 			COALESCE((
 				SELECT COUNT(*)
-				FROM finance.transactions t
+				FROM koin_finance.transactions t
 				WHERE t.category_id = c.id AND t.profile_id = $1
 			), 0) AS usage_count
-		FROM finance.categories c
+		FROM koin_finance.categories c
 		WHERE c.profile_id = $1
 		ORDER BY usage_count DESC, c.sort_order ASC, c.name ASC
 	`
@@ -82,7 +82,7 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID) ([]
 func (r *Repository) GetByID(ctx context.Context, id, profileID uuid.UUID) (*models.Category, error) {
 	query := `
 		SELECT id, profile_id, name, type, icon, color, is_default, sort_order, created_at
-		FROM finance.categories
+		FROM koin_finance.categories
 		WHERE id = $1 AND profile_id = $2
 	`
 	var cat models.Category
@@ -109,7 +109,7 @@ func (r *Repository) GetByID(ctx context.Context, id, profileID uuid.UUID) (*mod
 // Create inserts a new custom category.
 func (r *Repository) Create(ctx context.Context, profileID uuid.UUID, req models.CreateCategoryRequest) (*models.Category, error) {
 	query := `
-		INSERT INTO finance.categories (profile_id, name, type, icon, color, is_default, sort_order)
+		INSERT INTO koin_finance.categories (profile_id, name, type, icon, color, is_default, sort_order)
 		VALUES ($1, $2, $3, $4, $5, false, $6)
 		RETURNING id, profile_id, name, type, icon, color, is_default, sort_order, created_at
 	`
@@ -170,7 +170,7 @@ func (r *Repository) Update(ctx context.Context, id, profileID uuid.UUID, req mo
 	}
 
 	query := fmt.Sprintf(`
-		UPDATE finance.categories
+		UPDATE koin_finance.categories
 		SET %s
 		WHERE id = $1 AND profile_id = $2
 		RETURNING id, profile_id, name, type, icon, color, is_default, sort_order, created_at
@@ -200,7 +200,7 @@ func (r *Repository) Update(ctx context.Context, id, profileID uuid.UUID, req mo
 // Delete checks for associated transactions before removing the category.
 func (r *Repository) Delete(ctx context.Context, id, profileID uuid.UUID) error {
 	var count int
-	checkQuery := `SELECT COUNT(*) FROM finance.transactions WHERE category_id = $1`
+	checkQuery := `SELECT COUNT(*) FROM koin_finance.transactions WHERE category_id = $1`
 	if err := r.pool.QueryRow(ctx, checkQuery, id).Scan(&count); err != nil {
 		return fmt.Errorf("error checking transaction references: %w", err)
 	}
@@ -209,7 +209,7 @@ func (r *Repository) Delete(ctx context.Context, id, profileID uuid.UUID) error 
 		return ErrCategoryInUse
 	}
 
-	query := `DELETE FROM finance.categories WHERE id = $1 AND profile_id = $2`
+	query := `DELETE FROM koin_finance.categories WHERE id = $1 AND profile_id = $2`
 	res, err := r.pool.Exec(ctx, query, id, profileID)
 	if err != nil {
 		return fmt.Errorf("error deleting category: %w", err)
