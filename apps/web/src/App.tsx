@@ -7,6 +7,7 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  Plus,
 } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
 import { useAuthStore } from './stores/authStore';
@@ -19,6 +20,9 @@ import { ProfileSwitcherSheet } from './components/profiles/ProfileSwitcherSheet
 import { SettingsHub } from './components/profiles/SettingsHub';
 import { AccountsView } from './components/accounts/AccountsView';
 import { AcceptInviteModal } from './components/accounts/AcceptInviteModal';
+import { TransactionsView } from './components/transactions/TransactionsView';
+import { QuickTransactionModal } from './components/transactions/QuickTransactionModal';
+import { UndoToast } from './components/transactions/UndoToast';
 import { UnimplementedView } from './components/common/UnimplementedView';
 import { getProfileAvatarStyle } from './lib/theme';
 
@@ -36,6 +40,11 @@ export default function App() {
   const [isCreateProfileModalOpen, setIsCreateProfileModalOpen] = useState(false);
   const [pinModalProfile, setPinModalProfile] = useState<ProfileDTO | null>(null);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [isQuickTxModalOpen, setIsQuickTxModalOpen] = useState(false);
+  const [quickTxConfig, setQuickTxConfig] = useState<{
+    type?: 'expense' | 'income' | 'transfer';
+    accountId?: string;
+  }>({ type: 'expense' });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -268,6 +277,19 @@ export default function App() {
               {activeTab === 'settings' && 'Configuración'}
             </h2>
           </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setQuickTxConfig({ type: 'expense' });
+                setIsQuickTxModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Nuevo Movimiento</span>
+            </button>
+          </div>
         </header>
 
         {/* Main Content Area */}
@@ -281,9 +303,11 @@ export default function App() {
           )}
 
           {activeTab === 'history' && (
-            <UnimplementedView
-              moduleName="Historial de Movimientos"
-              onGoToSettings={() => handleGoToSettings('profiles')}
+            <TransactionsView
+              onNewTransaction={(type = 'expense', accountId) => {
+                setQuickTxConfig({ type, accountId });
+                setIsQuickTxModalOpen(true);
+              }}
             />
           )}
 
@@ -397,6 +421,17 @@ export default function App() {
           }}
         />
       )}
+
+      {/* Global Quick 2-Touch Transaction & Transfer Modal */}
+      <QuickTransactionModal
+        isOpen={isQuickTxModalOpen}
+        onClose={() => setIsQuickTxModalOpen(false)}
+        defaultType={quickTxConfig.type}
+        defaultAccountId={quickTxConfig.accountId}
+      />
+
+      {/* Global 5-Second Undo Toast Notification */}
+      <UndoToast />
     </div>
   );
 }
