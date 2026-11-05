@@ -87,6 +87,22 @@ export const InviteAccountMemberSchema = z.object({
 });
 export type InviteAccountMemberInput = z.infer<typeof InviteAccountMemberSchema>;
 
+export const CreateAccountInvitationSchema = z.object({
+  role: z.enum(['editor', 'viewer']).default('editor'),
+});
+export type CreateAccountInvitationInput = z.infer<typeof CreateAccountInvitationSchema>;
+
+export const AcceptAccountInvitationSchema = z.object({
+  token: z.string().min(1, 'Token de invitación requerido'),
+  profileId: z.string().uuid('ID de perfil inválido'),
+});
+export type AcceptAccountInvitationInput = z.infer<typeof AcceptAccountInvitationSchema>;
+
+export const UpdateMemberRoleSchema = z.object({
+  role: z.enum(['editor', 'viewer']),
+});
+export type UpdateMemberRoleInput = z.infer<typeof UpdateMemberRoleSchema>;
+
 // ------------------------------------------------------
 // Category DTOs
 // ------------------------------------------------------

@@ -150,3 +150,70 @@ type VerifyPINRequest struct {
 type SetPINRequest struct {
 	PIN string `json:"pin"`
 }
+
+type AccountMember struct {
+	ID                uuid.UUID  `json:"id"`
+	AccountID         uuid.UUID  `json:"accountId"`
+	ProfileID         *uuid.UUID `json:"profileId"`
+	Role              string     `json:"role"`
+	InvitedEmail      *string    `json:"invitedEmail,omitempty"`
+	Status            string     `json:"status"`
+	ProfileName       *string    `json:"profileName,omitempty"`
+	ProfileAvatarIcon *string    `json:"profileAvatarIcon,omitempty"`
+	CreatedAt         time.Time  `json:"createdAt"`
+}
+
+type AccountWithRole struct {
+	Account
+	Role string `json:"role"`
+}
+
+type AccountInvitation struct {
+	ID                 uuid.UUID  `json:"id"`
+	AccountID          uuid.UUID  `json:"accountId"`
+	AccountName        string     `json:"accountName"`
+	AccountType        string     `json:"accountType"`
+	AccountCurrency    string     `json:"accountCurrency"`
+	InviterProfileID   uuid.UUID  `json:"inviterProfileId"`
+	InviterProfileName string     `json:"inviterProfileName"`
+	Role               string     `json:"role"`
+	Token              string     `json:"token"`
+	InviteLink         string     `json:"inviteLink"`
+	ExpiresAt          time.Time  `json:"expiresAt"`
+	AcceptedByProfileID *uuid.UUID `json:"acceptedByProfileId,omitempty"`
+	AcceptedAt         *time.Time `json:"acceptedAt,omitempty"`
+	IsExpired          bool       `json:"isExpired"`
+	IsAccepted         bool       `json:"isAccepted"`
+	CreatedAt          time.Time  `json:"createdAt"`
+}
+
+type CreateAccountRequest struct {
+	Name           string          `json:"name"`
+	Type           string          `json:"type"`
+	Currency       string          `json:"currency"`
+	InitialBalance decimal.Decimal `json:"initialBalance"`
+	Color          string          `json:"color"`
+	Icon           string          `json:"icon"`
+	IsShared       bool            `json:"isShared"`
+}
+
+type UpdateAccountRequest struct {
+	Name       *string `json:"name,omitempty"`
+	Type       *string `json:"type,omitempty"`
+	Color      *string `json:"color,omitempty"`
+	Icon       *string `json:"icon,omitempty"`
+	IsArchived *bool   `json:"isArchived,omitempty"`
+}
+
+type CreateInvitationRequest struct {
+	Role string `json:"role"`
+}
+
+type AcceptInvitationRequest struct {
+	Token     string    `json:"token"`
+	ProfileID uuid.UUID `json:"profileId"`
+}
+
+type UpdateMemberRoleRequest struct {
+	Role string `json:"role"`
+}

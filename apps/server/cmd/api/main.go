@@ -15,6 +15,7 @@ import (
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
+	"koin/server/internal/accounts"
 	"koin/server/internal/auth"
 	"koin/server/internal/config"
 	"koin/server/internal/database"
@@ -49,6 +50,12 @@ func main() {
 	profileHandler := profiles.NewHandler(profileService, func(r *http.Request) *auth.JWTClaims {
 		return middleware.GetUserClaims(r.Context())
 	})
+
+	accountRepo := accounts.NewRepository(db.Pool)
+	accountService := accounts.NewService(accountRepo)
+	accountHandler := accounts.NewHandler(accountService, db.Pool, func(r *http.Request) *auth.JWTClaims {
+		return middleware.GetUserClaims(r.Context())
+	}, "http://localhost:5173")
 
 	// Rate Limiters
 	loginLimiter := middleware.NewIPRateLimiter(5, 15*time.Minute, "Demasiados intentos fallidos. Por seguridad, intente de nuevo en 15 minutos.")
@@ -116,6 +123,27 @@ func main() {
 		r.Post("/{id}/pin", profileHandler.SetPIN)
 		r.Post("/{id}/unlock", profileHandler.VerifyPIN)
 		r.Post("/{id}/verify-pin", profileHandler.VerifyPIN)
+	})
+
+	// Accounts Subrouter (ACC-01 to ACC-04)
+	r.Route("/api/v1/accounts", func(r chi.Router) {
+		r.Use(middleware.AuthenticateToken(cfg.JWTSecret))
+		r.Get("/", accountHandler.List)
+		r.Post("/", accountHandler.Create)
+		r.Get("/{id}", accountHandler.GetByID)
+		r.Patch("/{id}", accountHandler.Update)
+		r.Delete("/{id}", accountHandler.Delete)
+		r.Post("/{id}/invite", accountHandler.CreateInvitation)
+		r.Get("/{id}/members", accountHandler.ListMembers)
+		r.Patch("/{id}/members/{memberId}", accountHandler.UpdateMemberRole)
+		r.Delete("/{id}/members/{memberId}", accountHandler.RemoveMember)
+		r.Post("/{id}/leave", accountHandler.LeaveAccount)
+	})
+
+	// Public & Authenticated Invitations Routes (ACC-02 & ACC-03)
+	r.Route("/api/v1/invitations", func(r chi.Router) {
+		r.Get("/validate", accountHandler.ValidateInvitation)
+		r.With(middleware.AuthenticateToken(cfg.JWTSecret)).Post("/accept", accountHandler.AcceptInvitation)
 	})
 
 	// Frontend SPA Serving & Fallback

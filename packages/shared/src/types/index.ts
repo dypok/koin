@@ -61,6 +61,22 @@ export interface AccountMemberDTO {
   createdAt: string;
 }
 
+export interface AccountInvitationDTO {
+  id: string;
+  accountId: string;
+  accountName: string;
+  accountType: AccountType;
+  accountCurrency: string;
+  inviterProfileName: string;
+  role: AccountRole;
+  token: string;
+  inviteLink: string;
+  expiresAt: string;
+  isExpired: boolean;
+  isAccepted: boolean;
+  createdAt: string;
+}
+
 export interface CategoryDTO {
   id: string;
   profileId: string;

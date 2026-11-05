@@ -323,10 +323,10 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Lista de cuentas en diseño minimalista con divisores sutiles (sin tarjetas elevadas)
 
 **Subtasks:**
-- [ ] [BD] Migración Drizzle de tabla `accounts` con constraints e índices por `created_by_profile_id`
-- [ ] [BACKEND] Endpoint `GET /api/v1/accounts`: retornar cuentas del perfil activo con balance calculado
-- [ ] [BACKEND] Endpoint `POST /api/v1/accounts`: crear cuenta privada vinculada a `activeProfileId`
-- [ ] [BACKEND] Endpoint `PATCH /api/v1/accounts/:id`: editar nombre, icono SVG o color
+- [x] [BD] Migración Drizzle de tabla `accounts` con constraints e índices por `created_by_profile_id`
+- [x] [BACKEND] Endpoint `GET /api/v1/accounts`: retornar cuentas del perfil activo con balance calculado
+- [x] [BACKEND] Endpoint `POST /api/v1/accounts`: crear cuenta privada vinculada a `activeProfileId`
+- [x] [BACKEND] Endpoint `PATCH /api/v1/accounts/:id`: editar nombre, icono SVG o color
 - [ ] [FRONTEND] Formulario plano para creación de cuenta con selector de tipo e icono SVG
 - [ ] [FRONTEND] Vista de Cuentas: listado plano de filas con icono SVG, nombre, divisa y saldo en texto grande
 
@@ -350,10 +350,10 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Enlace de invitación generado: `https://koin-finance.herokuapp.com/invite?token=<token>`
 
 **Subtasks:**
-- [ ] [BD] Migración Drizzle de tabla `account_members` con `account_id`, `profile_id`, `role`, `status`
-- [ ] [BACKEND] `invitation.service.ts`: generación y firma de tokens HMAC-SHA256 con expiración
-- [ ] [BACKEND] Endpoint `POST /api/v1/accounts/:id/invite`: genera enlace de invitación con rol asignado
-- [ ] [BACKEND] Middleware `rbac.middleware.ts`: validar permisos antes de mutar cuentas o transacciones compartidas
+- [x] [BD] Migración Drizzle de tabla `account_members` con `account_id`, `profile_id`, `role`, `status`
+- [x] [BACKEND] `invitation.service.ts`: generación y firma de tokens criptográficos con expiración de 7 días
+- [x] [BACKEND] Endpoint `POST /api/v1/accounts/:id/invite`: genera enlace de invitación con rol asignado
+- [x] [BACKEND] Middleware / Service RBAC: validar permisos antes de mutar cuentas o transacciones compartidas
 - [ ] [FRONTEND] Diálogo plano "Compartir Cuenta": selector de rol (`Editor` u `Observador`) y botón para copiar enlace
 
 **DoD adicional para esta US:**
@@ -376,8 +376,8 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Al aceptar, la cuenta compartida aparece inmediatamente en la lista de cuentas del perfil seleccionado con distintivo sutil de texto: "Compartida (Rol)" (sin badges)
 
 **Subtasks:**
-- [ ] [BACKEND] Endpoint `GET /api/v1/invitations/validate?token=...`: valida token y retorna info de la cuenta
-- [ ] [BACKEND] Endpoint `POST /api/v1/invitations/accept`: asocia `profile_id` a `account_members` en transacción PostgreSQL
+- [x] [BACKEND] Endpoint `GET /api/v1/invitations/validate?token=...`: valida token y retorna info de la cuenta
+- [x] [BACKEND] Endpoint `POST /api/v1/invitations/accept`: asocia `profile_id` a `account_members` en transacción PostgreSQL
 - [ ] [FRONTEND] Ruta `/invite`: pantalla de aceptación con selector del perfil al que se desea unir la cuenta
 - [ ] [FRONTEND] Botón "Unirse a la Cuenta": despacha mutación y redirige al dashboard del perfil elegido
 - [ ] [FRONTEND] Renderizado en listado de cuentas con icono SVG de usuarios compartidos y rol en texto atenuado
@@ -401,8 +401,9 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Las transacciones registradas históricamente por el miembro retirado se conservan intactas para no quebrar la contabilidad
 
 **Subtasks:**
-- [ ] [BACKEND] Endpoint `DELETE /api/v1/accounts/:id/members/:memberId`: revocar acceso de un miembro (solo `owner`)
-- [ ] [BACKEND] Endpoint `POST /api/v1/accounts/:id/leave`: desvinculación voluntaria del perfil en sesión
+- [x] [BACKEND] Endpoint `DELETE /api/v1/accounts/:id/members/:memberId`: revocar acceso de un miembro (solo `owner`)
+- [x] [BACKEND] Endpoint `PATCH /api/v1/accounts/:id/members/:memberId`: actualizar rol de colaborador (solo `owner`)
+- [x] [BACKEND] Endpoint `POST /api/v1/accounts/:id/leave`: desvinculación voluntaria del perfil en sesión
 - [ ] [FRONTEND] Panel "Miembros de la Cuenta": lista plana con nombre del perfil, rol actual y botón sutil de eliminar
 - [ ] [FRONTEND] Diálogo de confirmación antes de expulsar o abandonar la cuenta
 - [ ] [FRONTEND] Actualización inmediata de la lista de cuentas tras desvincularse

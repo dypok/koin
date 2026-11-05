@@ -82,6 +82,21 @@ CREATE TABLE IF NOT EXISTS finance.account_members (
 	CONSTRAINT account_members_profile_id_fk FOREIGN KEY (profile_id) REFERENCES auth.profiles(id) ON DELETE cascade
 );
 
+CREATE TABLE IF NOT EXISTS finance.account_invitations (
+	id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	account_id uuid NOT NULL,
+	inviter_profile_id uuid NOT NULL,
+	role varchar(20) DEFAULT 'editor' NOT NULL,
+	token varchar(128) UNIQUE NOT NULL,
+	expires_at timestamp with time zone NOT NULL,
+	accepted_by_profile_id uuid,
+	accepted_at timestamp with time zone,
+	created_at timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT account_invitations_account_id_fk FOREIGN KEY (account_id) REFERENCES finance.accounts(id) ON DELETE cascade,
+	CONSTRAINT account_invitations_inviter_profile_id_fk FOREIGN KEY (inviter_profile_id) REFERENCES auth.profiles(id) ON DELETE cascade,
+	CONSTRAINT account_invitations_accepted_by_profile_id_fk FOREIGN KEY (accepted_by_profile_id) REFERENCES auth.profiles(id) ON DELETE set null
+);
+
 CREATE TABLE IF NOT EXISTS finance.categories (
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	profile_id uuid NOT NULL,
@@ -134,6 +149,8 @@ CREATE TABLE IF NOT EXISTS finance.transactions (
 CREATE INDEX IF NOT EXISTS idx_accounts_creator ON finance.accounts USING btree (created_by_profile_id, is_archived);
 CREATE INDEX IF NOT EXISTS idx_account_members_profile ON finance.account_members USING btree (profile_id);
 CREATE UNIQUE INDEX IF NOT EXISTS uq_account_profile_member ON finance.account_members USING btree (account_id, profile_id);
+CREATE INDEX IF NOT EXISTS idx_account_invitations_token ON finance.account_invitations USING btree (token);
+CREATE INDEX IF NOT EXISTS idx_account_invitations_account ON finance.account_invitations USING btree (account_id);
 CREATE INDEX IF NOT EXISTS idx_categories_profile ON finance.categories USING btree (profile_id, type);
 CREATE UNIQUE INDEX IF NOT EXISTS uq_profile_category_budget ON finance.budgets USING btree (profile_id, category_id, period);
 CREATE INDEX IF NOT EXISTS idx_transactions_profile_date ON finance.transactions USING btree (profile_id, date);
