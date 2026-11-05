@@ -462,11 +462,11 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Si pulsa "Deshacer", la mutación optimista se revierte y se elimina la transacción en el servidor
 
 **Subtasks:**
-- [ ] [FRONTEND] Algoritmo en cliente que computa las 6 categorías con mayor frecuencia de uso del perfil
-- [ ] [FRONTEND] Renderizado de cuadrícula de categorías con iconos SVG vectoriales de Lucide (cero emojis)
-- [ ] [FRONTEND] Acción de guardado al tocar categoría: mutación optimista con TanStack Query
-- [ ] [FRONTEND] Cierre inmediato del modal con vibración háptica de éxito en Android
-- [ ] [FRONTEND] Componente Toast con temporizador de 5 segundos y botón de acción "Deshacer"
+- [x] [FRONTEND] Algoritmo en cliente que computa las 6 categorías con mayor frecuencia de uso del perfil
+- [x] [FRONTEND] Renderizado de cuadrícula de categorías con iconos SVG vectoriales de Lucide (cero emojis)
+- [x] [FRONTEND] Acción de guardado al tocar categoría: mutación optimista con Zustand store
+- [x] [FRONTEND] Cierre inmediato del modal con vibración háptica de éxito en Android
+- [x] [FRONTEND] Componente Toast con temporizador de 5 segundos y botón de acción "Deshacer"
 - [x] [BACKEND] Endpoint `POST /api/v1/transactions`: inserción y actualización atómica del balance de cuenta
 - [x] [BACKEND] Endpoint `DELETE /api/v1/transactions/:id`: eliminación y reversión del saldo
 
@@ -493,8 +493,8 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - [x] [BD] Migración SQL de tabla `exchange_rates` con pares de divisas (`pair VARCHAR(7) PK`, ej: `'USD_COP'`)
 - [x] [BACKEND] Servicio en Go que consulta tasas de cambio y computa `base_amount`
 - [x] [BACKEND] Carga de seed data con tasas de cambio comunes (USD, EUR, COP, MXN, BRL, ARS, CLP, PEN, GBP, CAD)
-- [ ] [FRONTEND] En el modal de gasto: si la cuenta tiene divisa distinta a la base, mostrar campo sutil de tasa de cambio y equivalente calculado
-- [ ] [FRONTEND] Permitir edición manual de la tasa de cambio con recálculo en vivo
+- [x] [FRONTEND] En el modal de gasto: si la cuenta tiene divisa distinta a la base, mostrar campo sutil de tasa de cambio y equivalente calculado
+- [x] [FRONTEND] Permitir edición manual de la tasa de cambio con recálculo en vivo
 - [ ] [TEST] Test unitario: verificar que 100 USD con tasa 4,150.25 produce exactamente 415,025.00 COP
 
 **DoD adicional para esta US:**
@@ -518,9 +518,9 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 **Subtasks:**
 - [x] [BACKEND] Endpoint `POST /api/v1/transfers`: recibe `fromAccountId`, `toAccountId`, `amount`, `toAmount`
 - [x] [BACKEND] `transactions.service`: ejecución atómica dentro de `db.Begin()` con verificación de permisos en cuentas compartidas
-- [ ] [FRONTEND] Selector de modo "Transferencia" en el modal rápido
-- [ ] [FRONTEND] Selectores de cuenta origen y cuenta destino
-- [ ] [FRONTEND] Actualización optimista de ambos balances en pantalla
+- [x] [FRONTEND] Selector de modo "Transferencia" en el modal rápido
+- [x] [FRONTEND] Selectores de cuenta origen y cuenta destino
+- [x] [FRONTEND] Actualización optimista de ambos balances en pantalla
 - [ ] [TEST] Test de estrés: simular caída a mitad de la transferencia y verificar que los saldos quedan intactos
 
 **DoD adicional para esta US:**
@@ -544,10 +544,10 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 
 **Subtasks:**
 - [x] [BACKEND] Endpoint `GET /api/v1/transactions`: paginación con soporte de filtros combinados y cursor/offset
-- [ ] [FRONTEND] Barra de búsqueda plana integrada en la cabecera de la sección
-- [ ] [FRONTEND] Filtros de texto horizontales desplazables (Todo, Gastos, Ingresos, Cuentas)
+- [x] [FRONTEND] Barra de búsqueda plana integrada en la cabecera de la sección
+- [x] [FRONTEND] Filtros de texto horizontales desplazables (Todo, Gastos, Ingresos, Cuentas)
 - [ ] [FRONTEND] Lista virtualizada con `@tanstack/react-virtual`
-- [ ] [FRONTEND] Cada fila de movimiento: icono SVG de categoría, descripción/nota, fecha y monto en formato de divisa
+- [x] [FRONTEND] Cada fila de movimiento: icono SVG de categoría, descripción/nota, fecha y monto en formato de divisa
 - [ ] [TEST] Probar rendimiento de scroll con 2,000 transacciones simuladas
 
 **DoD adicional para esta US:**

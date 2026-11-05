@@ -89,14 +89,19 @@ export interface CategoryDTO {
   createdAt: string;
 }
 
+export interface CategoryWithUsageDTO extends CategoryDTO {
+  usageCount: number;
+}
+
 export interface TransactionDTO {
   id: string;
   profileId: string;
   accountId: string;
   toAccountId: string | null;
-  categoryId: string;
+  categoryId: string | null;
   type: TransactionType;
   amount: string;
+  toAmount?: string | null;
   currency: string;
   exchangeRateToBase: string;
   baseAmount: string;
@@ -108,6 +113,13 @@ export interface TransactionDTO {
   updatedAt: string;
   // Included relations for UI convenience
   accountName?: string;
+  accountColor?: string;
+  accountIcon?: string;
+  accountCurrency?: string;
+  toAccountName?: string;
+  toAccountColor?: string;
+  toAccountIcon?: string;
+  toAccountCurrency?: string;
   categoryName?: string;
   categoryIcon?: string;
   categoryColor?: string;
