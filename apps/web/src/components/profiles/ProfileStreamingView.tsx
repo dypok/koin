@@ -6,6 +6,7 @@ import { KoinIcon } from '../../lib/icons';
 import { getProfileAvatarStyle } from '../../lib/theme';
 import { ProfileModal } from './ProfileModal';
 import { ProfilePinModal } from './ProfilePinModal';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 export const ProfileStreamingView: React.FC = () => {
   const { profiles, activeProfile, setActiveProfile, deleteProfile } = useAuthStore();
@@ -16,6 +17,8 @@ export const ProfileStreamingView: React.FC = () => {
   const [pinAction, setPinAction] = useState<'switch' | 'edit'>('switch');
   const [isManageMode, setIsManageMode] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [profileToDelete, setProfileToDelete] = useState<ProfileDTO | null>(null);
+  const [isDeletingProfile, setIsDeletingProfile] = useState(false);
 
   const handleRequestEdit = (p: ProfileDTO) => {
     if (p.hasPin) {
@@ -43,23 +46,26 @@ export const ProfileStreamingView: React.FC = () => {
     }
   };
 
-  const handleDelete = async (e: React.MouseEvent, p: ProfileDTO) => {
+  const handleDelete = (e: React.MouseEvent, p: ProfileDTO) => {
     e.stopPropagation();
     if (profiles.length <= 1) {
       setErrorMsg('No es posible eliminar el único perfil activo de tu cuenta.');
       return;
     }
-
-    const confirmed = window.confirm(
-      `¿Estás seguro de que deseas eliminar el perfil "${p.name}"? Sus datos contables quedarán eliminados.`
-    );
-    if (!confirmed) return;
-
     setErrorMsg(null);
+    setProfileToDelete(p);
+  };
+
+  const confirmDeleteProfile = async () => {
+    if (!profileToDelete) return;
+    setIsDeletingProfile(true);
     try {
-      await deleteProfile(p.id);
+      await deleteProfile(profileToDelete.id);
+      setProfileToDelete(null);
     } catch (err: any) {
       setErrorMsg(err.message || 'Error al eliminar el perfil.');
+    } finally {
+      setIsDeletingProfile(false);
     }
   };
 
@@ -222,6 +228,31 @@ export const ProfileStreamingView: React.FC = () => {
             }
           }
         }}
+      />
+
+      {/* Confirm Modal: Delete Profile */}
+      <ConfirmModal
+        isOpen={!!profileToDelete}
+        onClose={() => setProfileToDelete(null)}
+        onConfirm={confirmDeleteProfile}
+        title="¿Eliminar perfil independiente?"
+        description={
+          profileToDelete ? (
+            <div className="space-y-1.5">
+              <p>
+                Estás a punto de eliminar el perfil{' '}
+                <strong className="text-foreground">"{profileToDelete.name}"</strong>.
+              </p>
+              <p className="text-muted-foreground/80">
+                Sus cuentas privadas, categorías y registros contables quedarán eliminados permanentemente.
+              </p>
+            </div>
+          ) : null
+        }
+        confirmText="Eliminar Perfil"
+        cancelText="Conservar"
+        variant="danger"
+        isLoading={isDeletingProfile}
       />
     </div>
   );

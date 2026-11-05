@@ -3,6 +3,7 @@ import { X, Copy, Check, Users, Shield, Trash2, LogOut, Link2 } from 'lucide-rea
 import { AccountDTO, AccountMemberDTO, AccountRole } from '@koin/shared';
 import { KoinIcon } from '../../lib/icons';
 import { useAccountStore } from '../../stores/accountStore';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 interface AccountShareModalProps {
   isOpen: boolean;
@@ -34,6 +35,16 @@ export const AccountShareModal: React.FC<AccountShareModalProps> = ({
   const [members, setMembers] = useState<AccountMemberDTO[]>([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Confirm dialog state
+  const [confirmAction, setConfirmAction] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmText: string;
+    onConfirm: () => Promise<void>;
+  } | null>(null);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   const isOwner = account?.role === 'owner' || !account?.isShared;
 
@@ -92,30 +103,48 @@ export const AccountShareModal: React.FC<AccountShareModalProps> = ({
     }
   };
 
-  const handleRemove = async (memberId: string, memberName?: string) => {
-    const ok = window.confirm(`¿Expulsar a "${memberName || 'este colaborador'}" de la cuenta compartida?`);
-    if (!ok) return;
-
-    try {
-      await removeMember(account.id, memberId);
-      await loadMembers();
-      onUpdateAccount?.();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Error al remover miembro');
-    }
+  const handleRemove = (memberId: string, memberName?: string) => {
+    setConfirmAction({
+      isOpen: true,
+      title: '¿Expulsar colaborador?',
+      description: `¿Estás seguro de expulsar a "${memberName || 'este colaborador'}" de la cuenta compartida? Perderá el acceso de forma inmediata.`,
+      confirmText: 'Expulsar Miembro',
+      onConfirm: async () => {
+        setIsActionLoading(true);
+        try {
+          await removeMember(account!.id, memberId);
+          await loadMembers();
+          onUpdateAccount?.();
+          setConfirmAction(null);
+        } catch (err: any) {
+          setErrorMsg(err.message || 'Error al remover miembro');
+        } finally {
+          setIsActionLoading(false);
+        }
+      },
+    });
   };
 
-  const handleLeave = async () => {
-    const ok = window.confirm('¿Seguro que deseas abandonar esta cuenta compartida? Dejarás de tener acceso a su información contable.');
-    if (!ok) return;
-
-    try {
-      await leaveAccount(account.id);
-      onUpdateAccount?.();
-      onClose();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Error al abandonar la cuenta');
-    }
+  const handleLeave = () => {
+    setConfirmAction({
+      isOpen: true,
+      title: '¿Abandonar cuenta compartida?',
+      description: '¿Seguro que deseas abandonar esta cuenta compartida? Dejarás de tener acceso a su información contable.',
+      confirmText: 'Abandonar Cuenta',
+      onConfirm: async () => {
+        setIsActionLoading(true);
+        try {
+          await leaveAccount(account!.id);
+          onUpdateAccount?.();
+          setConfirmAction(null);
+          onClose();
+        } catch (err: any) {
+          setErrorMsg(err.message || 'Error al abandonar la cuenta');
+        } finally {
+          setIsActionLoading(false);
+        }
+      },
+    });
   };
 
   return (
@@ -384,6 +413,20 @@ export const AccountShareModal: React.FC<AccountShareModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Confirm Action Modal */}
+      {confirmAction && (
+        <ConfirmModal
+          isOpen={confirmAction.isOpen}
+          onClose={() => setConfirmAction(null)}
+          onConfirm={confirmAction.onConfirm}
+          title={confirmAction.title}
+          description={confirmAction.description}
+          confirmText={confirmAction.confirmText}
+          variant="danger"
+          isLoading={isActionLoading}
+        />
+      )}
     </div>
   );
 };

@@ -12,10 +12,12 @@ import {
   Tag as TagIcon,
   Check,
   RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAccountStore } from '../../stores/accountStore';
 import { useTransactionStore } from '../../stores/transactionStore';
+import { useRecurringStore } from '../../stores/recurringStore';
 import { KoinIcon } from '../../lib/icons';
 import { CategoryWithUsageDTO } from '@koin/shared';
 
@@ -33,7 +35,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
   defaultType = 'expense',
 }) => {
   const { activeProfile } = useAuthStore();
-  const { accounts } = useAccountStore();
+  const { accounts, fetchAccounts } = useAccountStore();
   const {
     categories,
     exchangeRates,
@@ -44,6 +46,8 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
     error,
     clearError,
   } = useTransactionStore();
+
+  const { rules, fetchRules, applyRuleNow, createRule } = useRecurringStore();
 
   const [mode, setMode] = useState<'expense' | 'income' | 'transfer'>(defaultType);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
@@ -58,6 +62,12 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
   const [isEditingRate, setIsEditingRate] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amountError, setAmountError] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Recurring selector state
+  const [showRecurringSelector, setShowRecurringSelector] = useState(false);
+  const [selectedRecurringRuleId, setSelectedRecurringRuleId] = useState<string | null>(null);
+  const [createAsRecurring, setCreateAsRecurring] = useState(false);
 
   const amountInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,6 +87,14 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
       setIsEditingRate(false);
       setCustomRate('');
       setAmountError(false);
+      setSubmitError(null);
+      setShowRecurringSelector(false);
+      setSelectedRecurringRuleId(null);
+      setCreateAsRecurring(false);
+
+      if (activeProfile?.id) {
+        fetchRules(activeProfile.id);
+      }
 
       // Select initial account
       if (defaultAccountId && accounts.some((a) => a.id === defaultAccountId)) {
@@ -96,7 +114,14 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
         amountInputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen, defaultType, defaultAccountId, accounts]);
+  }, [isOpen, defaultType, defaultAccountId, accounts, activeProfile?.id, fetchRules]);
+
+  // Active recurring expenses and debts for quick selection
+  const recurringExpenses = useMemo(() => {
+    return rules.filter(
+      (r) => (r.type === 'expense' || r.isInstallment) && r.status === 'active'
+    );
+  }, [rules]);
 
   const selectedAccount = useMemo(
     () => accounts.find((a) => a.id === selectedAccountId) || accounts[0],
@@ -229,7 +254,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
     try {
       if (mode === 'transfer') {
         if (!selectedToAccount || selectedToAccount.id === selectedAccount.id) {
-          alert('Debes seleccionar una cuenta de destino diferente');
+          setSubmitError('Debes seleccionar una cuenta de destino diferente a la de origen');
           setIsSubmitting(false);
           return;
         }
@@ -246,26 +271,55 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
         });
       } else {
         if (!selectedCategoryId) {
-          alert('Por favor selecciona una categoría');
+          setSubmitError('Por favor selecciona una categoría para clasificar el movimiento');
           setIsSubmitting(false);
           return;
         }
 
         onClose();
 
-        await createTransaction({
-          accountId: selectedAccount.id,
-          categoryId: selectedCategoryId,
-          type: mode,
-          amount: numAmount.toFixed(2),
-          currency: selectedAccount.currency,
-          exchangeRateToBase: isMulticurrency && customRate ? customRate : undefined,
-          date: date ? new Date(date).toISOString() : new Date().toISOString(),
-          note: note.trim() || undefined,
-          isRecurring: false,
-        });
+        if (selectedRecurringRuleId) {
+          // User selected an existing recurring expense/debt -> Apply payment directly
+          await applyRuleNow(selectedRecurringRuleId);
+          if (activeProfile?.id) {
+            fetchAccounts(activeProfile.id);
+          }
+        } else {
+          // Standard transaction creation
+          await createTransaction({
+            accountId: selectedAccount.id,
+            categoryId: selectedCategoryId,
+            type: mode,
+            amount: numAmount.toFixed(2),
+            currency: selectedAccount.currency,
+            exchangeRateToBase: isMulticurrency && customRate ? customRate : undefined,
+            date: date ? new Date(date).toISOString() : new Date().toISOString(),
+            note: note.trim() || undefined,
+            isRecurring: false,
+          });
+
+          // If user checked "Guardar como compromiso recurrente mensual"
+          if (createAsRecurring && activeProfile?.id) {
+            await createRule(
+              {
+                name: note.trim() || (mode === 'income' ? 'Ingreso Recurrente' : 'Gasto Fijo Recurrente'),
+                accountId: selectedAccount.id,
+                categoryId: selectedCategoryId,
+                type: mode,
+                amount: numAmount.toFixed(2),
+                currency: selectedAccount.currency,
+                frequency: 'monthly',
+                dayOfMonth: date ? new Date(date).getDate() : 1,
+                nextRunDate: date ? new Date(date).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+                autoApply: true,
+                isInstallment: false,
+              },
+              activeProfile.id
+            );
+          }
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Submit transaction error:', err);
     } finally {
       setIsSubmitting(false);
@@ -341,9 +395,23 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
 
         {/* Form Body */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1">
-          {error && (
-            <div className="p-3 text-xs bg-destructive/10 border border-destructive/30 text-destructive">
-              {error}
+          {(error || submitError) && (
+            <div className="p-3 text-xs bg-destructive/10 border border-destructive/30 text-destructive flex items-center justify-between animate-in fade-in duration-150">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{submitError || error}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmitError(null);
+                  clearError();
+                }}
+                className="text-destructive/70 hover:text-destructive p-0.5"
+                aria-label="Cerrar advertencia"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
 
@@ -417,6 +485,81 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
                   </option>
                 ))}
               </select>
+            </div>
+          )}
+
+          {/* Recurring Expense Quick Selector (Only in Expense mode) */}
+          {mode === 'expense' && recurringExpenses.length > 0 && (
+            <div className="p-3 border border-purple-500/30 bg-purple-500/5 text-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-foreground flex items-center gap-1.5 text-[11px]">
+                  <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                  ¿Es un gasto fijo programado?
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowRecurringSelector(!showRecurringSelector)}
+                  className="text-[11px] font-mono text-purple-400 hover:text-purple-300 underline font-semibold"
+                >
+                  {showRecurringSelector ? 'Ocultar fijos' : 'Cargar desde compromiso'}
+                </button>
+              </div>
+
+              {selectedRecurringRuleId && (
+                <div className="flex items-center justify-between text-[11px] text-purple-300 bg-purple-500/10 border border-purple-500/30 px-2.5 py-1 font-mono">
+                  <span>
+                    Compromiso seleccionado:{' '}
+                    <strong>{rules.find((r) => r.id === selectedRecurringRuleId)?.name}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedRecurringRuleId(null);
+                      setAmount('');
+                      setNote('');
+                    }}
+                    className="text-muted-foreground hover:text-foreground ml-2"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {showRecurringSelector && (
+                <div className="pt-2 border-t border-purple-500/20 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {recurringExpenses.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => {
+                        setAmount(r.amount);
+                        if (r.accountId && accounts.some((a) => a.id === r.accountId)) {
+                          setSelectedAccountId(r.accountId);
+                        }
+                        if (r.categoryId) {
+                          setSelectedCategoryId(r.categoryId);
+                        }
+                        setNote(r.name);
+                        setSelectedRecurringRuleId(r.id);
+                        setShowRecurringSelector(false);
+                      }}
+                      className="p-2 text-left border border-border/60 bg-background hover:border-purple-500/50 hover:bg-muted/10 transition-colors flex items-center justify-between"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <p className="text-[11px] font-bold text-foreground truncate">{r.name}</p>
+                        <p className="text-[10px] text-muted-foreground font-mono">
+                          {r.isInstallment
+                            ? `Cuota ${r.currentInstallment + 1}/${r.totalInstallments}`
+                            : 'Gasto Fijo'}
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-mono font-bold text-purple-400 shrink-0">
+                        ${parseFloat(r.amount).toFixed(2)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -648,6 +791,26 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
                     className="w-full px-3 py-2 text-xs bg-background border border-border text-foreground focus:outline-none focus:border-primary"
                   />
                 </div>
+
+                {/* Save as recurring rule checkbox (only for expense/income and if not loaded from rule) */}
+                {mode !== 'transfer' && !selectedRecurringRuleId && (
+                  <div className="pt-2 border-t border-border/30">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={createAsRecurring}
+                        onChange={(e) => setCreateAsRecurring(e.target.checked)}
+                        className="rounded border-border text-primary focus:ring-primary/20"
+                      />
+                      <span className="text-xs font-semibold text-foreground">
+                        Guardar como compromiso recurrente mensual
+                      </span>
+                    </label>
+                    <p className="text-[10px] text-muted-foreground ml-5 mt-0.5">
+                      Se programará una regla automática para registrar este movimiento cada mes.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
