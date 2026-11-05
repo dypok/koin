@@ -273,7 +273,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                   className="w-full px-3 py-2 bg-muted/20 border border-border/60 text-foreground font-mono tracking-widest text-xs focus:outline-none focus:border-primary transition-colors"
                 />
                 <p className="text-[10px] text-muted-foreground font-mono">
-                  Cifrado seguro mediante algoritmo Argon2id en el servidor.
+                  Tu clave se almacena de forma segura y encriptada.
                 </p>
               </div>
             )}

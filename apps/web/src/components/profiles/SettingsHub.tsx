@@ -24,7 +24,7 @@ export const SettingsHub: React.FC<SettingsHubProps> = ({ initialSubTab = 'profi
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>Perfiles Soberanos (PROF-01/02)</span>
+          <span>Perfiles de Usuario</span>
         </button>
 
         <button
@@ -36,7 +36,7 @@ export const SettingsHub: React.FC<SettingsHubProps> = ({ initialSubTab = 'profi
           }`}
         >
           <Palette className="w-4 h-4" />
-          <span>Apariencia y Colores HSL (PROF-03)</span>
+          <span>Apariencia y Colores</span>
         </button>
 
         <button
@@ -48,7 +48,7 @@ export const SettingsHub: React.FC<SettingsHubProps> = ({ initialSubTab = 'profi
           }`}
         >
           <Shield className="w-4 h-4" />
-          <span>Seguridad y PIN (PROF-04)</span>
+          <span>Seguridad y PIN</span>
         </button>
       </div>
 

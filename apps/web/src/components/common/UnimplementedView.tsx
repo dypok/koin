@@ -2,15 +2,11 @@ import React from 'react';
 
 interface UnimplementedViewProps {
   moduleName: string;
-  epicNumber: number;
-  epicTitle: string;
   onGoToProfiles: () => void;
 }
 
 export const UnimplementedView: React.FC<UnimplementedViewProps> = ({
   moduleName,
-  epicNumber,
-  epicTitle,
   onGoToProfiles,
 }) => {
   return (
@@ -20,11 +16,10 @@ export const UnimplementedView: React.FC<UnimplementedViewProps> = ({
           404
         </span>
         <h2 className="text-base font-bold tracking-tight text-foreground uppercase">
-          {moduleName}: Módulo No Disponible
+          {moduleName}: Próximamente
         </h2>
-        <p className="text-xs text-muted-foreground max-w-md font-mono mx-auto leading-relaxed">
-          Esta funcionalidad pertenece a la Épica {epicNumber} ({epicTitle}) y aún no ha sido implementada.
-          No se presentan datos simulados (<em>mock</em>) en esta pantalla.
+        <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+          Esta sección se encuentra en desarrollo y estará disponible muy pronto.
         </p>
       </div>
 
@@ -33,7 +28,7 @@ export const UnimplementedView: React.FC<UnimplementedViewProps> = ({
           onClick={onGoToProfiles}
           className="px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity active:scale-95"
         >
-          Ir a Perfiles Soberanos (Épica 3)
+          Volver a Perfiles
         </button>
       </div>
     </div>

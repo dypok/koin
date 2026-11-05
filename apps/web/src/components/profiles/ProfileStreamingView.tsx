@@ -65,13 +65,13 @@ export const ProfileStreamingView: React.FC<ProfileStreamingViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-border/40">
         <div>
           <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-mono">
-            Épica 3 · PROF-01
+            Perfiles de Usuario
           </span>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mt-1">
             ¿Quién está administrando fondos hoy?
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Selecciona un perfil soberano para cargar su libro contable y entorno visual independiente.
+            Selecciona un perfil para cargar sus finanzas y entorno visual independiente.
           </p>
         </div>
 
@@ -218,10 +218,10 @@ export const ProfileStreamingView: React.FC<ProfileStreamingViewProps> = ({
           >
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-foreground group-hover:text-primary transition-colors">
-                Personalizar Colores HSL y Modo AMOLED
+                Personalizar Colores y Apariencia
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                Ajusta la paleta de {activeProfile?.name || 'tu perfil'} con cálculo de contraste WCAG AA en vivo.
+                Ajusta la paleta de {activeProfile?.name || 'tu perfil'} con contraste visual optimizado.
               </p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 ml-3" />
@@ -245,7 +245,7 @@ export const ProfileStreamingView: React.FC<ProfileStreamingViewProps> = ({
                 )}
               </div>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                Protección criptográfica Argon2id y bloqueo temporal por 15 minutos tras 5 intentos fallidos.
+                Bloqueo de seguridad con clave de 4 a 6 dígitos y protección temporal ante intentos fallidos.
               </p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 ml-3" />

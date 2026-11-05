@@ -105,10 +105,10 @@ export const AppearanceSettingsView: React.FC = () => {
       {/* Header */}
       <div className="pb-4 border-b border-border/40">
         <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-          Motor Dinámico de Apariencia &amp; Colores (PROF-03)
+          Personalización de Apariencia y Colores
         </h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Personaliza la paleta visual de tu perfil activo ({activeProfile?.name}) con verificación matemática de contraste WCAG AA y modo AMOLED.
+          Personaliza los colores de tu perfil activo ({activeProfile?.name}) con alto contraste y optimización visual.
         </p>
       </div>
 
@@ -183,15 +183,15 @@ export const AppearanceSettingsView: React.FC = () => {
               />
             </div>
             <p className="text-[10px] text-muted-foreground font-mono">
-              Inyección inmediata en :root mediante CSS HSL ({hexToHsl(primaryHex)}).
+              Vista previa en tiempo real aplicada sobre la aplicación.
             </p>
           </div>
 
-          {/* WCAG AA Mathematical Contrast Card */}
+          {/* Contrast Card */}
           <div className="p-4 border border-border/40 bg-muted/5 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-muted-foreground font-medium">
-                Verificación Matemática WCAG 2.1
+                Nivel de Legibilidad
               </span>
               <span
                 className={`text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider font-mono border ${
@@ -200,7 +200,7 @@ export const AppearanceSettingsView: React.FC = () => {
                     : 'border-destructive/40 text-destructive bg-destructive/10'
                 }`}
               >
-                {contrast.passesAA ? 'WCAG AA Cumplido' : 'Contraste Insuficiente'}
+                {contrast.passesAA ? 'Contraste Óptimo' : 'Bajo Contraste'}
               </span>
             </div>
 

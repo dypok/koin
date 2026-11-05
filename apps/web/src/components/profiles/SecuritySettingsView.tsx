@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, ShieldAlert, ShieldCheck, Lock, Unlock, KeyRound, Check, RefreshCw } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, Lock, Unlock, KeyRound, Check } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { apiRequest } from '../../lib/api';
 import { ProfilePinModal } from './ProfilePinModal';
@@ -49,7 +49,7 @@ export const SecuritySettingsView: React.FC = () => {
         pin,
       });
 
-      setSuccessMsg('PIN de seguridad actualizado con éxito mediante cifrado Argon2id.');
+      setSuccessMsg('PIN de seguridad actualizado correctamente.');
       setPin('');
       setConfirmPin('');
     } catch (err: any) {
@@ -61,7 +61,7 @@ export const SecuritySettingsView: React.FC = () => {
 
   const handleRemovePin = async () => {
     const confirmed = window.confirm(
-      '¿Deseas deshabilitar la protección por PIN para este perfil? Cualquier usuario podrá acceder sin contraseña.'
+      '¿Deseas deshabilitar la protección por PIN para este perfil? Cualquier usuario podrá acceder sin clave.'
     );
     if (!confirmed) return;
 
@@ -73,7 +73,7 @@ export const SecuritySettingsView: React.FC = () => {
       await updateProfile(activeProfile.id, {
         pin: '',
       });
-      setSuccessMsg('Protección por PIN eliminada para este perfil.');
+      setSuccessMsg('Protección por PIN deshabilitada para este perfil.');
     } catch (err: any) {
       setErrorMsg(err.message || 'Error al eliminar el PIN.');
     } finally {
@@ -86,13 +86,13 @@ export const SecuritySettingsView: React.FC = () => {
       {/* Header */}
       <div className="pb-4 border-b border-border/40">
         <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-mono">
-          Épica 3 · PROF-04
+          Protección de Perfil
         </span>
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mt-1">
-          Seguridad Criptográfica y Bloqueo de Perfil
+          Seguridad y Bloqueo con PIN
         </h1>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Protege el libro contable de <strong>{activeProfile.name}</strong> con PIN hasheado en Argon2id y bloqueo exponencial de 15 minutos ante 5 fallos.
+          Protege las finanzas de <strong>{activeProfile.name}</strong> con una clave de acceso numérica y bloqueo automático de 15 minutos ante intentos fallidos.
         </p>
       </div>
 
@@ -143,8 +143,8 @@ export const SecuritySettingsView: React.FC = () => {
             </div>
             <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
               {activeProfile.hasPin
-                ? 'Se requiere PIN para cambiar o acceder a este perfil desde cualquier pantalla.'
-                : 'Cualquier persona puede ingresar a este perfil sin solicitar contraseña.'}
+                ? 'Se solicita PIN al ingresar a este perfil desde cualquier pantalla.'
+                : 'Cualquier persona puede ingresar a este perfil sin solicitar clave.'}
             </p>
           </div>
         </div>
@@ -178,7 +178,7 @@ export const SecuritySettingsView: React.FC = () => {
             {activeProfile.hasPin ? 'Cambiar PIN de Seguridad' : 'Configurar PIN de Seguridad'}
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Digita entre 4 y 6 dígitos numéricos. El PIN se procesa en el backend con tiempo constante anti-timing attacks.
+            Digita entre 4 y 6 dígitos numéricos para proteger tu información.
           </p>
         </div>
 
@@ -227,20 +227,20 @@ export const SecuritySettingsView: React.FC = () => {
       {/* Security Specifications Cardless Box */}
       <div className="border border-border/40 p-5 bg-muted/5 space-y-3">
         <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground font-mono">
-          Especificación de Seguridad de Koin
+          Parámetros de Protección
         </span>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
           <div className="p-3 border border-border/30 bg-background">
-            <p className="text-[10px] text-muted-foreground uppercase">Algoritmo</p>
-            <p className="font-bold text-foreground mt-0.5">Argon2id (OWASP)</p>
+            <p className="text-[10px] text-muted-foreground uppercase">Nivel de Cifrado</p>
+            <p className="font-bold text-foreground mt-0.5">Alta Seguridad</p>
           </div>
           <div className="p-3 border border-border/30 bg-background">
-            <p className="text-[10px] text-muted-foreground uppercase">Tolerancia Bruta</p>
-            <p className="font-bold text-destructive mt-0.5">5 Intentos Fallidos</p>
+            <p className="text-[10px] text-muted-foreground uppercase">Límite de Intentos</p>
+            <p className="font-bold text-destructive mt-0.5">5 Intentos Consecutivos</p>
           </div>
           <div className="p-3 border border-border/30 bg-background">
             <p className="text-[10px] text-muted-foreground uppercase">Tiempo de Bloqueo</p>
-            <p className="font-bold text-foreground mt-0.5">15 Minutos (HTTP 429)</p>
+            <p className="font-bold text-foreground mt-0.5">15 Minutos de Espera</p>
           </div>
         </div>
       </div>

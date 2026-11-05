@@ -173,10 +173,10 @@ export default function App() {
 
           {/* Navigation Links */}
           <nav className="space-y-4">
-            {/* Active Group: Épica 3 */}
+            {/* Active Group: Perfiles */}
             <div className="space-y-1">
               <span className="px-3 text-[10px] uppercase font-bold tracking-widest text-muted-foreground/80 block pb-1">
-                Épica 3 · Perfiles &amp; Personalización
+                Perfiles &amp; Personalización
               </span>
 
               <button
@@ -188,7 +188,7 @@ export default function App() {
                 }`}
               >
                 <Users className="w-4 h-4" />
-                <span>Perfiles Soberanos</span>
+                <span>Perfiles de Usuario</span>
               </button>
 
               <button
@@ -200,7 +200,7 @@ export default function App() {
                 }`}
               >
                 <Palette className="w-4 h-4" />
-                <span>Apariencia y Colores HSL</span>
+                <span>Apariencia y Colores</span>
               </button>
 
               <button
@@ -216,78 +216,58 @@ export default function App() {
               </button>
             </div>
 
-            {/* Unimplemented Group: Módulos Posteriores (404) */}
+            {/* Unimplemented Group: En desarrollo */}
             <div className="space-y-1 pt-2 border-t border-border/30">
               <span className="px-3 text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60 block pb-1">
-                Módulos Futuros
+                Próximamente
               </span>
 
               <button
                 onClick={() => setActiveTab('accounts')}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
                   activeTab === 'accounts'
                     ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
                     : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/10'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Layers className="w-4 h-4" />
-                  <span>Cuentas Financieras</span>
-                </div>
-                <span className="text-[9px] font-mono text-muted-foreground/60 border border-border/40 px-1 py-0.2">
-                  Épica 4
-                </span>
+                <Layers className="w-4 h-4" />
+                <span>Cuentas Financieras</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('history')}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
                   activeTab === 'history'
                     ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
                     : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/10'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <History className="w-4 h-4" />
-                  <span>Movimientos</span>
-                </div>
-                <span className="text-[9px] font-mono text-muted-foreground/60 border border-border/40 px-1 py-0.2">
-                  Épica 5
-                </span>
+                <History className="w-4 h-4" />
+                <span>Movimientos</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('budgets')}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
                   activeTab === 'budgets'
                     ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
                     : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/10'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <PieChart className="w-4 h-4" />
-                  <span>Presupuestos</span>
-                </div>
-                <span className="text-[9px] font-mono text-muted-foreground/60 border border-border/40 px-1 py-0.2">
-                  Épica 6
-                </span>
+                <PieChart className="w-4 h-4" />
+                <span>Presupuestos</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('home')}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors ${
+                className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors ${
                   activeTab === 'home'
                     ? 'bg-primary/10 text-primary border-l-2 border-primary font-semibold'
                     : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/10'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Wallet className="w-4 h-4" />
-                  <span>Inicio y Balance</span>
-                </div>
-                <span className="text-[9px] font-mono text-muted-foreground/60 border border-border/40 px-1 py-0.2">
-                  404
-                </span>
+                <Wallet className="w-4 h-4" />
+                <span>Inicio y Balance</span>
               </button>
             </div>
           </nav>
@@ -351,13 +331,13 @@ export default function App() {
         <header className="hidden md:flex items-center justify-between px-8 py-4 border-b border-border/40 bg-background sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <h2 className="text-sm font-bold tracking-tight text-foreground uppercase">
-              {activeTab === 'profiles' && 'Perfiles Soberanos · Épica 3'}
-              {activeTab === 'appearance' && 'Personalización Visual y Motor HSL · Épica 3'}
-              {activeTab === 'security' && 'Seguridad Criptográfica y PIN · Épica 3'}
-              {activeTab === 'accounts' && 'Cuentas Financieras · Épica 4'}
-              {activeTab === 'history' && 'Historial de Movimientos · Épica 5'}
-              {activeTab === 'budgets' && 'Presupuestos y Metas · Épica 6'}
-              {activeTab === 'home' && 'Panel Consolidado'}
+              {activeTab === 'profiles' && 'Perfiles de Usuario'}
+              {activeTab === 'appearance' && 'Apariencia y Colores'}
+              {activeTab === 'security' && 'Seguridad y PIN'}
+              {activeTab === 'accounts' && 'Cuentas Financieras'}
+              {activeTab === 'history' && 'Historial de Movimientos'}
+              {activeTab === 'budgets' && 'Presupuestos'}
+              {activeTab === 'home' && 'Inicio y Balance'}
             </h2>
             <div className="h-4 w-[1px] bg-border/60" />
             <button
@@ -380,7 +360,7 @@ export default function App() {
                 setIsCreateProfileModalOpen(true);
               }}
               className="py-1.5 px-3 bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-2 transition-transform active:scale-95 shadow-sm"
-              title="Crear un nuevo perfil soberano"
+              title="Crear un nuevo perfil"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Nuevo Perfil</span>
@@ -404,8 +384,6 @@ export default function App() {
           {activeTab === 'accounts' && (
             <UnimplementedView
               moduleName="Cuentas Financieras"
-              epicNumber={4}
-              epicTitle="Cuentas Financieras y Colaboración Compartida (RBAC)"
               onGoToProfiles={() => setActiveTab('profiles')}
             />
           )}
@@ -413,8 +391,6 @@ export default function App() {
           {activeTab === 'history' && (
             <UnimplementedView
               moduleName="Historial de Movimientos"
-              epicNumber={5}
-              epicTitle="Registro Financiero Ultrarrápido (<3s) y Motor Multidivisa"
               onGoToProfiles={() => setActiveTab('profiles')}
             />
           )}
@@ -422,17 +398,13 @@ export default function App() {
           {activeTab === 'budgets' && (
             <UnimplementedView
               moduleName="Presupuestos y Metas"
-              epicNumber={6}
-              epicTitle="Presupuestos, Analíticas y Exportación de Datos"
               onGoToProfiles={() => setActiveTab('profiles')}
             />
           )}
 
           {activeTab === 'home' && (
             <UnimplementedView
-              moduleName="Inicio y Balance Consolidado"
-              epicNumber={5}
-              epicTitle="Registro Financiero y Balance Contable Consolidado"
+              moduleName="Inicio y Balance"
               onGoToProfiles={() => setActiveTab('profiles')}
             />
           )}
