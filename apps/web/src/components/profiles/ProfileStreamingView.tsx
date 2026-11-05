@@ -1,20 +1,12 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Lock, Check, Settings2, Shield, ArrowRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Lock, Check, Settings2 } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
 import { useAuthStore } from '../../stores/authStore';
 import { KoinIcon } from '../../lib/icons';
 import { ProfileModal } from './ProfileModal';
 import { ProfilePinModal } from './ProfilePinModal';
 
-interface ProfileStreamingViewProps {
-  onNavigateToAppearance?: () => void;
-  onNavigateToSecurity?: () => void;
-}
-
-export const ProfileStreamingView: React.FC<ProfileStreamingViewProps> = ({
-  onNavigateToAppearance,
-  onNavigateToSecurity,
-}) => {
+export const ProfileStreamingView: React.FC = () => {
   const { profiles, activeProfile, setActiveProfile, deleteProfile } = useAuthStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,45 +52,29 @@ export const ProfileStreamingView: React.FC<ProfileStreamingViewProps> = ({
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
-      {/* Top Banner / Streaming Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-border/40">
+    <div className="space-y-6 animate-in fade-in duration-200">
+      {/* Streaming Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/40">
         <div>
-          <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-mono">
-            Perfiles de Usuario
-          </span>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mt-1">
+          <h2 className="text-base sm:text-lg font-bold tracking-tight text-foreground">
             ¿Quién está administrando fondos hoy?
-          </h1>
+          </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
             Selecciona un perfil para cargar sus finanzas y entorno visual independiente.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            onClick={() => setIsManageMode(!isManageMode)}
-            className={`px-3 py-1.5 border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
-              isManageMode
-                ? 'border-primary bg-primary/10 text-primary'
-                : 'border-border/60 hover:border-border text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Settings2 className="w-3.5 h-3.5" />
-            <span>{isManageMode ? 'Listo' : 'Administrar'}</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setProfileToEdit(null);
-              setIsModalOpen(true);
-            }}
-            className="px-3.5 py-1.5 bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1.5 transition-transform active:scale-95"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Nuevo Perfil</span>
-          </button>
-        </div>
+        <button
+          onClick={() => setIsManageMode(!isManageMode)}
+          className={`px-3 py-1.5 border text-xs font-semibold flex items-center gap-1.5 transition-colors self-start sm:self-auto ${
+            isManageMode
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border/60 hover:border-border text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Settings2 className="w-3.5 h-3.5" />
+          <span>{isManageMode ? 'Listo' : 'Administrar'}</span>
+        </button>
       </div>
 
       {errorMsg && (
@@ -183,7 +159,7 @@ export const ProfileStreamingView: React.FC<ProfileStreamingViewProps> = ({
                   </span>
                 ) : (
                   <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors font-medium">
-                    Conmutar &lt;100ms
+                    Conmutar
                   </span>
                 )}
               </div>
@@ -205,52 +181,7 @@ export const ProfileStreamingView: React.FC<ProfileStreamingViewProps> = ({
           <p className="text-xs font-semibold text-muted-foreground group-hover:text-foreground mt-3 transition-colors">
             Agregar Perfil
           </p>
-          <span className="text-[10px] text-muted-foreground/80 font-mono mt-0.5">Segregado</span>
         </div>
-      </div>
-
-      {/* Profile Features Quick Access (Flat Row) */}
-      <div className="pt-6 border-t border-border/40 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {onNavigateToAppearance && (
-          <button
-            onClick={onNavigateToAppearance}
-            className="p-4 border border-border/40 hover:border-primary/50 text-left transition-colors bg-muted/5 flex items-center justify-between group"
-          >
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-foreground group-hover:text-primary transition-colors">
-                Personalizar Colores y Apariencia
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Ajusta la paleta de {activeProfile?.name || 'tu perfil'} con contraste visual optimizado.
-              </p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 ml-3" />
-          </button>
-        )}
-
-        {onNavigateToSecurity && (
-          <button
-            onClick={onNavigateToSecurity}
-            className="p-4 border border-border/40 hover:border-primary/50 text-left transition-colors bg-muted/5 flex items-center justify-between group"
-          >
-            <div>
-              <div className="flex items-center gap-1.5">
-                <p className="text-xs font-bold uppercase tracking-wider text-foreground group-hover:text-primary transition-colors">
-                  Seguridad y Bloqueo con PIN
-                </p>
-                {activeProfile?.hasPin && (
-                  <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 border border-primary/40 text-primary">
-                    Protegido
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Bloqueo de seguridad con clave de 4 a 6 dígitos y protección temporal ante intentos fallidos.
-              </p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 ml-3" />
-          </button>
-        )}
       </div>
 
       {/* Modals */}

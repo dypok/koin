@@ -102,14 +102,14 @@ export const AppearanceSettingsView: React.FC = () => {
 
   return (
     <div className="space-y-8 max-w-4xl">
-      {/* Header */}
-      <div className="pb-4 border-b border-border/40">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-          Personalización de Apariencia y Colores
-        </h2>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Personaliza los colores de tu perfil activo ({activeProfile?.name}) con alto contraste y optimización visual.
+      {/* Active Profile Context */}
+      <div className="flex items-center justify-between pb-3 border-b border-border/40 text-xs">
+        <p className="text-muted-foreground">
+          Personalizando tema para: <span className="font-semibold text-foreground">{activeProfile?.name}</span>
         </p>
+        <span className="text-[10px] text-muted-foreground font-mono">
+          Modo actual: {baseMode}
+        </span>
       </div>
 
       {errorMessage && (

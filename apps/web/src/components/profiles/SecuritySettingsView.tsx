@@ -83,17 +83,14 @@ export const SecuritySettingsView: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
-      {/* Header */}
-      <div className="pb-4 border-b border-border/40">
-        <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-mono">
-          Protección de Perfil
-        </span>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mt-1">
-          Seguridad y Bloqueo con PIN
-        </h1>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Protege las finanzas de <strong>{activeProfile.name}</strong> con una clave de acceso numérica y bloqueo automático de 15 minutos ante intentos fallidos.
+      {/* Active Profile Context */}
+      <div className="flex items-center justify-between pb-3 border-b border-border/40 text-xs">
+        <p className="text-muted-foreground">
+          Seguridad para el perfil: <span className="font-semibold text-foreground">{activeProfile.name}</span>
         </p>
+        <span className="text-[10px] text-muted-foreground font-mono">
+          {activeProfile.hasPin ? 'Protección activa' : 'Sin protección'}
+        </span>
       </div>
 
       {/* Messages */}

@@ -297,7 +297,7 @@ export default function App() {
               {activeTab === 'accounts' && 'Cuentas Financieras'}
               {activeTab === 'history' && 'Historial de Movimientos'}
               {activeTab === 'budgets' && 'Presupuestos'}
-              {activeTab === 'settings' && 'Configuración del Sistema'}
+              {activeTab === 'settings' && 'Configuración'}
             </h2>
             <div className="h-4 w-[1px] bg-border/60" />
             <button
@@ -311,19 +311,6 @@ export default function App() {
               </span>
               <span className="text-[10px] text-muted-foreground font-mono">({profile?.baseCurrency})</span>
               <ChevronDown className="w-3 h-3 text-muted-foreground" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                setIsCreateProfileModalOpen(true);
-              }}
-              className="py-1.5 px-3 bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-2 transition-transform active:scale-95 shadow-sm"
-              title="Crear un nuevo perfil"
-            >
-              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Nuevo Perfil</span>
             </button>
           </div>
         </header>
