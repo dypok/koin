@@ -27,6 +27,7 @@ export interface ProfileDTO {
   themeConfig: ThemeConfig;
   baseCurrency: string;
   hasPin: boolean;
+  pinDigits?: number;
   useBiometrics: boolean;
   createdAt: string;
   updatedAt: string;

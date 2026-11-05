@@ -68,6 +68,7 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, req models.Creat
 
 	var pinHash *string
 	hasPin := false
+	pinDigits := 4
 	if req.PIN != nil && strings.TrimSpace(*req.PIN) != "" {
 		trimmedPIN := strings.TrimSpace(*req.PIN)
 		if !pinRegex.MatchString(trimmedPIN) {
@@ -79,6 +80,7 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, req models.Creat
 		}
 		pinHash = &hash
 		hasPin = true
+		pinDigits = len(trimmedPIN)
 	}
 
 	profileData := models.Profile{
@@ -87,6 +89,7 @@ func (s *Service) Create(ctx context.Context, userID uuid.UUID, req models.Creat
 		ThemeConfig:   theme,
 		BaseCurrency:  currency,
 		HasPin:        hasPin,
+		PinDigits:     pinDigits,
 		UseBiometrics: req.UseBiometrics,
 	}
 
@@ -120,6 +123,7 @@ func (s *Service) Update(ctx context.Context, userID uuid.UUID, profileID uuid.U
 func (s *Service) SetPIN(ctx context.Context, userID, profileID uuid.UUID, pin string) error {
 	trimmedPIN := strings.TrimSpace(pin)
 	var pinHash *string
+	pinDigits := 4
 
 	if trimmedPIN != "" {
 		if !pinRegex.MatchString(trimmedPIN) {
@@ -130,9 +134,10 @@ func (s *Service) SetPIN(ctx context.Context, userID, profileID uuid.UUID, pin s
 			return err
 		}
 		pinHash = &hash
+		pinDigits = len(trimmedPIN)
 	}
 
-	return s.repo.SetPIN(ctx, userID, profileID, pinHash)
+	return s.repo.SetPIN(ctx, userID, profileID, pinHash, pinDigits)
 }
 
 func (s *Service) Delete(ctx context.Context, userID uuid.UUID, profileID uuid.UUID) error {

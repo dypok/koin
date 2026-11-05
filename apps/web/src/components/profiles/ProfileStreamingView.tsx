@@ -12,13 +12,23 @@ export const ProfileStreamingView: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [profileToEdit, setProfileToEdit] = useState<ProfileDTO | null>(null);
   const [pinModalProfile, setPinModalProfile] = useState<ProfileDTO | null>(null);
+  const [pinAction, setPinAction] = useState<'switch' | 'edit'>('switch');
   const [isManageMode, setIsManageMode] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSelectProfile = (p: ProfileDTO) => {
-    if (isManageMode) {
+  const handleRequestEdit = (p: ProfileDTO) => {
+    if (p.hasPin) {
+      setPinModalProfile(p);
+      setPinAction('edit');
+    } else {
       setProfileToEdit(p);
       setIsModalOpen(true);
+    }
+  };
+
+  const handleSelectProfile = (p: ProfileDTO) => {
+    if (isManageMode) {
+      handleRequestEdit(p);
       return;
     }
 
@@ -26,6 +36,7 @@ export const ProfileStreamingView: React.FC = () => {
 
     if (p.hasPin) {
       setPinModalProfile(p);
+      setPinAction('switch');
     } else {
       setActiveProfile(p);
     }
@@ -134,10 +145,7 @@ export const ProfileStreamingView: React.FC = () => {
                 {isManageMode ? (
                   <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                     <button
-                      onClick={() => {
-                        setProfileToEdit(p);
-                        setIsModalOpen(true);
-                      }}
+                      onClick={() => handleRequestEdit(p)}
                       className="p-1.5 border border-border/60 hover:border-primary text-muted-foreground hover:text-primary transition-colors bg-background"
                       title="Editar perfil"
                     >
@@ -194,11 +202,23 @@ export const ProfileStreamingView: React.FC = () => {
       <ProfilePinModal
         isOpen={!!pinModalProfile}
         profile={pinModalProfile}
+        title={pinAction === 'edit' ? 'Desbloquear Perfil' : 'Perfil Protegido'}
+        subtitle={
+          pinAction === 'edit'
+            ? `Ingresa el PIN de ${pinModalProfile?.pinDigits || 4} dígitos para editar este perfil`
+            : undefined
+        }
         onClose={() => setPinModalProfile(null)}
         onSuccess={() => {
           if (pinModalProfile) {
-            setActiveProfile(pinModalProfile);
+            const target = pinModalProfile;
             setPinModalProfile(null);
+            if (pinAction === 'edit') {
+              setProfileToEdit(target);
+              setIsModalOpen(true);
+            } else {
+              setActiveProfile(target);
+            }
           }
         }}
       />

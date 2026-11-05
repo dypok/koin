@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Lock, X, Delete, ArrowRight, ShieldAlert } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
 import { apiRequest } from '../../lib/api';
@@ -9,6 +9,8 @@ interface ProfilePinModalProps {
   profile: ProfileDTO | null;
   onClose: () => void;
   onSuccess: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
 export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
@@ -16,12 +18,26 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
   profile,
   onClose,
   onSuccess,
+  title,
+  subtitle,
 }) => {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [shake, setShake] = useState(false);
+
+  const targetDigits =
+    profile && profile.pinDigits && profile.pinDigits >= 4 && profile.pinDigits <= 6
+      ? profile.pinDigits
+      : 4;
+
+  const pinRef = useRef(pin);
+  pinRef.current = pin;
+  const loadingRef = useRef(loading);
+  loadingRef.current = loading;
+  const isLockedRef = useRef(isLocked);
+  isLockedRef.current = isLocked;
 
   useEffect(() => {
     if (isOpen) {
@@ -31,8 +47,6 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
       setShake(false);
     }
   }, [isOpen, profile?.id]);
-
-  if (!isOpen || !profile) return null;
 
   const triggerHaptic = (success = false) => {
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -44,28 +58,8 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
     }
   };
 
-  const handleKeyPress = (num: string) => {
-    if (isLocked) return;
-    if (pin.length < 6) {
-      triggerHaptic(true);
-      const nextPin = pin + num;
-      setPin(nextPin);
-      setErrorMsg(null);
-      if (nextPin.length === 6) {
-        // Auto-verify on 6 digits
-        handleVerify(nextPin);
-      }
-    }
-  };
-
-  const handleDelete = () => {
-    if (isLocked) return;
-    setPin((prev) => prev.slice(0, -1));
-    setErrorMsg(null);
-  };
-
   const handleVerify = async (pinToTest?: string) => {
-    const finalPin = pinToTest || pin;
+    const finalPin = pinToTest !== undefined ? pinToTest : pinRef.current;
     if (finalPin.length < 4) {
       setErrorMsg('Ingresa entre 4 y 6 dígitos');
       return;
@@ -75,7 +69,7 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
     setErrorMsg(null);
 
     try {
-      await apiRequest(`/profiles/${profile.id}/unlock`, {
+      await apiRequest(`/profiles/${profile!.id}/unlock`, {
         method: 'POST',
         body: JSON.stringify({ pin: finalPin }),
       });
@@ -99,6 +93,58 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
     }
   };
 
+  const handleKeyPress = (num: string) => {
+    if (isLockedRef.current || loadingRef.current) return;
+    const currentPin = pinRef.current;
+    if (currentPin.length < targetDigits) {
+      triggerHaptic(true);
+      const nextPin = currentPin + num;
+      setPin(nextPin);
+      setErrorMsg(null);
+      if (nextPin.length === targetDigits) {
+        handleVerify(nextPin);
+      }
+    }
+  };
+
+  const handleDelete = () => {
+    if (isLockedRef.current || loadingRef.current) return;
+    setPin((prev) => prev.slice(0, -1));
+    setErrorMsg(null);
+  };
+
+  useEffect(() => {
+    if (!isOpen || !profile) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        handleKeyPress(e.key);
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleDelete();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!loadingRef.current && !isLockedRef.current) {
+          handleVerify();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, profile?.id, targetDigits]);
+
+  if (!isOpen || !profile) return null;
+
   return (
     <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-sm flex items-center justify-center p-4">
       <div
@@ -115,7 +161,7 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
               <Lock className="w-4 h-4 text-primary" />
             )}
             <span className="text-xs font-bold tracking-tight">
-              {isLocked ? 'Perfil Bloqueado' : 'Perfil Protegido'}
+              {isLocked ? 'Perfil Bloqueado' : title || 'Perfil Protegido'}
             </span>
           </div>
           <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground">
@@ -138,13 +184,13 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
           <p className="text-[11px] text-muted-foreground">
             {isLocked
               ? 'Bloqueo preventivo de 15 minutos activado'
-              : 'Ingresa el PIN numérico para acceder'}
+              : subtitle || `Ingresa el PIN de ${targetDigits} dígitos para continuar`}
           </p>
 
-          {/* Dots Indicator */}
+          {/* Dynamic Dots Indicator */}
           {!isLocked && (
             <div className="flex items-center gap-2.5 my-3">
-              {[0, 1, 2, 3, 4, 5].map((idx) => (
+              {Array.from({ length: targetDigits }).map((_, idx) => (
                 <div
                   key={idx}
                   className={`w-3 h-3 rounded-full transition-all duration-150 ${
@@ -198,6 +244,7 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
             disabled={loading || isLocked || pin.length < 4}
             onClick={() => handleVerify()}
             className="h-12 border border-primary/50 bg-primary/20 text-primary hover:bg-primary/30 transition-colors active:scale-95 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Verificar PIN (Enter)"
           >
             <ArrowRight className="w-4 h-4" />
           </button>

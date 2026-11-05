@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS auth.profiles (
 	base_currency varchar(3) DEFAULT 'USD' NOT NULL,
 	has_pin boolean DEFAULT false NOT NULL,
 	pin_hash varchar(255),
+	pin_digits integer DEFAULT 4 NOT NULL,
 	failed_attempts integer DEFAULT 0 NOT NULL,
 	locked_until timestamp with time zone,
 	use_biometrics boolean DEFAULT false NOT NULL,

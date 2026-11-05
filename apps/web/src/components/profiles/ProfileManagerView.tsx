@@ -13,6 +13,7 @@ export const ProfileManagerView: React.FC = () => {
   const [profileToEdit, setProfileToEdit] = useState<ProfileDTO | null>(null);
 
   const [pinModalProfile, setPinModalProfile] = useState<ProfileDTO | null>(null);
+  const [pinAction, setPinAction] = useState<'switch' | 'edit'>('switch');
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleOpenCreate = () => {
@@ -21,8 +22,13 @@ export const ProfileManagerView: React.FC = () => {
   };
 
   const handleOpenEdit = (p: ProfileDTO) => {
-    setProfileToEdit(p);
-    setIsModalOpen(true);
+    if (p.hasPin) {
+      setPinModalProfile(p);
+      setPinAction('edit');
+    } else {
+      setProfileToEdit(p);
+      setIsModalOpen(true);
+    }
   };
 
   const handleSelectProfile = (p: ProfileDTO) => {
@@ -30,6 +36,7 @@ export const ProfileManagerView: React.FC = () => {
 
     if (p.hasPin) {
       setPinModalProfile(p);
+      setPinAction('switch');
     } else {
       setActiveProfile(p);
     }
@@ -183,11 +190,23 @@ export const ProfileManagerView: React.FC = () => {
       <ProfilePinModal
         isOpen={!!pinModalProfile}
         profile={pinModalProfile}
+        title={pinAction === 'edit' ? 'Desbloquear Perfil' : 'Perfil Protegido'}
+        subtitle={
+          pinAction === 'edit'
+            ? `Ingresa el PIN de ${pinModalProfile?.pinDigits || 4} dígitos para editar este perfil`
+            : undefined
+        }
         onClose={() => setPinModalProfile(null)}
         onSuccess={() => {
           if (pinModalProfile) {
-            setActiveProfile(pinModalProfile);
+            const target = pinModalProfile;
             setPinModalProfile(null);
+            if (pinAction === 'edit') {
+              setProfileToEdit(target);
+              setIsModalOpen(true);
+            } else {
+              setActiveProfile(target);
+            }
           }
         }}
       />

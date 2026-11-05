@@ -36,7 +36,7 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 
 func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID) ([]models.Profile, error) {
 	query := `
-		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, failed_attempts, locked_until, use_biometrics, created_at, updated_at
+		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, failed_attempts, locked_until, use_biometrics, created_at, updated_at
 		FROM auth.profiles
 		WHERE user_id = $1
 		ORDER BY created_at ASC
@@ -58,6 +58,7 @@ func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID)
 			&p.ThemeConfig,
 			&p.BaseCurrency,
 			&p.HasPin,
+			&p.PinDigits,
 			&p.FailedAttempts,
 			&p.LockedUntil,
 			&p.UseBiometrics,
@@ -75,7 +76,7 @@ func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID)
 
 func (r *Repository) FindProfileByID(ctx context.Context, profileID uuid.UUID) (*models.Profile, error) {
 	query := `
-		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, failed_attempts, locked_until, use_biometrics, created_at, updated_at
+		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, failed_attempts, locked_until, use_biometrics, created_at, updated_at
 		FROM auth.profiles
 		WHERE id = $1
 		LIMIT 1
@@ -89,6 +90,7 @@ func (r *Repository) FindProfileByID(ctx context.Context, profileID uuid.UUID) (
 		&p.ThemeConfig,
 		&p.BaseCurrency,
 		&p.HasPin,
+		&p.PinDigits,
 		&p.FailedAttempts,
 		&p.LockedUntil,
 		&p.UseBiometrics,
@@ -127,9 +129,9 @@ func (r *Repository) CreateProfileWithSeed(ctx context.Context, userID uuid.UUID
 	// 1. Insert Profile
 	var newProfile models.Profile
 	profileQuery := `
-		INSERT INTO auth.profiles (user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_hash, failed_attempts, use_biometrics)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, 0, $8)
-		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, failed_attempts, locked_until, use_biometrics, created_at, updated_at
+		INSERT INTO auth.profiles (user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_hash, pin_digits, failed_attempts, use_biometrics)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9)
+		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, failed_attempts, locked_until, use_biometrics, created_at, updated_at
 	`
 	err = tx.QueryRow(ctx, profileQuery,
 		userID,
@@ -139,6 +141,7 @@ func (r *Repository) CreateProfileWithSeed(ctx context.Context, userID uuid.UUID
 		p.BaseCurrency,
 		p.HasPin,
 		pinHash,
+		p.PinDigits,
 		p.UseBiometrics,
 	).Scan(
 		&newProfile.ID,
@@ -148,6 +151,7 @@ func (r *Repository) CreateProfileWithSeed(ctx context.Context, userID uuid.UUID
 		&newProfile.ThemeConfig,
 		&newProfile.BaseCurrency,
 		&newProfile.HasPin,
+		&newProfile.PinDigits,
 		&newProfile.FailedAttempts,
 		&newProfile.LockedUntil,
 		&newProfile.UseBiometrics,
@@ -262,12 +266,12 @@ func (r *Repository) UpdateProfile(ctx context.Context, userID uuid.UUID, profil
 	}
 
 	if pinHash != nil {
-		setClauses = append(setClauses, fmt.Sprintf("has_pin = true, pin_hash = $%d, failed_attempts = 0, locked_until = NULL", argIdx))
-		args = append(args, *pinHash)
-		argIdx++
+		setClauses = append(setClauses, fmt.Sprintf("has_pin = true, pin_hash = $%d, pin_digits = $%d, failed_attempts = 0, locked_until = NULL", argIdx, argIdx+1))
+		args = append(args, *pinHash, len(strings.TrimSpace(*req.PIN)))
+		argIdx += 2
 	} else if req.PIN != nil && *req.PIN == "" {
 		// Removing PIN
-		setClauses = append(setClauses, "has_pin = false, pin_hash = NULL, failed_attempts = 0, locked_until = NULL")
+		setClauses = append(setClauses, "has_pin = false, pin_hash = NULL, pin_digits = 4, failed_attempts = 0, locked_until = NULL")
 	}
 
 	if req.UseBiometrics != nil {
@@ -280,7 +284,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, userID uuid.UUID, profil
 		UPDATE auth.profiles
 		SET %s
 		WHERE id = $1 AND user_id = $2
-		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, failed_attempts, locked_until, use_biometrics, created_at, updated_at
+		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, failed_attempts, locked_until, use_biometrics, created_at, updated_at
 	`, strings.Join(setClauses, ", "))
 
 	var p models.Profile
@@ -292,6 +296,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, userID uuid.UUID, profil
 		&p.ThemeConfig,
 		&p.BaseCurrency,
 		&p.HasPin,
+		&p.PinDigits,
 		&p.FailedAttempts,
 		&p.LockedUntil,
 		&p.UseBiometrics,
@@ -382,20 +387,20 @@ func (r *Repository) ResetFailedAttempts(ctx context.Context, profileID uuid.UUI
 }
 
 // SetPIN configures or removes a profile's PIN with zeroed failure counters.
-func (r *Repository) SetPIN(ctx context.Context, userID, profileID uuid.UUID, pinHash *string) error {
+func (r *Repository) SetPIN(ctx context.Context, userID, profileID uuid.UUID, pinHash *string, pinDigits int) error {
 	var query string
 	var args []any
 	if pinHash != nil && *pinHash != "" {
 		query = `
 			UPDATE auth.profiles
-			SET has_pin = true, pin_hash = $1, failed_attempts = 0, locked_until = NULL, updated_at = NOW()
-			WHERE id = $2 AND user_id = $3
+			SET has_pin = true, pin_hash = $1, pin_digits = $2, failed_attempts = 0, locked_until = NULL, updated_at = NOW()
+			WHERE id = $3 AND user_id = $4
 		`
-		args = []any{*pinHash, profileID, userID}
+		args = []any{*pinHash, pinDigits, profileID, userID}
 	} else {
 		query = `
 			UPDATE auth.profiles
-			SET has_pin = false, pin_hash = NULL, failed_attempts = 0, locked_until = NULL, updated_at = NOW()
+			SET has_pin = false, pin_hash = NULL, pin_digits = 4, failed_attempts = 0, locked_until = NULL, updated_at = NOW()
 			WHERE id = $1 AND user_id = $2
 		`
 		args = []any{profileID, userID}

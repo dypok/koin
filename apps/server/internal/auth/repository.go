@@ -87,7 +87,7 @@ func (r *Repository) FindUserByID(ctx context.Context, id uuid.UUID) (*models.Us
 
 func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID) ([]models.Profile, error) {
 	query := `
-		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_hash, use_biometrics, created_at, updated_at
+		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, pin_hash, use_biometrics, created_at, updated_at
 		FROM auth.profiles
 		WHERE user_id = $1
 		ORDER BY created_at ASC
@@ -109,6 +109,7 @@ func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID)
 			&p.ThemeConfig,
 			&p.BaseCurrency,
 			&p.HasPin,
+			&p.PinDigits,
 			&p.PinHash,
 			&p.UseBiometrics,
 			&p.CreatedAt,
@@ -166,9 +167,9 @@ func (r *Repository) CreateUserWithSeedData(ctx context.Context, data CreateUser
 
 	var newProfile models.Profile
 	profileQuery := `
-		INSERT INTO auth.profiles (user_id, name, avatar_icon, theme_config, base_currency, has_pin, use_biometrics)
-		VALUES ($1, 'Personal', 'User', $2, $3, false, false)
-		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_hash, use_biometrics, created_at, updated_at
+		INSERT INTO auth.profiles (user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, use_biometrics)
+		VALUES ($1, 'Personal', 'User', $2, $3, false, 4, false)
+		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, pin_hash, use_biometrics, created_at, updated_at
 	`
 	err = tx.QueryRow(ctx, profileQuery, newUser.ID, defaultTheme, currency).Scan(
 		&newProfile.ID,
@@ -178,6 +179,7 @@ func (r *Repository) CreateUserWithSeedData(ctx context.Context, data CreateUser
 		&newProfile.ThemeConfig,
 		&newProfile.BaseCurrency,
 		&newProfile.HasPin,
+		&newProfile.PinDigits,
 		&newProfile.PinHash,
 		&newProfile.UseBiometrics,
 		&newProfile.CreatedAt,

@@ -56,6 +56,7 @@ type Profile struct {
 	BaseCurrency  string      `json:"baseCurrency"`
 	HasPin        bool        `json:"hasPin"`
 	PinHash       *string     `json:"-"`
+	PinDigits     int         `json:"pinDigits"`
 	FailedAttempts int         `json:"failedAttempts"`
 	LockedUntil   *time.Time  `json:"lockedUntil,omitempty"`
 	UseBiometrics bool        `json:"useBiometrics"`
