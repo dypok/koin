@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode - Precision High-Contrast Minimalist Canvas */
+    --background: 0 0% 100%;           /* Crisp Pure White #FFFFFF */
+    --foreground: 240 10% 8%;          /* Ultra-Crisp Near-Black #121216 (16:1 contrast) */
+    --primary: 38 92% 34%;             /* Deep Sovereign Gold for Light Mode (5.5:1 contrast) */
+    --primary-foreground: 0 0% 100%;   /* Pure White on Deep Primary */
+    --accent: 42 96% 40%;              /* Deep Warm Gold Luster */
+    --accent-foreground: 0 0% 100%;
+    --muted: 240 5% 96%;               /* Subtle Clean Surface */
+    --muted-foreground: 240 5% 36%;    /* Sharp High-Contrast Slate Gray (6.8:1 contrast on white) */
+    --border: 240 6% 84%;              /* Clean Visible 1px Hairline #D5D5DB */
+    --destructive: 350 89% 50%;
+    --destructive-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    /* Sovereign Gold Dark Mode (Default) - Sovereign Fintech Luster */
+    --background: 240 10% 4%;          /* #09090b Obsidian Black Background */
+    --foreground: 0 0% 98%;            /* #fafafa Crisp Off-White Text */
+    --primary: 38 92% 50%;            /* #F59E0B Sovereign Gold */
+    --primary-foreground: 240 10% 4%;  /* #09090b Ultra-Crisp Dark on Gold */
+    --accent: 42 96% 56%;             /* #FBBF24 Warm Gold Accent */
+    --accent-foreground: 240 10% 4%;
+    --muted: 240 4% 15%;              /* #1e1e24 Deep Surface */
+    --muted-foreground: 240 5% 65%;    /* #a1a1aa Muted Labels */
+    --border: 240 4% 16%;              /* #23232a 1px Border Hairlines */
+    --destructive: 350 89% 60%;        /* #f43f5e Financial Expense Coral */
+    --destructive-foreground: 0 0% 98%;
+  }
+
+  .amoled {
+    /* AMOLED Pure Black Mode */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --primary: 38 92% 50%;
+    --primary-foreground: 0 0% 0%;
+    --border: 0 0% 12%;
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 60%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+  }
+}
+
+/* Minimalist Flat Layout Directives */
+* {
+  border-color: hsl(var(--border));
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+
+.dark * {
+  border-color: hsl(var(--border) / 0.6);
+  scrollbar-color: hsl(var(--border) / 0.8) transparent;
+}
+
+/* Custom Sleek WebKit Scrollbar matching Koin's minimalist aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: hsl(var(--primary) / 0.8);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Hide scrollbars for clean minimal lists */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

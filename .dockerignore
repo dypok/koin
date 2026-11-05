@@ -1,0 +1,12 @@
+node_modules
+.git
+.turbo
+apps/server/dist
+!apps/web/dist
+bin
+*.log
+coverage
+.DS_Store
+apps/web/android
+apps/server/dist
+apps/server/bin
