@@ -212,10 +212,12 @@ func main() {
 
 	// Frontend SPA Serving & Fallback
 	webDistPaths := []string{
+		"/app/web/dist",
+		"./web/dist",
 		"../../apps/web/dist",
 		"../web/dist",
-		"./web/dist",
 		"apps/web/dist",
+		"./dist",
 	}
 
 	var foundDistDir string

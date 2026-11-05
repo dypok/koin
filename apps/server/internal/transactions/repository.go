@@ -40,7 +40,7 @@ func (r *Repository) GetExchangeRate(ctx context.Context, from, to string) (deci
 
 	// 1. Direct pair: e.g. USD_COP
 	var rate decimal.Decimal
-	query := `SELECT rate FROM system.exchange_rates WHERE from_currency = $1 AND to_currency = $2`
+	query := `SELECT rate FROM koin_system.exchange_rates WHERE from_currency = $1 AND to_currency = $2`
 	err := r.pool.QueryRow(ctx, query, from, to).Scan(&rate)
 	if err == nil && !rate.IsZero() {
 		return rate, nil
@@ -70,7 +70,7 @@ func (r *Repository) GetExchangeRate(ctx context.Context, from, to string) (deci
 func (r *Repository) ListExchangeRates(ctx context.Context) ([]models.ExchangeRate, error) {
 	query := `
 		SELECT pair, from_currency, to_currency, rate, updated_at
-		FROM system.exchange_rates
+		FROM koin_system.exchange_rates
 		ORDER BY pair ASC
 	`
 	rows, err := r.pool.Query(ctx, query)
@@ -99,8 +99,8 @@ func (r *Repository) CheckAccountAccess(ctx context.Context, accountID, profileI
 				WHEN a.created_by_profile_id = $2 THEN 'owner'
 				ELSE COALESCE(am.role, '')
 			END AS role
-		FROM finance.accounts a
-		LEFT JOIN finance.account_members am 
+		FROM koin_finance.accounts a
+		LEFT JOIN koin_finance.account_members am 
 			ON am.account_id = a.id AND am.profile_id = $2 AND am.status = 'accepted'
 		WHERE a.id = $1 AND (a.created_by_profile_id = $2 OR am.profile_id = $2)
 	`
@@ -123,7 +123,7 @@ func (r *Repository) CheckAccountAccess(ctx context.Context, accountID, profileI
 // GetProfileBaseCurrency returns the base currency configured for the profile.
 func (r *Repository) GetProfileBaseCurrency(ctx context.Context, profileID uuid.UUID) (string, error) {
 	var baseCurrency string
-	query := `SELECT base_currency FROM auth.profiles WHERE id = $1`
+	query := `SELECT base_currency FROM koin_auth.profiles WHERE id = $1`
 	err := r.pool.QueryRow(ctx, query, profileID).Scan(&baseCurrency)
 	if err != nil {
 		return "USD", err
@@ -134,10 +134,10 @@ func (r *Repository) GetProfileBaseCurrency(ctx context.Context, profileID uuid.
 	return baseCurrency, nil
 }
 
-// syncAccountBalance updates current_balance on finance.accounts for an account.
+// syncAccountBalance updates current_balance on koin_finance.accounts for an account.
 func syncAccountBalance(ctx context.Context, tx pgx.Tx, accountID uuid.UUID) error {
 	query := `
-		UPDATE finance.accounts a
+		UPDATE koin_finance.accounts a
 		SET current_balance = a.initial_balance + COALESCE((
 			SELECT SUM(
 				CASE 
@@ -148,7 +148,7 @@ func syncAccountBalance(ctx context.Context, tx pgx.Tx, accountID uuid.UUID) err
 					ELSE 0
 				END
 			)
-			FROM finance.transactions t
+			FROM koin_finance.transactions t
 			WHERE t.account_id = a.id OR t.to_account_id = a.id
 		), 0),
 		updated_at = NOW()
@@ -169,7 +169,7 @@ func (r *Repository) Create(ctx context.Context, t *models.Transaction) (*models
 	}()
 
 	query := `
-		INSERT INTO finance.transactions (
+		INSERT INTO koin_finance.transactions (
 			profile_id, account_id, to_account_id, category_id,
 			type, amount, to_amount, currency, exchange_rate_to_base, base_amount,
 			date, note, tags, is_recurring
@@ -228,7 +228,7 @@ func (r *Repository) CreateTransfer(ctx context.Context, profileID uuid.UUID, t 
 	}()
 
 	query := `
-		INSERT INTO finance.transactions (
+		INSERT INTO koin_finance.transactions (
 			profile_id, account_id, to_account_id, category_id,
 			type, amount, to_amount, currency, exchange_rate_to_base, base_amount,
 			date, note, tags, is_recurring
@@ -284,8 +284,8 @@ func (r *Repository) List(ctx context.Context, filter models.TransactionFilter) 
 	conditions = append(conditions, fmt.Sprintf(`(
 		t.profile_id = $%d 
 		OR t.account_id IN (
-			SELECT a.id FROM finance.accounts a 
-			LEFT JOIN finance.account_members am ON am.account_id = a.id AND am.profile_id = $%d AND am.status = 'accepted'
+			SELECT a.id FROM koin_finance.accounts a 
+			LEFT JOIN koin_finance.account_members am ON am.account_id = a.id AND am.profile_id = $%d AND am.status = 'accepted'
 			WHERE a.created_by_profile_id = $%d OR am.profile_id = $%d
 		)
 	)`, argIdx, argIdx, argIdx, argIdx))
@@ -332,7 +332,7 @@ func (r *Repository) List(ctx context.Context, filter models.TransactionFilter) 
 	whereClause := "WHERE " + strings.Join(conditions, " AND ")
 
 	// Total count
-	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM finance.transactions t %s`, whereClause)
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM koin_finance.transactions t %s`, whereClause)
 	var totalCount int
 	if err := r.pool.QueryRow(ctx, countQuery, args...).Scan(&totalCount); err != nil {
 		return nil, fmt.Errorf("error counting transactions: %w", err)
@@ -381,10 +381,10 @@ func (r *Repository) List(ctx context.Context, filter models.TransactionFilter) 
 			c.name AS category_name,
 			c.icon AS category_icon,
 			c.color AS category_color
-		FROM finance.transactions t
-		JOIN finance.accounts a ON t.account_id = a.id
-		LEFT JOIN finance.accounts to_a ON t.to_account_id = to_a.id
-		LEFT JOIN finance.categories c ON t.category_id = c.id
+		FROM koin_finance.transactions t
+		JOIN koin_finance.accounts a ON t.account_id = a.id
+		LEFT JOIN koin_finance.accounts to_a ON t.to_account_id = to_a.id
+		LEFT JOIN koin_finance.categories c ON t.category_id = c.id
 		%s
 		ORDER BY t.date DESC, t.created_at DESC
 		LIMIT $%d OFFSET $%d
@@ -480,15 +480,15 @@ func (r *Repository) GetByID(ctx context.Context, id, profileID uuid.UUID) (*mod
 			c.name AS category_name,
 			c.icon AS category_icon,
 			c.color AS category_color
-		FROM finance.transactions t
-		JOIN finance.accounts a ON t.account_id = a.id
-		LEFT JOIN finance.accounts to_a ON t.to_account_id = to_a.id
-		LEFT JOIN finance.categories c ON t.category_id = c.id
+		FROM koin_finance.transactions t
+		JOIN koin_finance.accounts a ON t.account_id = a.id
+		LEFT JOIN koin_finance.accounts to_a ON t.to_account_id = to_a.id
+		LEFT JOIN koin_finance.categories c ON t.category_id = c.id
 		WHERE t.id = $1 AND (
 			t.profile_id = $2 
 			OR t.account_id IN (
-				SELECT a2.id FROM finance.accounts a2 
-				LEFT JOIN finance.account_members am ON am.account_id = a2.id AND am.profile_id = $2 AND am.status = 'accepted'
+				SELECT a2.id FROM koin_finance.accounts a2 
+				LEFT JOIN koin_finance.account_members am ON am.account_id = a2.id AND am.profile_id = $2 AND am.status = 'accepted'
 				WHERE a2.created_by_profile_id = $2 OR am.profile_id = $2
 			)
 		)
@@ -605,7 +605,7 @@ func (r *Repository) Update(ctx context.Context, id, profileID uuid.UUID, req mo
 	}
 
 	query := fmt.Sprintf(`
-		UPDATE finance.transactions
+		UPDATE koin_finance.transactions
 		SET %s
 		WHERE id = $1
 	`, strings.Join(setClauses, ", "))
@@ -647,7 +647,7 @@ func (r *Repository) Delete(ctx context.Context, id, profileID uuid.UUID) error 
 		_ = dbTx.Rollback(ctx)
 	}()
 
-	delQuery := `DELETE FROM finance.transactions WHERE id = $1`
+	delQuery := `DELETE FROM koin_finance.transactions WHERE id = $1`
 	if _, err := dbTx.Exec(ctx, delQuery, id); err != nil {
 		return fmt.Errorf("error deleting transaction: %w", err)
 	}

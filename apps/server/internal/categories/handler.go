@@ -48,7 +48,7 @@ func (h *Handler) resolveProfileID(r *http.Request, userID uuid.UUID) (uuid.UUID
 	}
 
 	var firstProfileID uuid.UUID
-	query := `SELECT id FROM auth.profiles WHERE user_id = $1 ORDER BY created_at ASC LIMIT 1`
+	query := `SELECT id FROM koin_auth.profiles WHERE user_id = $1 ORDER BY created_at ASC LIMIT 1`
 	err := h.pool.QueryRow(r.Context(), query, userID).Scan(&firstProfileID)
 	if err == nil {
 		return firstProfileID, nil
@@ -59,7 +59,7 @@ func (h *Handler) resolveProfileID(r *http.Request, userID uuid.UUID) (uuid.UUID
 
 func (h *Handler) verifyProfileOwnership(r *http.Request, userID, profileID uuid.UUID) bool {
 	var count int
-	query := `SELECT COUNT(*) FROM auth.profiles WHERE id = $1 AND user_id = $2`
+	query := `SELECT COUNT(*) FROM koin_auth.profiles WHERE id = $1 AND user_id = $2`
 	err := h.pool.QueryRow(r.Context(), query, profileID, userID).Scan(&count)
 	return err == nil && count > 0
 }

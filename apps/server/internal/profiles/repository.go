@@ -37,7 +37,7 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID) ([]models.Profile, error) {
 	query := `
 		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, failed_attempts, locked_until, use_biometrics, created_at, updated_at
-		FROM auth.profiles
+		FROM koin_auth.profiles
 		WHERE user_id = $1
 		ORDER BY created_at ASC
 	`
@@ -77,7 +77,7 @@ func (r *Repository) FindProfilesByUserID(ctx context.Context, userID uuid.UUID)
 func (r *Repository) FindProfileByID(ctx context.Context, profileID uuid.UUID) (*models.Profile, error) {
 	query := `
 		SELECT id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, failed_attempts, locked_until, use_biometrics, created_at, updated_at
-		FROM auth.profiles
+		FROM koin_auth.profiles
 		WHERE id = $1
 		LIMIT 1
 	`
@@ -108,7 +108,7 @@ func (r *Repository) FindProfileByID(ctx context.Context, profileID uuid.UUID) (
 }
 
 func (r *Repository) CountProfilesByUserID(ctx context.Context, userID uuid.UUID) (int, error) {
-	query := `SELECT COUNT(*) FROM auth.profiles WHERE user_id = $1`
+	query := `SELECT COUNT(*) FROM koin_auth.profiles WHERE user_id = $1`
 	var count int
 	err := r.pool.QueryRow(ctx, query, userID).Scan(&count)
 	if err != nil {
@@ -129,7 +129,7 @@ func (r *Repository) CreateProfileWithSeed(ctx context.Context, userID uuid.UUID
 	// 1. Insert Profile
 	var newProfile models.Profile
 	profileQuery := `
-		INSERT INTO auth.profiles (user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_hash, pin_digits, failed_attempts, use_biometrics)
+		INSERT INTO koin_auth.profiles (user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_hash, pin_digits, failed_attempts, use_biometrics)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9)
 		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, failed_attempts, locked_until, use_biometrics, created_at, updated_at
 	`
@@ -174,12 +174,12 @@ func (r *Repository) CreateProfileWithSeed(ctx context.Context, userID uuid.UUID
 	}
 
 	accountQuery := `
-		INSERT INTO finance.accounts (created_by_profile_id, name, type, currency, initial_balance, current_balance, is_shared, color, icon, is_archived)
+		INSERT INTO koin_finance.accounts (created_by_profile_id, name, type, currency, initial_balance, current_balance, is_shared, color, icon, is_archived)
 		VALUES ($1, $2, $3, $4, 0.00, 0.00, false, $5, $6, false)
 		RETURNING id
 	`
 	memberQuery := `
-		INSERT INTO finance.account_members (account_id, profile_id, role, status)
+		INSERT INTO koin_finance.account_members (account_id, profile_id, role, status)
 		VALUES ($1, $2, 'owner', 'accepted')
 	`
 
@@ -219,7 +219,7 @@ func (r *Repository) CreateProfileWithSeed(ctx context.Context, userID uuid.UUID
 	}
 
 	catQuery := `
-		INSERT INTO finance.categories (profile_id, name, type, icon, color, is_default, sort_order)
+		INSERT INTO koin_finance.categories (profile_id, name, type, icon, color, is_default, sort_order)
 		VALUES ($1, $2, $3, $4, $5, true, $6)
 	`
 	for _, cat := range defaultCategoriesData {
@@ -281,7 +281,7 @@ func (r *Repository) UpdateProfile(ctx context.Context, userID uuid.UUID, profil
 	}
 
 	query := fmt.Sprintf(`
-		UPDATE auth.profiles
+		UPDATE koin_auth.profiles
 		SET %s
 		WHERE id = $1 AND user_id = $2
 		RETURNING id, user_id, name, avatar_icon, theme_config, base_currency, has_pin, pin_digits, failed_attempts, locked_until, use_biometrics, created_at, updated_at
@@ -322,7 +322,7 @@ func (r *Repository) DeleteProfile(ctx context.Context, userID uuid.UUID, profil
 		return ErrSingleProfile
 	}
 
-	query := `DELETE FROM auth.profiles WHERE id = $1 AND user_id = $2`
+	query := `DELETE FROM koin_auth.profiles WHERE id = $1 AND user_id = $2`
 	res, err := r.pool.Exec(ctx, query, profileID, userID)
 	if err != nil {
 		return fmt.Errorf("failed to delete profile: %w", err)
@@ -339,7 +339,7 @@ func (r *Repository) DeleteProfile(ctx context.Context, userID uuid.UUID, profil
 func (r *Repository) GetProfileSecurity(ctx context.Context, profileID uuid.UUID) (*ProfileSecurityInfo, error) {
 	query := `
 		SELECT has_pin, COALESCE(pin_hash, ''), failed_attempts, locked_until
-		FROM auth.profiles
+		FROM koin_auth.profiles
 		WHERE id = $1
 	`
 	var sec ProfileSecurityInfo
@@ -361,7 +361,7 @@ func (r *Repository) GetProfileSecurity(ctx context.Context, profileID uuid.UUID
 // IncrementFailedAttempts increments the failure counter and triggers a 15-minute lock upon 5 failures.
 func (r *Repository) IncrementFailedAttempts(ctx context.Context, profileID uuid.UUID) (int, *time.Time, error) {
 	query := `
-		UPDATE auth.profiles
+		UPDATE koin_auth.profiles
 		SET failed_attempts = failed_attempts + 1,
 		    locked_until = CASE WHEN failed_attempts + 1 >= 5 THEN NOW() + INTERVAL '15 minutes' ELSE locked_until END
 		WHERE id = $1
@@ -378,7 +378,7 @@ func (r *Repository) IncrementFailedAttempts(ctx context.Context, profileID uuid
 
 // ResetFailedAttempts clears the counter and lockout upon successful unlock.
 func (r *Repository) ResetFailedAttempts(ctx context.Context, profileID uuid.UUID) error {
-	query := `UPDATE auth.profiles SET failed_attempts = 0, locked_until = NULL WHERE id = $1`
+	query := `UPDATE koin_auth.profiles SET failed_attempts = 0, locked_until = NULL WHERE id = $1`
 	_, err := r.pool.Exec(ctx, query, profileID)
 	if err != nil {
 		return fmt.Errorf("failed to reset failed attempts: %w", err)
@@ -392,14 +392,14 @@ func (r *Repository) SetPIN(ctx context.Context, userID, profileID uuid.UUID, pi
 	var args []any
 	if pinHash != nil && *pinHash != "" {
 		query = `
-			UPDATE auth.profiles
+			UPDATE koin_auth.profiles
 			SET has_pin = true, pin_hash = $1, pin_digits = $2, failed_attempts = 0, locked_until = NULL, updated_at = NOW()
 			WHERE id = $3 AND user_id = $4
 		`
 		args = []any{*pinHash, pinDigits, profileID, userID}
 	} else {
 		query = `
-			UPDATE auth.profiles
+			UPDATE koin_auth.profiles
 			SET has_pin = false, pin_hash = NULL, pin_digits = 4, failed_attempts = 0, locked_until = NULL, updated_at = NOW()
 			WHERE id = $1 AND user_id = $2
 		`
