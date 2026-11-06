@@ -290,6 +290,21 @@ func (r *Repository) Update(ctx context.Context, accountID uuid.UUID, req models
 			color = COALESCE($5, color),
 			icon = COALESCE($6, icon),
 			is_archived = COALESCE($7, is_archived),
+			initial_balance = COALESCE($8, initial_balance),
+			currency = COALESCE($9, currency),
+			current_balance = COALESCE($8, initial_balance) + COALESCE((
+				SELECT SUM(
+					CASE 
+						WHEN t.type = 'income' THEN t.amount
+						WHEN t.type = 'expense' THEN -t.amount
+						WHEN t.type = 'transfer' AND t.to_account_id = koin_finance.accounts.id THEN COALESCE(t.to_amount, t.amount)
+						WHEN t.type = 'transfer' AND t.account_id = koin_finance.accounts.id THEN -t.amount
+						ELSE 0
+					END
+				)
+				FROM koin_finance.transactions t
+				WHERE t.account_id = koin_finance.accounts.id OR t.to_account_id = koin_finance.accounts.id
+			), 0),
 			updated_at = now()
 		WHERE id = $1
 		RETURNING 
@@ -306,6 +321,8 @@ func (r *Repository) Update(ctx context.Context, accountID uuid.UUID, req models
 		req.Color,
 		req.Icon,
 		req.IsArchived,
+		req.InitialBalance,
+		req.Currency,
 	).Scan(
 		&acc.ID,
 		&acc.CreatedByProfileID,
@@ -331,6 +348,17 @@ func (r *Repository) Update(ctx context.Context, accountID uuid.UUID, req models
 	}
 
 	return &acc, nil
+}
+
+// HasTransactions checks whether an account is referenced in any transaction (as account_id or to_account_id).
+func (r *Repository) HasTransactions(ctx context.Context, accountID uuid.UUID) (bool, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM koin_finance.transactions WHERE account_id = $1 OR to_account_id = $1`
+	err := r.pool.QueryRow(ctx, query, accountID).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("error checking account transactions: %w", err)
+	}
+	return count > 0, nil
 }
 
 // Delete removes an account. Returns error if foreign key constraints block deletion (e.g. existing transactions).

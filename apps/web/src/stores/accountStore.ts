@@ -15,7 +15,7 @@ interface AccountState {
 
   fetchAccounts: (profileId?: string) => Promise<void>;
   createAccount: (data: CreateAccountInput, profileId?: string) => Promise<AccountDTO>;
-  updateAccount: (id: string, data: UpdateAccountInput) => Promise<AccountDTO>;
+  updateAccount: (id: string, data: UpdateAccountInput, profileId?: string) => Promise<AccountDTO>;
   deleteAccount: (id: string) => Promise<void>;
 
   createInvitation: (accountId: string, role?: 'editor' | 'viewer') => Promise<AccountInvitationDTO>;
@@ -58,16 +58,20 @@ export const useAccountStore = create<AccountState>((set, get) => ({
     return newAccount;
   },
 
-  updateAccount: async (id: string, data: UpdateAccountInput) => {
+  updateAccount: async (id: string, data: UpdateAccountInput, profileId?: string) => {
     set({ error: null });
     const res = await apiRequest<{ data: AccountDTO }>(`/accounts/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
     const updated = res.data;
-    set((state) => ({
-      accounts: state.accounts.map((a) => (a.id === id ? { ...a, ...updated } : a)),
-    }));
+    if (profileId) {
+      await get().fetchAccounts(profileId);
+    } else {
+      set((state) => ({
+        accounts: state.accounts.map((a) => (a.id === id ? { ...a, ...updated } : a)),
+      }));
+    }
     return updated;
   },
 
