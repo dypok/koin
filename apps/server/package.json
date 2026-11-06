@@ -1,6 +1,6 @@
 {
   "name": "@koin/server",
-  "version": "0.5.0-1",
+  "version": "0.6.0",
   "private": true,
   "scripts": {
     "build": "CGO_ENABLED=0 go build -ldflags=\"-s -w\" -o bin/api ./cmd/api",

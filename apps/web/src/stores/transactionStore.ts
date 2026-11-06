@@ -5,9 +5,12 @@ import {
   ExchangeRateDTO,
   CreateTransactionInput,
   CreateTransferInput,
+  CreateCategoryInput,
+  UpdateCategoryInput,
 } from '@koin/shared';
 import { apiRequest } from '../lib/api';
 import { useAccountStore } from './accountStore';
+import { useBudgetStore } from './budgetStore';
 
 export interface RecentToastInfo {
   id: string;
@@ -18,6 +21,11 @@ export interface RecentToastInfo {
   categoryName?: string;
   accountName?: string;
   toAccountName?: string;
+  budgetAlert?: {
+    status: 'warning' | 'exceeded';
+    percent: number;
+    categoryName: string;
+  };
 }
 
 export interface TransactionFilterParams {
@@ -44,6 +52,9 @@ interface TransactionState {
   toastTimer: any | null;
 
   fetchCategories: (profileId?: string) => Promise<CategoryWithUsageDTO[]>;
+  createCategory: (data: CreateCategoryInput, profileId?: string) => Promise<CategoryWithUsageDTO>;
+  updateCategory: (id: string, data: UpdateCategoryInput, profileId?: string) => Promise<CategoryWithUsageDTO>;
+  deleteCategory: (id: string, profileId?: string) => Promise<void>;
   fetchExchangeRates: () => Promise<ExchangeRateDTO[]>;
   fetchTransactions: (filters?: TransactionFilterParams, profileId?: string) => Promise<void>;
   createTransaction: (data: CreateTransactionInput, profileId?: string) => Promise<TransactionDTO>;
@@ -78,6 +89,42 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       set({ error: err.message || 'Error al obtener categorías', isLoadingCategories: false });
       return [];
     }
+  },
+
+  createCategory: async (data: CreateCategoryInput, profileId?: string) => {
+    set({ error: null });
+    const headers = profileId ? { 'X-Profile-ID': profileId } : undefined;
+    const res = await apiRequest<any>('/categories', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers,
+    });
+    const newCat = (res.data || res) as CategoryWithUsageDTO;
+    await get().fetchCategories(profileId);
+    return newCat;
+  },
+
+  updateCategory: async (id: string, data: UpdateCategoryInput, profileId?: string) => {
+    set({ error: null });
+    const headers = profileId ? { 'X-Profile-ID': profileId } : undefined;
+    const res = await apiRequest<any>(`/categories/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      headers,
+    });
+    const updatedCat = (res.data || res) as CategoryWithUsageDTO;
+    await get().fetchCategories(profileId);
+    return updatedCat;
+  },
+
+  deleteCategory: async (id: string, profileId?: string) => {
+    set({ error: null });
+    const headers = profileId ? { 'X-Profile-ID': profileId } : undefined;
+    await apiRequest(`/categories/${id}`, {
+      method: 'DELETE',
+      headers,
+    });
+    await get().fetchCategories(profileId);
   },
 
   fetchExchangeRates: async () => {
@@ -149,13 +196,29 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     // Refresh categories usage counts
     get().fetchCategories(profileId);
 
+    // Refresh budgets to check real-time health and thresholds
+    let budgetAlert: RecentToastInfo['budgetAlert'] = undefined;
+    try {
+      const updatedBudgets = await useBudgetStore.getState().fetchBudgets(profileId);
+      if (newTx.type === 'expense' && newTx.categoryId) {
+        const catBudget = updatedBudgets.find((b) => b.categoryId === newTx.categoryId);
+        if (catBudget && (catBudget.status === 'warning' || catBudget.status === 'exceeded')) {
+          budgetAlert = {
+            status: catBudget.status,
+            percent: catBudget.percentageUsed || 0,
+            categoryName: catBudget.categoryName || newTx.categoryName || 'Categoría',
+          };
+        }
+      }
+    } catch (_) {}
+
     // Setup 5-second Undo Toast
     if (get().toastTimer) {
       clearTimeout(get().toastTimer);
     }
     const timer = setTimeout(() => {
       set({ recentToast: null, toastTimer: null });
-    }, 5000);
+    }, 6000);
 
     set({
       recentToast: {
@@ -166,6 +229,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         currency: newTx.currency,
         categoryName: newTx.categoryName || 'General',
         accountName: newTx.accountName || 'Cuenta',
+        budgetAlert,
       },
       toastTimer: timer,
     });

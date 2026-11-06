@@ -16,10 +16,13 @@ import (
 	"github.com/go-chi/cors"
 
 	"koin/server/internal/accounts"
+	"koin/server/internal/analytics"
 	"koin/server/internal/auth"
+	"koin/server/internal/budgets"
 	"koin/server/internal/categories"
 	"koin/server/internal/config"
 	"koin/server/internal/database"
+	"koin/server/internal/export"
 	"koin/server/internal/middleware"
 	"koin/server/internal/profiles"
 	"koin/server/internal/recurring"
@@ -77,6 +80,31 @@ func main() {
 	recurringHandler := recurring.NewHandler(recurringService, db.Pool, func(r *http.Request) *auth.JWTClaims {
 		return middleware.GetUserClaims(r.Context())
 	})
+
+	budgetRepo := budgets.NewRepository(db.Pool)
+	budgetService := budgets.NewService(budgetRepo)
+	budgetHandler := budgets.NewHandler(budgetService, db.Pool, func(r *http.Request) *auth.JWTClaims {
+		return middleware.GetUserClaims(r.Context())
+	})
+
+	analyticsRepo := analytics.NewRepository(db.Pool)
+	analyticsService := analytics.NewService(analyticsRepo)
+	analyticsHandler := analytics.NewHandler(analyticsService, db.Pool, func(r *http.Request) *auth.JWTClaims {
+		return middleware.GetUserClaims(r.Context())
+	})
+
+	exportHandler := export.NewHandler(
+		db.Pool,
+		func(r *http.Request) *auth.JWTClaims {
+			return middleware.GetUserClaims(r.Context())
+		},
+		profileRepo,
+		accountRepo,
+		categoryRepo,
+		budgetRepo,
+		recurringRepo,
+		transactionRepo,
+	)
 
 	// Rate Limiters
 	loginLimiter := middleware.NewIPRateLimiter(5, 15*time.Minute, "Demasiados intentos fallidos. Por seguridad, intente de nuevo en 15 minutos.")
@@ -208,6 +236,31 @@ func main() {
 	// Currencies & Exchange Rates Subrouter (TXN-03)
 	r.Route("/api/v1/currencies", func(r chi.Router) {
 		r.Get("/rates", transactionHandler.ListRates)
+	})
+
+	// Budgets Subrouter (BUD-02)
+	r.Route("/api/v1/budgets", func(r chi.Router) {
+		r.Use(middleware.AuthenticateToken(cfg.JWTSecret))
+		r.Get("/", budgetHandler.List)
+		r.Post("/", budgetHandler.Upsert)
+		r.Get("/{id}", budgetHandler.GetByID)
+		r.Patch("/{id}", budgetHandler.Update)
+		r.Delete("/{id}", budgetHandler.Delete)
+	})
+
+	// Analytics Subrouter (ANL-01, ANL-02)
+	r.Route("/api/v1/analytics", func(r chi.Router) {
+		r.Use(middleware.AuthenticateToken(cfg.JWTSecret))
+		r.Get("/summary", analyticsHandler.GetSummary)
+		r.Get("/categories", analyticsHandler.GetCategoryExpenses)
+		r.Get("/cashflow", analyticsHandler.GetMonthlyCashflow)
+	})
+
+	// Export Subrouter (ANL-03)
+	r.Route("/api/v1/export", func(r chi.Router) {
+		r.Use(middleware.AuthenticateToken(cfg.JWTSecret))
+		r.Get("/csv", exportHandler.ExportCSV)
+		r.Get("/json", exportHandler.ExportJSON)
 	})
 
 	// Frontend SPA Serving & Fallback

@@ -25,7 +25,8 @@ import { AcceptInviteModal } from './components/accounts/AcceptInviteModal';
 import { TransactionsView } from './components/transactions/TransactionsView';
 import { QuickTransactionModal } from './components/transactions/QuickTransactionModal';
 import { UndoToast } from './components/transactions/UndoToast';
-import { UnimplementedView } from './components/common/UnimplementedView';
+import { BudgetsView } from './components/budgets/BudgetsView';
+import { HomeDashboardView } from './components/home/HomeDashboardView';
 import { getProfileAvatarStyle } from './lib/theme';
 
 type NavigationTab =
@@ -36,7 +37,7 @@ type NavigationTab =
   | 'settings';
 
 type TransactionsSubTab = 'history' | 'recurring';
-type SettingsSubTab = 'profiles' | 'appearance' | 'security';
+type SettingsSubTab = 'profiles' | 'appearance' | 'security' | 'categories' | 'data';
 
 function parseRoute(pathname: string): {
   tab: NavigationTab;
@@ -67,6 +68,12 @@ function parseRoute(pathname: string): {
     return { tab: 'history', txSubTab: 'history', settingsSubTab: 'profiles' };
   }
   if (clean.startsWith('/settings') || clean.startsWith('/configuracion')) {
+    if (clean.includes('category') || clean.includes('categoria') || clean.includes('categories') || clean.includes('categorias')) {
+      return { tab: 'settings', txSubTab: 'history', settingsSubTab: 'categories' };
+    }
+    if (clean.includes('data') || clean.includes('export') || clean.includes('datos') || clean.includes('backup')) {
+      return { tab: 'settings', txSubTab: 'history', settingsSubTab: 'data' };
+    }
     if (clean.includes('appearance') || clean.includes('apariencia') || clean.includes('colores')) {
       return { tab: 'settings', txSubTab: 'history', settingsSubTab: 'appearance' };
     }
@@ -95,6 +102,8 @@ function getPathForState(
     case 'budgets':
       return '/budgets';
     case 'settings':
+      if (settingsSubTab === 'categories') return '/settings/categories';
+      if (settingsSubTab === 'data') return '/settings/data';
       if (settingsSubTab === 'appearance') return '/settings/appearance';
       if (settingsSubTab === 'security') return '/settings/security';
       return '/settings/profiles';
@@ -726,19 +735,17 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'budgets' && (
-            <UnimplementedView
-              moduleName="Presupuestos"
-              onGoToAccounts={() => setActiveTab('accounts')}
-              onGoToSettings={() => handleGoToSettings('profiles')}
-            />
-          )}
+          {activeTab === 'budgets' && <BudgetsView />}
 
           {activeTab === 'home' && (
-            <UnimplementedView
-              moduleName="Inicio y Balance"
+            <HomeDashboardView
               onGoToAccounts={() => setActiveTab('accounts')}
-              onGoToSettings={() => handleGoToSettings('profiles')}
+              onGoToBudgets={() => setActiveTab('budgets')}
+              onGoToTransactions={() => setActiveTab('history')}
+              onNewTransaction={(type = 'expense') => {
+                setQuickTxConfig({ type });
+                setIsQuickTxModalOpen(true);
+              }}
             />
           )}
         </main>

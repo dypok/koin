@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { RotateCcw, X, Check } from 'lucide-react';
+import { RotateCcw, X, Check, AlertTriangle } from 'lucide-react';
 import { useTransactionStore } from '../../stores/transactionStore';
 
 export const UndoToast: React.FC = () => {
@@ -61,6 +61,20 @@ export const UndoToast: React.FC = () => {
                 </>
               )}
             </p>
+            {recentToast.budgetAlert && (
+              <p
+                className={`text-[11px] font-semibold mt-0.5 flex items-center gap-1 ${
+                  recentToast.budgetAlert.status === 'exceeded' ? 'text-rose-500' : 'text-amber-500'
+                }`}
+              >
+                <AlertTriangle className="w-3 h-3 shrink-0" />
+                <span>
+                  {recentToast.budgetAlert.status === 'exceeded'
+                    ? `¡Presupuesto de ${recentToast.budgetAlert.categoryName} excedido (${recentToast.budgetAlert.percent}%)!`
+                    : `Alerta: ${recentToast.budgetAlert.percent}% del presupuesto de ${recentToast.budgetAlert.categoryName} alcanzado.`}
+                </span>
+              </p>
+            )}
           </div>
         </div>
 
