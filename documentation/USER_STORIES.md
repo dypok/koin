@@ -574,11 +574,11 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - No se permite eliminar una categoría con transacciones asociadas (se ofrece la opción de "Archivar")
 
 **Subtasks:**
-- [ ] [BD] Migración Drizzle de tabla `categories` con campo `icon VARCHAR(50)` y clave foránea `profile_id`
-- [ ] [BACKEND] Endpoints CRUD para categorías en `categories.controller.ts`
-- [ ] [FRONTEND] Catálogo modal de selección de iconos SVG de Lucide con buscador de texto
-- [ ] [FRONTEND] Lista plana de categorías con opción de editar o archivar
-- [ ] [TEST] Test de integridad: verificar error 400 al intentar borrar categoría con movimientos
+- [x] [BD] Migración Drizzle de tabla `categories` con campo `icon VARCHAR(50)` y clave foránea `profile_id`
+- [x] [BACKEND] Endpoints CRUD para categorías en `categories.controller.ts`
+- [x] [FRONTEND] Catálogo modal de selección de iconos SVG de Lucide con buscador de texto
+- [x] [FRONTEND] Lista plana de categorías con opción de editar o archivar
+- [x] [TEST] Test de integridad: verificar error 400 al intentar borrar categoría con movimientos
 
 **DoD adicional para esta US:**
 - Crear una categoría "Gimnasio" con icono SVG `Dumbbell` y verificar que se visualiza correctamente en el modal de gasto
@@ -600,12 +600,12 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Alerta preventiva en Toast y texto destacado al registrar un gasto que alcance el 80% o 100% del presupuesto
 
 **Subtasks:**
-- [ ] [BD] Migración Drizzle de tabla `budgets` con constraints únicos `[profile_id, category_id, period]`
-- [ ] [BACKEND] Endpoint `GET /api/v1/budgets`: calcula suma consumida en el mes y porcentaje restante
-- [ ] [BACKEND] Endpoint `POST /api/v1/budgets`: fijar o actualizar presupuesto
-- [ ] [FRONTEND] Vista de Presupuestos: filas minimalistas con nombre, monto gastado vs límite y barra delgada de 4px
-- [ ] [FRONTEND] Lógica visual de colores semafóricos según el porcentaje consumido
-- [ ] [FRONTEND] Alerta Toast no intrusiva al guardar un gasto que exceda el umbral del 80% o 100%
+- [x] [BD] Migración Drizzle de tabla `budgets` con constraints únicos `[profile_id, category_id, period]`
+- [x] [BACKEND] Endpoint `GET /api/v1/budgets`: calcula suma consumida en el mes y porcentaje restante
+- [x] [BACKEND] Endpoint `POST /api/v1/budgets`: fijar o actualizar presupuesto
+- [x] [FRONTEND] Vista de Presupuestos: filas minimalistas con nombre, monto gastado vs límite y barra delgada de 4px
+- [x] [FRONTEND] Lógica visual de colores semafóricos según el porcentaje consumido
+- [x] [FRONTEND] Alerta Toast no intrusiva al guardar un gasto que exceda el umbral del 80% o 100%
 
 **DoD adicional para esta US:**
 - Registrar un gasto que supere el presupuesto mensual de una categoría y comprobar que la barra cambia a rojo inmediatamente
@@ -627,11 +627,11 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Acompañado de un desglose en lista plana con porcentajes en texto sobrio (sin badges)
 
 **Subtasks:**
-- [ ] [BACKEND] Endpoint `GET /api/v1/analytics/categories`: retorna suma agrupada por categoría en moneda base
-- [ ] [FRONTEND] Componente de gráfico de dona con Recharts sin marcos ni bordes innecesarios
-- [ ] [FRONTEND] Tooltip personalizado con formato de moneda local y porcentaje
-- [ ] [FRONTEND] Lista plana inferior ordenada de mayor a menor gasto con divisores sutiles
-- [ ] [TEST] Verificar responsividad del gráfico en pantalla móvil y desktop
+- [x] [BACKEND] Endpoint `GET /api/v1/analytics/categories`: retorna suma agrupada por categoría en moneda base
+- [x] [FRONTEND] Componente de gráfico de dona con Recharts sin marcos ni bordes innecesarios
+- [x] [FRONTEND] Tooltip personalizado con formato de moneda local y porcentaje
+- [x] [FRONTEND] Lista plana inferior ordenada de mayor a menor gasto con divisores sutiles
+- [x] [TEST] Verificar responsividad del gráfico en pantalla móvil y desktop
 
 **DoD adicional para esta US:**
 - Gráfico renderizado sin pérdida de nitidez en pantallas de alta densidad (Retina / AMOLED)
@@ -652,10 +652,10 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Todos los montos consolidados en la **moneda base** del perfil
 
 **Subtasks:**
-- [ ] [BACKEND] Endpoint `GET /api/v1/analytics/cashflow`: retorna totales agrupados por los últimos 6 meses
-- [ ] [FRONTEND] Componente de barras comparativas con Recharts
-- [ ] [FRONTEND] Indicador tipográfico de Tasa de Ahorro en texto sobrio
-- [ ] [FRONTEND] Selector de mes para consultar datos históricos
+- [x] [BACKEND] Endpoint `GET /api/v1/analytics/cashflow`: retorna totales agrupados por los últimos 6 meses
+- [x] [FRONTEND] Componente de barras comparativas con Recharts
+- [x] [FRONTEND] Indicador tipográfico de Tasa de Ahorro en texto sobrio
+- [x] [FRONTEND] Selector de mes para consultar datos históricos
 
 **DoD adicional para esta US:**
 - Verificar que las transacciones en divisas extranjeras están correctamente convertidas a la moneda base en las barras
@@ -676,10 +676,10 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Funcional tanto en navegador web de escritorio como en Android mediante diálogo nativo de compartir (`@capacitor/filesystem` / `@capacitor/share`)
 
 **Subtasks:**
-- [ ] [BACKEND] Endpoint `GET /api/v1/export/csv`: genera stream de texto CSV con encoding UTF-8
-- [ ] [BACKEND] Endpoint `GET /api/v1/export/json`: genera volcado relacional del perfil activo
-- [ ] [FRONTEND] Botones de exportación en la sección de Ajustes
-- [ ] [FRONTEND] Integración condicional: descarga por blob en Web y guardado con `@capacitor/filesystem` en Android
+- [x] [BACKEND] Endpoint `GET /api/v1/export/csv`: genera stream de texto CSV con encoding UTF-8
+- [x] [BACKEND] Endpoint `GET /api/v1/export/json`: genera volcado relacional del perfil activo
+- [x] [FRONTEND] Botones de exportación en la sección de Ajustes
+- [x] [FRONTEND] Integración condicional: descarga por blob en Web y guardado con `@capacitor/filesystem` en Android
 
 **DoD adicional para esta US:**
 - Descargar el archivo CSV y abrirlo en Microsoft Excel y Google Sheets verificando que no hay caracteres rotos de encoding
