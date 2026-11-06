@@ -200,12 +200,14 @@ type CreateAccountRequest struct {
 }
 
 type UpdateAccountRequest struct {
-	Name            *string `json:"name,omitempty"`
-	InstitutionName *string `json:"institutionName,omitempty"`
-	Type            *string `json:"type,omitempty"`
-	Color           *string `json:"color,omitempty"`
-	Icon            *string `json:"icon,omitempty"`
-	IsArchived      *bool   `json:"isArchived,omitempty"`
+	Name            *string          `json:"name,omitempty"`
+	InstitutionName *string          `json:"institutionName,omitempty"`
+	Type            *string          `json:"type,omitempty"`
+	Currency        *string          `json:"currency,omitempty"`
+	InitialBalance  *decimal.Decimal `json:"initialBalance,omitempty"`
+	Color           *string          `json:"color,omitempty"`
+	Icon            *string          `json:"icon,omitempty"`
+	IsArchived      *bool            `json:"isArchived,omitempty"`
 }
 
 type CreateInvitationRequest struct {

@@ -12,6 +12,7 @@ import { KoinIcon } from '../../lib/icons';
 import { useAccountStore } from '../../stores/accountStore';
 import { useAuthStore } from '../../stores/authStore';
 import { ModalPortal } from '../common/ModalPortal';
+import { formatMoney } from '../../lib/currency';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -60,7 +61,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const [institutionName, setInstitutionName] = useState('');
   const [type, setType] = useState<AccountType>('bank');
   const [currency, setCurrency] = useState('USD');
-  const [initialBalance, setInitialBalance] = useState('0.00');
+  const [initialBalance, setInitialBalance] = useState('0');
+  const [balanceSign, setBalanceSign] = useState<'positive' | 'negative'>('positive');
   const [color, setColor] = useState('#10B981');
   const [icon, setIcon] = useState<string>('Building2');
   const [loading, setLoading] = useState(false);
@@ -73,7 +75,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       setInstitutionName(accountToEdit.institutionName || '');
       setType(accountToEdit.type);
       setCurrency(accountToEdit.currency);
-      setInitialBalance(accountToEdit.initialBalance);
+      const initNum = parseFloat(accountToEdit.initialBalance || '0');
+      if (initNum < 0) {
+        setBalanceSign('negative');
+        setInitialBalance(Math.abs(initNum).toString());
+      } else {
+        setBalanceSign('positive');
+        setInitialBalance(initNum.toString());
+      }
       setColor(accountToEdit.color);
       setIcon(accountToEdit.icon);
       setIsCustomName(true);
@@ -83,7 +92,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       setInstitutionName('');
       setName(ACCOUNT_TYPE_LABELS[defaultType]);
       setCurrency(activeProfile?.baseCurrency || 'USD');
-      setInitialBalance('0.00');
+      setBalanceSign('positive');
+      setInitialBalance('0');
       setColor('#10B981');
       setIcon('Building2');
       setIsCustomName(false);
@@ -98,11 +108,19 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     if (!isCustomName) {
       setName(buildAccountName(newType, institutionName));
     }
-    // Contextual icon adaptation
+    // Contextual icon adaptation & default sign for debts
     if (newType === 'bank' && icon === 'Wallet') setIcon('Building2');
-    if (newType === 'credit') setIcon('CreditCard');
-    if (newType === 'savings' && icon === 'CreditCard') setIcon('PiggyBank');
-    if (newType === 'cash') setIcon('Wallet');
+    if (newType === 'credit') {
+      setIcon('CreditCard');
+      // For credit cards, if user has zero balance, offer debt negative sign by default
+      if (!isEditing && (!initialBalance || initialBalance === '0' || initialBalance === '0.00')) {
+        setBalanceSign('negative');
+      }
+    } else if (newType === 'savings' && icon === 'CreditCard') {
+      setIcon('PiggyBank');
+    } else if (newType === 'cash') {
+      setIcon('Wallet');
+    }
   };
 
   const handleInstitutionChange = (val: string) => {
@@ -121,7 +139,12 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       setType(currentType);
       if (currentType === 'bank') setIcon('Building2');
       if (currentType === 'savings') setIcon('PiggyBank');
-      if (currentType === 'credit') setIcon('CreditCard');
+      if (currentType === 'credit') {
+        setIcon('CreditCard');
+        if (!isEditing && (!initialBalance || initialBalance === '0')) {
+          setBalanceSign('negative');
+        }
+      }
     }
 
     if (!isCustomName) {
@@ -151,15 +174,25 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
     try {
       const instNameClean = institutionName.trim() || undefined;
+      const parsedNum = Math.abs(parseFloat(initialBalance) || 0);
+      const formattedInitialBalance = balanceSign === 'negative' && parsedNum > 0
+        ? `-${parsedNum.toFixed(2)}`
+        : parsedNum.toFixed(2);
 
       if (isEditing && accountToEdit) {
-        const updated = await updateAccount(accountToEdit.id, {
-          name: trimmedName,
-          institutionName: instNameClean || null,
-          type,
-          color,
-          icon,
-        });
+        const updated = await updateAccount(
+          accountToEdit.id,
+          {
+            name: trimmedName,
+            institutionName: instNameClean || null,
+            type,
+            color,
+            icon,
+            initialBalance: formattedInitialBalance,
+            currency,
+          },
+          activeProfile?.id
+        );
         onSuccess?.(updated);
         onClose();
       } else {
@@ -169,7 +202,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             institutionName: instNameClean,
             type,
             currency,
-            initialBalance: initialBalance || '0.00',
+            initialBalance: formattedInitialBalance,
             color,
             icon,
             isShared: false,
@@ -339,44 +372,109 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </p>
           </div>
 
-          {/* 4. Saldo Inicial & Divisa (solo al crear) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Saldo Inicial
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                disabled={isEditing}
-                value={initialBalance}
-                onChange={(e) => setInitialBalance(e.target.value)}
-                placeholder="0.00"
-                className="w-full px-3 py-2 bg-muted/20 border border-border/60 text-foreground font-mono text-xs focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
-              />
-              {isEditing && (
-                <p className="text-[10px] text-muted-foreground font-mono">
-                  El saldo se calcula en tiempo real por transacciones.
-                </p>
-              )}
+          {/* 4. Saldo Inicial & Divisa */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Saldo Inicial */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Saldo Inicial {isEditing ? '(Apertura)' : '(Al Comenzar)'}
+                  </label>
+                  {/* Balance Sign Selector: Positive vs Negative/Debt */}
+                  <div className="flex items-center gap-1 border border-border/60 bg-muted/10 p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setBalanceSign('positive')}
+                      className={`px-2 py-0.5 text-[10px] font-mono font-bold transition-colors ${
+                        balanceSign === 'positive'
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      title="Saldo positivo a favor (dinero disponible)"
+                    >
+                      + A Favor
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBalanceSign('negative')}
+                      className={`px-2 py-0.5 text-[10px] font-mono font-bold transition-colors ${
+                        balanceSign === 'negative'
+                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      title="Saldo en contra o deuda pendiente por pagar (ej. tarjeta de crédito o sobregiro)"
+                    >
+                      - Deuda
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <span
+                    className={`absolute left-3 top-1/2 -translate-y-1/2 font-mono font-bold text-xs ${
+                      balanceSign === 'negative' ? 'text-rose-400' : 'text-emerald-400'
+                    }`}
+                  >
+                    {balanceSign === 'negative' ? '-' : '+'}
+                  </span>
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    value={initialBalance}
+                    onChange={(e) => setInitialBalance(e.target.value)}
+                    placeholder="0.00"
+                    className={`w-full pl-7 pr-3 py-2 bg-muted/20 border text-foreground font-mono text-xs focus:outline-none transition-colors ${
+                      balanceSign === 'negative'
+                        ? 'border-rose-500/40 focus:border-rose-500'
+                        : 'border-border/60 focus:border-primary'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Moneda de la Cuenta */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Moneda de la Cuenta
+                </label>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="w-full px-3 py-2 bg-muted/20 border border-border/60 text-foreground text-xs focus:outline-none focus:border-primary transition-colors"
+                >
+                  {Object.values(SUPPORTED_CURRENCIES).map((c) => (
+                    <option key={c.code} value={c.code} className="bg-background text-foreground">
+                      {c.code} - {c.name} ({c.symbol})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Moneda de la Cuenta
-              </label>
-              <select
-                disabled={isEditing}
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-3 py-2 bg-muted/20 border border-border/60 text-foreground text-xs focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
-              >
-                {Object.values(SUPPORTED_CURRENCIES).map((c) => (
-                  <option key={c.code} value={c.code} className="bg-background text-foreground">
-                    {c.code} - {c.name} ({c.symbol})
-                  </option>
-                ))}
-              </select>
+            {/* Helper Contextual Banner */}
+            <div className="p-3 border border-border/30 bg-muted/5 text-[11px] font-mono text-muted-foreground space-y-1.5">
+              <p>
+                {balanceSign === 'negative' ? (
+                  <span className="text-rose-400 font-semibold">
+                    Registrando saldo en contra o deuda actual. Se computará en negativo sobre tu balance total.
+                  </span>
+                ) : (
+                  <span>
+                    Registrando fondos disponibles. Ingresa el dinero con el que dispones en esta cuenta para comenzar.
+                  </span>
+                )}
+              </p>
+              {isEditing && accountToEdit && (
+                <p className="text-[10px] text-muted-foreground border-t border-border/30 pt-1">
+                  Saldo actual consolidado en libro mayor:{' '}
+                  <strong className="text-foreground">
+                    {formatMoney(accountToEdit.currentBalance, accountToEdit.currency)}
+                  </strong>
+                  . Al modificar el saldo inicial de apertura, tu balance actual se recalculará automáticamente.
+                </p>
+              )}
             </div>
           </div>
 

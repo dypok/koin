@@ -18,6 +18,7 @@ var (
 	ErrInvalidRole        = errors.New("rol inválido. Roles permitidos: editor, viewer")
 	ErrEmptyAccountName   = errors.New("el nombre de la cuenta es obligatorio")
 	ErrForbidden          = errors.New("no tienes permisos para realizar esta operación (se requiere rol de propietario)")
+	ErrInvalidCurrency    = errors.New("código de divisa inválido (debe tener exactamente 3 caracteres)")
 )
 
 type Service struct {
@@ -102,6 +103,21 @@ func (s *Service) Update(ctx context.Context, accountID, profileID uuid.UUID, re
 		if !validTypes[*req.Type] {
 			return nil, ErrInvalidAccountType
 		}
+	}
+
+	if req.Currency != nil {
+		curr := strings.ToUpper(strings.TrimSpace(*req.Currency))
+		if len(curr) != 3 {
+			return nil, ErrInvalidCurrency
+		}
+		hasTx, err := s.repo.HasTransactions(ctx, accountID)
+		if err != nil {
+			return nil, err
+		}
+		if hasTx {
+			return nil, errors.New("no es posible cambiar la divisa de una cuenta con transacciones registradas")
+		}
+		req.Currency = &curr
 	}
 
 	return s.repo.Update(ctx, accountID, req)
