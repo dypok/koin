@@ -13,6 +13,7 @@ type Config struct {
 	JWTSecret          string
 	CORSAllowedOrigins []string
 	Environment        string
+	AppBaseURL         string
 }
 
 func Load() *Config {
@@ -53,11 +54,17 @@ func Load() *Config {
 		env = "development"
 	}
 
+	appBaseURL := os.Getenv("APP_BASE_URL")
+	if appBaseURL == "" {
+		appBaseURL = "http://localhost:5173"
+	}
+
 	return &Config{
 		Port:               port,
 		DatabaseURL:        dbURL,
 		JWTSecret:          jwtSecret,
 		CORSAllowedOrigins: corsOrigins,
 		Environment:        env,
+		AppBaseURL:         appBaseURL,
 	}
 }

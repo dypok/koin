@@ -86,7 +86,8 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	budgets, err := h.service.List(r.Context(), profileID)
+	month := strings.TrimSpace(r.URL.Query().Get("month"))
+	budgets, err := h.service.List(r.Context(), profileID, month)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "Error al obtener presupuestos")
 		return
@@ -109,7 +110,8 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := h.service.GetByID(r.Context(), bID, profileID)
+	month := strings.TrimSpace(r.URL.Query().Get("month"))
+	b, err := h.service.GetByID(r.Context(), bID, profileID, month)
 	if err != nil {
 		if errors.Is(err, ErrBudgetNotFound) {
 			response.Error(w, http.StatusNotFound, err.Error())

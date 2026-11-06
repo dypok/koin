@@ -43,8 +43,8 @@ func CalculateBudgetHealth(b *models.Budget) {
 	}
 }
 
-func (s *Service) List(ctx context.Context, profileID uuid.UUID) ([]models.Budget, error) {
-	budgets, err := s.repo.ListByProfile(ctx, profileID)
+func (s *Service) List(ctx context.Context, profileID uuid.UUID, month string) ([]models.Budget, error) {
+	budgets, err := s.repo.ListByProfile(ctx, profileID, month)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +56,8 @@ func (s *Service) List(ctx context.Context, profileID uuid.UUID) ([]models.Budge
 	return budgets, nil
 }
 
-func (s *Service) GetByID(ctx context.Context, id, profileID uuid.UUID) (*models.Budget, error) {
-	b, err := s.repo.GetByID(ctx, id, profileID)
+func (s *Service) GetByID(ctx context.Context, id, profileID uuid.UUID, month string) (*models.Budget, error) {
+	b, err := s.repo.GetByID(ctx, id, profileID, month)
 	if err != nil {
 		return nil, err
 	}

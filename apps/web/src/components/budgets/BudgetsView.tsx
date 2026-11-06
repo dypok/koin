@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Edit2, Trash2, Sliders, AlertTriangle, CheckCircle2, TrendingDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, Sliders, AlertTriangle, CheckCircle2, TrendingDown, Calendar } from 'lucide-react';
 import { BudgetDTO } from '@koin/shared';
 import { useBudgetStore } from '../../stores/budgetStore';
 import { useTransactionStore } from '../../stores/transactionStore';
 import { useAuthStore } from '../../stores/authStore';
 import { KoinIcon } from '../../lib/icons';
+import { formatMoney } from '../../lib/currency';
 import { BudgetModal } from './BudgetModal';
 import { ConfirmModal } from '../common/ConfirmModal';
 
@@ -16,15 +17,19 @@ export const BudgetsView: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<BudgetDTO | null>(null);
   const [budgetToDelete, setBudgetToDelete] = useState<BudgetDTO | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   const baseCurrency = activeProfile?.baseCurrency || 'USD';
 
   useEffect(() => {
     if (activeProfile?.id) {
-      fetchBudgets(activeProfile.id);
+      fetchBudgets(activeProfile.id, selectedMonth);
       fetchCategories(activeProfile.id);
     }
-  }, [activeProfile?.id]);
+  }, [activeProfile?.id, selectedMonth]);
 
   // Aggregate totals
   const totals = useMemo(() => {
@@ -73,23 +78,21 @@ export const BudgetsView: React.FC = () => {
     period: 'monthly';
   }) => {
     await upsertBudget(data, activeProfile?.id);
+    if (activeProfile?.id) {
+      await fetchBudgets(activeProfile.id, selectedMonth);
+    }
   };
 
   const handleDeleteBudget = async () => {
     if (!budgetToDelete) return;
     await deleteBudget(budgetToDelete.id, activeProfile?.id);
     setBudgetToDelete(null);
+    if (activeProfile?.id) {
+      await fetchBudgets(activeProfile.id, selectedMonth);
+    }
   };
 
-  const formatMoney = (amount: number | string) => {
-    const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: baseCurrency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(isNaN(num) ? 0 : num);
-  };
+  const formatAmount = (amount: number | string) => formatMoney(amount, baseCurrency);
 
   const existingCategoryIds = useMemo(() => budgets.map((b) => b.categoryId), [budgets]);
 
@@ -103,13 +106,27 @@ export const BudgetsView: React.FC = () => {
             Control de gastos en tiempo real con barras de progreso y límites de alerta.
           </p>
         </div>
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity self-start sm:self-auto"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Fijar Presupuesto</span>
-        </button>
+
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {/* Month Selector */}
+          <div className="flex items-center gap-1.5 border border-border/40 px-2.5 py-1 bg-card">
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => e.target.value && setSelectedMonth(e.target.value)}
+              className="bg-transparent text-xs font-mono text-foreground focus:outline-none cursor-pointer"
+            />
+          </div>
+
+          <button
+            onClick={handleOpenCreate}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Fijar Presupuesto</span>
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -125,7 +142,7 @@ export const BudgetsView: React.FC = () => {
             Presupuestado Total
           </span>
           <span className="text-sm font-semibold font-mono text-foreground mt-0.5 block">
-            {formatMoney(totals.totalLimit)}
+            {formatAmount(totals.totalLimit)}
           </span>
         </div>
 
@@ -134,7 +151,7 @@ export const BudgetsView: React.FC = () => {
             Gasto Consumido
           </span>
           <span className="text-sm font-semibold font-mono text-foreground mt-0.5 block">
-            {formatMoney(totals.totalSpent)}
+            {formatAmount(totals.totalSpent)}
           </span>
         </div>
 
@@ -147,7 +164,7 @@ export const BudgetsView: React.FC = () => {
               totals.remaining < 0 ? 'text-rose-500' : 'text-emerald-500'
             }`}
           >
-            {formatMoney(totals.remaining)}
+            {formatAmount(totals.remaining)}
           </span>
         </div>
 
@@ -242,7 +259,7 @@ export const BudgetsView: React.FC = () => {
                         </span>
                       </div>
                       <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
-                        Restante: {formatMoney(remaining)}
+                        Restante: {formatAmount(remaining)}
                       </div>
                     </div>
                   </div>
@@ -251,8 +268,8 @@ export const BudgetsView: React.FC = () => {
                   <div className="flex items-center gap-4 shrink-0">
                     <div className="text-right">
                       <div className="text-xs font-semibold font-mono text-foreground">
-                        {formatMoney(spent)}{' '}
-                        <span className="text-muted-foreground font-normal">/ {formatMoney(limit)}</span>
+                        {formatAmount(spent)}{' '}
+                        <span className="text-muted-foreground font-normal">/ {formatAmount(limit)}</span>
                       </div>
                       <div className="text-[11px] font-mono text-muted-foreground mt-0.5">
                         {percent}% consumido

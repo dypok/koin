@@ -7,7 +7,7 @@ interface BudgetState {
   isLoading: boolean;
   error: string | null;
 
-  fetchBudgets: (profileId?: string) => Promise<BudgetDTO[]>;
+  fetchBudgets: (profileId?: string, month?: string) => Promise<BudgetDTO[]>;
   upsertBudget: (data: CreateBudgetInput, profileId?: string) => Promise<BudgetDTO>;
   updateBudget: (id: string, data: UpdateBudgetInput, profileId?: string) => Promise<BudgetDTO>;
   deleteBudget: (id: string, profileId?: string) => Promise<void>;
@@ -19,10 +19,14 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  fetchBudgets: async (profileId?: string) => {
+  fetchBudgets: async (profileId?: string, month?: string) => {
     set({ isLoading: true, error: null });
     try {
-      const endpoint = profileId ? `/budgets?profileId=${profileId}` : '/budgets';
+      const params = new URLSearchParams();
+      if (profileId) params.append('profileId', profileId);
+      if (month) params.append('month', month);
+      const queryStr = params.toString() ? `?${params.toString()}` : '';
+      const endpoint = `/budgets${queryStr}`;
       const headers = profileId ? { 'X-Profile-ID': profileId } : undefined;
       const res = await apiRequest<any>(endpoint, { headers });
       const items: BudgetDTO[] = Array.isArray(res) ? res : res.data || [];

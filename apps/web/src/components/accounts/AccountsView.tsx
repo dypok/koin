@@ -7,6 +7,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { AccountModal } from './AccountModal';
 import { AccountShareModal } from './AccountShareModal';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { formatMoney } from '../../lib/currency';
 
 interface AccountsViewProps {
   onGoToSettings?: () => void;
@@ -87,14 +88,6 @@ export const AccountsView: React.FC<AccountsViewProps> = () => {
     .filter((a) => a.currency === (activeProfile?.baseCurrency || 'USD'))
     .reduce((sum, a) => sum + parseFloat(a.currentBalance || '0'), 0);
 
-  const formatBalance = (amountStr: string) => {
-    const num = parseFloat(amountStr || '0');
-    return new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(num);
-  };
-
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* 1. Header with Actions & Balance */}
@@ -133,7 +126,7 @@ export const AccountsView: React.FC<AccountsViewProps> = () => {
           </span>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-2xl sm:text-3xl font-mono font-bold text-foreground">
-              ${formatBalance(totalBalance.toString())}
+              {formatMoney(totalBalance, activeProfile?.baseCurrency || 'USD')}
             </span>
             <span className="text-xs text-muted-foreground font-mono uppercase">
               {activeProfile?.baseCurrency || 'USD'}
@@ -260,7 +253,7 @@ export const AccountsView: React.FC<AccountsViewProps> = () => {
                         isNegative ? 'text-destructive' : 'text-foreground'
                       }`}
                     >
-                      ${formatBalance(acc.currentBalance)}
+                      {formatMoney(acc.currentBalance, acc.currency)}
                     </p>
                     <p className="text-[10px] text-muted-foreground font-mono">
                       Saldo en {acc.currency}

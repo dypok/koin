@@ -61,7 +61,7 @@ func main() {
 	accountService := accounts.NewService(accountRepo)
 	accountHandler := accounts.NewHandler(accountService, db.Pool, func(r *http.Request) *auth.JWTClaims {
 		return middleware.GetUserClaims(r.Context())
-	}, "http://localhost:5173")
+	}, cfg.AppBaseURL)
 
 	categoryRepo := categories.NewRepository(db.Pool)
 	categoryService := categories.NewService(categoryRepo)

@@ -3,6 +3,7 @@ package accounts
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -31,6 +32,23 @@ func NewHandler(service *Service, pool *pgxpool.Pool, claimsGetter ClaimsGetter,
 		claimsGetter: claimsGetter,
 		appBaseURL:   appBaseURL,
 	}
+}
+
+func (h *Handler) getAppBaseURL(r *http.Request) string {
+	if h.appBaseURL != "" && !strings.Contains(h.appBaseURL, "localhost") {
+		return h.appBaseURL
+	}
+	if origin := r.Header.Get("Origin"); origin != "" {
+		return origin
+	}
+	if r.Host != "" {
+		proto := "https"
+		if r.TLS == nil && r.Header.Get("X-Forwarded-Proto") != "https" && strings.HasPrefix(r.Host, "localhost") {
+			proto = "http"
+		}
+		return fmt.Sprintf("%s://%s", proto, r.Host)
+	}
+	return h.appBaseURL
 }
 
 // resolveProfileID retrieves the active profile from the request (X-Profile-ID header, query param, or user default).
@@ -302,7 +320,7 @@ func (h *Handler) CreateInvitation(w http.ResponseWriter, r *http.Request) {
 		req.Role = "editor"
 	}
 
-	inv, err := h.service.CreateInvitation(r.Context(), accountID, profileID, req.Role, h.appBaseURL)
+	inv, err := h.service.CreateInvitation(r.Context(), accountID, profileID, req.Role, h.getAppBaseURL(r))
 	if err != nil {
 		if errors.Is(err, ErrForbidden) {
 			response.Error(w, http.StatusForbidden, "Solo el propietario puede invitar a miembros a la cuenta")
@@ -323,7 +341,7 @@ func (h *Handler) ValidateInvitation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inv, err := h.service.ValidateInvitation(r.Context(), token, h.appBaseURL)
+	inv, err := h.service.ValidateInvitation(r.Context(), token, h.getAppBaseURL(r))
 	if err != nil {
 		if errors.Is(err, ErrInvitationExpired) {
 			response.Error(w, http.StatusGone, "La invitación ha expirado o ya no existe")
