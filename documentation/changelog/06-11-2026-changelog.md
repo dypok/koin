@@ -1,0 +1,4 @@
+# Changelog: 06-11-2026
+
+- [Friday]-[06/11/2026]-[09:20]-[Dylan Gamero] : Initialized development of EPIC 6 (Presupuestos, analíticas y exportación de datos) targeting Beta v0.6.0 on branch feat/epic-6-complete-v0.6.0.
+- [Friday]-[06/11/2026]-[09:39]-[Dylan Gamero] : Completed EPIC 6 for Beta v0.6.0: implemented Lucide icon visual catalog and category management (BUD-01), monthly budgets with 4px thin progress bars and semaphoric alerts (BUD-02), Recharts category donut chart (ANL-01), 6-month paired cashflow bar chart and Home dashboard (ANL-02), and sovereign data export to UTF-8 BOM CSV and JSON relational backup (ANL-03). Bumped packages and monorepo to version 0.6.0.

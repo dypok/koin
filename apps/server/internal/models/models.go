@@ -422,3 +422,87 @@ type UpdateRecurringRuleRequest struct {
 	CurrentInstallment  *int             `json:"currentInstallment,omitempty"`
 	Note                *string          `json:"note,omitempty"`
 }
+
+// ------------------------------------------------------
+// Budget Models & DTOs (BUD-02)
+// ------------------------------------------------------
+
+type Budget struct {
+	ID                    uuid.UUID       `json:"id"`
+	ProfileID             uuid.UUID       `json:"profileId"`
+	CategoryID            uuid.UUID       `json:"categoryId"`
+	Period                string          `json:"period"` // "monthly"
+	LimitAmount           decimal.Decimal `json:"limitAmount"`
+	AlertThresholdPercent int             `json:"alertThresholdPercent"`
+	CreatedAt             time.Time       `json:"createdAt"`
+	UpdatedAt             time.Time       `json:"updatedAt"`
+
+	// Relational details & health metrics
+	CategoryName    *string         `json:"categoryName,omitempty"`
+	CategoryIcon    *string         `json:"categoryIcon,omitempty"`
+	CategoryColor   *string         `json:"categoryColor,omitempty"`
+	SpentAmount     decimal.Decimal `json:"spentAmount"`
+	RemainingAmount decimal.Decimal `json:"remainingAmount"`
+	PercentageUsed  decimal.Decimal `json:"percentageUsed"`
+	Status          string          `json:"status"` // on_track, warning, exceeded
+}
+
+type CreateOrUpdateBudgetRequest struct {
+	CategoryID            uuid.UUID       `json:"categoryId"`
+	LimitAmount           decimal.Decimal `json:"limitAmount"`
+	Period                *string         `json:"period,omitempty"`
+	AlertThresholdPercent *int            `json:"alertThresholdPercent,omitempty"`
+}
+
+type UpdateBudgetRequest struct {
+	LimitAmount           *decimal.Decimal `json:"limitAmount,omitempty"`
+	AlertThresholdPercent *int             `json:"alertThresholdPercent,omitempty"`
+}
+
+// ------------------------------------------------------
+// Analytics Models & DTOs (ANL-01, ANL-02)
+// ------------------------------------------------------
+
+type AnalyticsSummary struct {
+	NetWorth           decimal.Decimal `json:"netWorth"`
+	MonthIncome        decimal.Decimal `json:"monthIncome"`
+	MonthExpense       decimal.Decimal `json:"monthExpense"`
+	NetSavings         decimal.Decimal `json:"netSavings"`
+	SavingsRatePercent decimal.Decimal `json:"savingsRatePercent"`
+	Currency           string          `json:"currency"`
+}
+
+type CategoryExpenseItem struct {
+	CategoryID       uuid.UUID       `json:"categoryId"`
+	CategoryName     string          `json:"categoryName"`
+	CategoryIcon     string          `json:"categoryIcon"`
+	CategoryColor    string          `json:"categoryColor"`
+	MonthPeriod      string          `json:"monthPeriod"`
+	TransactionCount int             `json:"transactionCount"`
+	TotalSpent       decimal.Decimal `json:"totalSpent"`
+	Percentage       decimal.Decimal `json:"percentage"`
+	AverageTicket    decimal.Decimal `json:"averageTicket"`
+}
+
+type MonthlyCashflowItem struct {
+	MonthPeriod        string          `json:"monthPeriod"`
+	TotalIncome        decimal.Decimal `json:"totalIncome"`
+	TotalExpense       decimal.Decimal `json:"totalExpense"`
+	NetSavings         decimal.Decimal `json:"netSavings"`
+	SavingsRatePercent decimal.Decimal `json:"savingsRatePercent"`
+}
+
+// ------------------------------------------------------
+// Export & Backup Models (ANL-03)
+// ------------------------------------------------------
+
+type ExportBackupData struct {
+	ExportedAt     time.Time       `json:"exportedAt"`
+	Version        string          `json:"version"`
+	Profile        Profile         `json:"profile"`
+	Accounts       []Account       `json:"accounts"`
+	Categories     []Category      `json:"categories"`
+	Budgets        []Budget        `json:"budgets"`
+	RecurringRules []RecurringRule `json:"recurringRules"`
+	Transactions   []Transaction   `json:"transactions"`
+}

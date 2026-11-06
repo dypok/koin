@@ -169,6 +169,8 @@ export interface RecurringRuleDTO {
   categoryColor?: string;
 }
 
+export type BudgetStatus = 'on_track' | 'warning' | 'exceeded';
+
 export interface BudgetDTO {
   id: string;
   profileId: string;
@@ -177,12 +179,54 @@ export interface BudgetDTO {
   limitAmount: string;
   alertThresholdPercent: number;
   spentAmount?: string;
+  remainingAmount?: string;
   percentageUsed?: number;
+  status?: BudgetStatus;
   categoryName?: string;
   categoryIcon?: string;
   categoryColor?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AnalyticsSummaryDTO {
+  netWorth: string;
+  monthIncome: string;
+  monthExpense: string;
+  netSavings: string;
+  savingsRatePercent: number;
+  currency: string;
+}
+
+export interface CategoryExpenseItemDTO {
+  categoryId: string;
+  categoryName: string;
+  categoryIcon: string;
+  categoryColor: string;
+  monthPeriod: string;
+  transactionCount: number;
+  totalSpent: string;
+  percentage: number;
+  averageTicket: string;
+}
+
+export interface MonthlyCashflowItemDTO {
+  monthPeriod: string;
+  totalIncome: string;
+  totalExpense: string;
+  netSavings: string;
+  savingsRatePercent: number;
+}
+
+export interface ExportBackupDataDTO {
+  exportedAt: string;
+  version: string;
+  profile: ProfileDTO;
+  accounts: AccountDTO[];
+  categories: CategoryDTO[];
+  budgets: BudgetDTO[];
+  recurringRules: RecurringRuleDTO[];
+  transactions: TransactionDTO[];
 }
 
 export interface ExchangeRateDTO {
