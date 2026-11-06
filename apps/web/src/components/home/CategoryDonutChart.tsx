@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { CategoryExpenseItemDTO } from '@koin/shared';
 import { KoinIcon } from '../../lib/icons';
+import { formatMoney } from '../../lib/currency';
 
 interface CategoryDonutChartProps {
   items: CategoryExpenseItemDTO[];
@@ -11,15 +12,7 @@ interface CategoryDonutChartProps {
 export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ items, currency }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const formatMoney = (val: number | string) => {
-    const num = typeof val === 'string' ? parseFloat(val) : val;
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(isNaN(num) ? 0 : num);
-  };
+  const formatAmount = (val: number | string) => formatMoney(val, currency);
 
   const chartData = items.map((item) => ({
     name: item.categoryName,
@@ -49,7 +42,7 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ items, c
           Gastos por Categoría
         </span>
         <span className="text-xs font-mono font-medium text-foreground">
-          Total: {formatMoney(totalSpent)}
+          Total: {formatAmount(totalSpent)}
         </span>
       </div>
 
@@ -71,13 +64,13 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ items, c
                       <span>{data.name}</span>
                     </div>
                     <div className="font-mono text-muted-foreground">
-                      Monto: <span className="text-foreground font-medium">{formatMoney(data.value)}</span>
+                      Monto: <span className="text-foreground font-medium">{formatAmount(data.value)}</span>
                     </div>
                     <div className="font-mono text-muted-foreground">
                       Porcentaje: <span className="text-foreground font-medium">{data.percentage}%</span>
                     </div>
                     <div className="font-mono text-[11px] text-muted-foreground">
-                      {data.count} mov · Promedio: {formatMoney(data.avg)}
+                      {data.count} mov · Promedio: {formatAmount(data.avg)}
                     </div>
                   </div>
                 );
@@ -118,7 +111,7 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ items, c
           <span className="text-xs font-bold font-mono text-foreground mt-0.5">
             {activeIndex !== null
               ? `${chartData[activeIndex]?.percentage}%`
-              : formatMoney(totalSpent)}
+              : formatAmount(totalSpent)}
           </span>
         </div>
       </div>
@@ -149,7 +142,7 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ items, c
               <div className="flex items-center gap-3 shrink-0 font-mono text-xs">
                 <span className="text-muted-foreground">{item.percentage}%</span>
                 <span className="font-semibold text-foreground text-right min-w-[70px]">
-                  {formatMoney(item.value)}
+                  {formatAmount(item.value)}
                 </span>
               </div>
             </div>

@@ -12,6 +12,7 @@ import {
   CreditCard,
   ChevronRight,
 } from 'lucide-react';
+import { formatMoney } from '../../lib/currency';
 
 interface InstallmentCardProps {
   rule: RecurringRuleDTO;
@@ -192,7 +193,7 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
               isIncome ? 'text-emerald-400' : 'text-foreground'
             }`}
           >
-            {isIncome ? '+' : '-'}${parseFloat(rule.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            {isIncome ? '+' : '-'}{formatMoney(rule.amount, rule.currency)}
           </p>
           <p className="text-[10px] text-muted-foreground font-mono">
             {rule.currency} / {rule.frequency === 'monthly' ? 'mes' : rule.frequency}
@@ -220,16 +221,16 @@ export const InstallmentCard: React.FC<InstallmentCardProps> = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 text-[10px] font-mono text-muted-foreground">
             {rule.principalAmount && (
               <div>
-                Capital: <strong className="text-foreground">${rule.principalAmount}</strong>
+                Capital: <strong className="text-foreground">{formatMoney(rule.principalAmount, rule.currency)}</strong>
               </div>
             )}
             {rule.totalInterestAmount && parseFloat(rule.totalInterestAmount) > 0 && (
               <div>
-                Intereses: <strong className="text-purple-400">+${rule.totalInterestAmount}</strong>
+                Intereses: <strong className="text-purple-400">+{formatMoney(rule.totalInterestAmount, rule.currency)}</strong>
               </div>
             )}
             <div>
-              Saldo: <strong className="text-foreground">${remainingBalance} {rule.currency}</strong>
+              Saldo: <strong className="text-foreground">{formatMoney(remainingBalance, rule.currency)}</strong>
             </div>
           </div>
         </div>

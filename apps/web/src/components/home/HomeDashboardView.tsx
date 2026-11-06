@@ -12,6 +12,7 @@ import { useAnalyticsStore } from '../../stores/analyticsStore';
 import { useAuthStore } from '../../stores/authStore';
 import { CategoryDonutChart } from './CategoryDonutChart';
 import { CashflowBarChart } from './CashflowBarChart';
+import { formatMoney } from '../../lib/currency';
 
 interface HomeDashboardViewProps {
   onGoToAccounts: () => void;
@@ -48,17 +49,6 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
       fetchCashflow(6, activeProfile.id);
     }
   }, [activeProfile?.id, selectedMonth]);
-
-  const formatMoney = (val: number | string | undefined) => {
-    if (val === undefined) return '$0.00';
-    const num = typeof val === 'string' ? parseFloat(val) : val;
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: baseCurrency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(isNaN(num) ? 0 : num);
-  };
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -112,7 +102,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
             <Wallet className="w-4 h-4 text-primary" />
           </div>
           <div className="text-lg font-bold font-mono text-foreground">
-            {isLoadingSummary ? '...' : formatMoney(summary?.netWorth)}
+            {isLoadingSummary ? '...' : formatMoney(summary?.netWorth, baseCurrency)}
           </div>
           <p className="text-[11px] text-muted-foreground">
             Suma total de cuentas activas en {baseCurrency}
@@ -126,7 +116,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
             <TrendingUp className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-lg font-bold font-mono text-emerald-500">
-            {isLoadingSummary ? '...' : formatMoney(summary?.monthIncome)}
+            {isLoadingSummary ? '...' : formatMoney(summary?.monthIncome, baseCurrency)}
           </div>
           <p className="text-[11px] text-muted-foreground">
             Total percibido en el periodo {selectedMonth}
@@ -140,7 +130,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
             <TrendingDown className="w-4 h-4 text-rose-500" />
           </div>
           <div className="text-lg font-bold font-mono text-rose-500">
-            {isLoadingSummary ? '...' : formatMoney(summary?.monthExpense)}
+            {isLoadingSummary ? '...' : formatMoney(summary?.monthExpense, baseCurrency)}
           </div>
           <p className="text-[11px] text-muted-foreground">
             Total gastado en el periodo {selectedMonth}
@@ -157,7 +147,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
             {isLoadingSummary ? '...' : `${summary?.savingsRatePercent ?? 0}%`}
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Retención neta: {formatMoney(summary?.netSavings)}
+            Retención neta: {formatMoney(summary?.netSavings, baseCurrency)}
           </p>
         </div>
       </div>

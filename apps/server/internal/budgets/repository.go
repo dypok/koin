@@ -25,8 +25,12 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 	return &Repository{pool: pool}
 }
 
-// ListByProfile returns all budgets for a profile enriched with category info and current month spending.
-func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID) ([]models.Budget, error) {
+// ListByProfile returns all budgets for a profile enriched with category info and month spending.
+func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID, month string) ([]models.Budget, error) {
+	if month == "" {
+		month = time.Now().Format("2006-01")
+	}
+
 	query := `
 		SELECT 
 			b.id,
@@ -46,13 +50,13 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID) ([]
 		LEFT JOIN koin_finance.transactions t ON t.category_id = b.category_id 
 			AND t.profile_id = b.profile_id 
 			AND t.type = 'expense'
-			AND to_char(t.date, 'YYYY-MM') = to_char(CURRENT_DATE, 'YYYY-MM')
+			AND to_char(t.date, 'YYYY-MM') = $2
 		WHERE b.profile_id = $1
 		GROUP BY b.id, b.profile_id, b.category_id, b.period, b.limit_amount, b.alert_threshold_percent, b.created_at, b.updated_at, c.name, c.icon, c.color
 		ORDER BY b.limit_amount DESC, c.name ASC
 	`
 
-	rows, err := r.pool.Query(ctx, query, profileID)
+	rows, err := r.pool.Query(ctx, query, profileID, month)
 	if err != nil {
 		return nil, fmt.Errorf("error querying budgets: %w", err)
 	}
@@ -85,7 +89,11 @@ func (r *Repository) ListByProfile(ctx context.Context, profileID uuid.UUID) ([]
 }
 
 // GetByID returns a single budget by ID.
-func (r *Repository) GetByID(ctx context.Context, id, profileID uuid.UUID) (*models.Budget, error) {
+func (r *Repository) GetByID(ctx context.Context, id, profileID uuid.UUID, month string) (*models.Budget, error) {
+	if month == "" {
+		month = time.Now().Format("2006-01")
+	}
+
 	query := `
 		SELECT 
 			b.id,
@@ -105,13 +113,13 @@ func (r *Repository) GetByID(ctx context.Context, id, profileID uuid.UUID) (*mod
 		LEFT JOIN koin_finance.transactions t ON t.category_id = b.category_id 
 			AND t.profile_id = b.profile_id 
 			AND t.type = 'expense'
-			AND to_char(t.date, 'YYYY-MM') = to_char(CURRENT_DATE, 'YYYY-MM')
+			AND to_char(t.date, 'YYYY-MM') = $3
 		WHERE b.id = $1 AND b.profile_id = $2
 		GROUP BY b.id, b.profile_id, b.category_id, b.period, b.limit_amount, b.alert_threshold_percent, b.created_at, b.updated_at, c.name, c.icon, c.color
 	`
 
 	var b models.Budget
-	err := r.pool.QueryRow(ctx, query, id, profileID).Scan(
+	err := r.pool.QueryRow(ctx, query, id, profileID, month).Scan(
 		&b.ID,
 		&b.ProfileID,
 		&b.CategoryID,
@@ -175,12 +183,12 @@ func (r *Repository) Upsert(ctx context.Context, profileID uuid.UUID, req models
 		return nil, fmt.Errorf("error upserting budget: %w", err)
 	}
 
-	return r.GetByID(ctx, id, profileID)
+	return r.GetByID(ctx, id, profileID, "")
 }
 
 // Update modifies budget limit or alert threshold.
 func (r *Repository) Update(ctx context.Context, id, profileID uuid.UUID, req models.UpdateBudgetRequest) (*models.Budget, error) {
-	current, err := r.GetByID(ctx, id, profileID)
+	current, err := r.GetByID(ctx, id, profileID, "")
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +213,7 @@ func (r *Repository) Update(ctx context.Context, id, profileID uuid.UUID, req mo
 		return nil, fmt.Errorf("error updating budget: %w", err)
 	}
 
-	return r.GetByID(ctx, id, profileID)
+	return r.GetByID(ctx, id, profileID, "")
 }
 
 // Delete removes a budget.

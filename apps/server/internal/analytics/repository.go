@@ -67,9 +67,26 @@ func (r *Repository) GetSummary(ctx context.Context, profileID uuid.UUID) (*mode
 
 	// 2. Calculate Net Worth from active accounts converted to base currency
 	accountRows, err := r.pool.Query(ctx, `
-		SELECT currency, current_balance 
-		FROM koin_finance.accounts 
-		WHERE created_by_profile_id = $1 AND is_archived = false
+		SELECT 
+			a.currency,
+			(
+				a.initial_balance + COALESCE((
+					SELECT SUM(
+						CASE 
+							WHEN t.type = 'income' THEN t.amount
+							WHEN t.type = 'expense' THEN -t.amount
+							WHEN t.type = 'transfer' AND t.to_account_id = a.id THEN COALESCE(t.to_amount, t.amount)
+							WHEN t.type = 'transfer' AND t.account_id = a.id THEN -t.amount
+							ELSE 0
+						END
+					)
+					FROM koin_finance.transactions t
+					WHERE t.account_id = a.id OR t.to_account_id = a.id
+				), 0)
+			) AS current_balance
+		FROM koin_finance.accounts a
+		LEFT JOIN koin_finance.account_members am ON am.account_id = a.id AND am.profile_id = $1 AND am.status = 'accepted'
+		WHERE (a.created_by_profile_id = $1 OR am.profile_id = $1) AND a.is_archived = false
 	`, profileID)
 	if err != nil {
 		return nil, fmt.Errorf("error querying accounts for net worth: %w", err)

@@ -28,6 +28,7 @@ import { InstallmentCard } from '../recurring/InstallmentCard';
 import { RecurringRuleModal } from '../recurring/RecurringRuleModal';
 import { RecurringRuleDetailModal } from '../recurring/RecurringRuleDetailModal';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { formatMoney } from '../../lib/currency';
 
 interface TransactionsViewProps {
   onNewTransaction: (type?: 'expense' | 'income' | 'transfer', accountId?: string) => void;
@@ -635,12 +636,12 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                           >
                             {isExpense && '-'}
                             {isIncome && '+'}
-                            {tx.currency} {tx.amount}
+                            {formatMoney(tx.amount, tx.currency)}
                           </p>
 
                           {isCrossCurrency && tx.baseAmount && (
                             <p className="text-[10px] text-muted-foreground font-mono">
-                              ≈ {profileBaseCurrency} {tx.baseAmount}
+                              ≈ {formatMoney(tx.baseAmount, profileBaseCurrency)}
                             </p>
                           )}
                         </div>
@@ -678,7 +679,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
               </div>
               <p className="text-xl font-bold font-mono text-emerald-400 mt-1">
-                +${totalSalaryMonthly.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                +{formatMoney(totalSalaryMonthly, profileBaseCurrency)}
               </p>
               <p className="text-[10px] text-muted-foreground font-mono mt-0.5">Programado por mes</p>
             </div>
@@ -691,7 +692,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 <TrendingDown className="w-3.5 h-3.5 text-blue-500" />
               </div>
               <p className="text-xl font-bold font-mono text-foreground mt-1">
-                -${totalFixedExpensesMonthly.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                -{formatMoney(totalFixedExpensesMonthly, profileBaseCurrency)}
               </p>
               <p className="text-[10px] text-muted-foreground font-mono mt-0.5">Arriendos, servicios, suscripciones</p>
             </div>
@@ -704,7 +705,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 <CreditCard className="w-3.5 h-3.5 text-purple-500" />
               </div>
               <p className="text-xl font-bold font-mono text-purple-400 mt-1">
-                ${totalDebtRemaining.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                {formatMoney(totalDebtRemaining, profileBaseCurrency)}
               </p>
               <p className="text-[10px] text-muted-foreground font-mono mt-0.5">Saldo pendiente total por pagar</p>
             </div>
@@ -830,7 +831,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
               <p>
                 Estás a punto de eliminar el registro de{' '}
                 <strong className="text-foreground">
-                  {txToDelete.currency} {txToDelete.amount}
+                  {formatMoney(txToDelete.amount, txToDelete.currency)}
                 </strong>{' '}
                 ({txToDelete.categoryName || (txToDelete.type === 'income' ? 'Ingreso' : 'Gasto')}).
               </p>
@@ -859,7 +860,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 Estás a punto de eliminar la regla{' '}
                 <strong className="text-foreground">"{ruleToDelete.name}"</strong> por un importe de{' '}
                 <strong className="text-foreground">
-                  {ruleToDelete.currency} {ruleToDelete.amount}
+                  {formatMoney(ruleToDelete.amount, ruleToDelete.currency)}
                 </strong>.
               </p>
               {ruleToDelete.isInstallment ? (

@@ -10,6 +10,7 @@ import { useTransactionStore } from '../../stores/transactionStore';
 import { useRecurringStore } from '../../stores/recurringStore';
 import { useAuthStore } from '../../stores/authStore';
 import { ModalPortal } from '../common/ModalPortal';
+import { formatMoney } from '../../lib/currency';
 
 interface RecurringRuleModalProps {
   isOpen: boolean;
@@ -513,19 +514,19 @@ export const RecurringRuleModal: React.FC<RecurringRuleModalProps> = ({
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Cuota mensual:</span>
                     <strong className="text-foreground">
-                      ${calculatedCuota.toFixed(2)} {currency}
+                      {formatMoney(calculatedCuota, currency)}
                     </strong>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total a pagar ({numMonths} meses):</span>
-                    <span className="text-foreground">${calculatedTotalDebt.toFixed(2)} {currency}</span>
+                    <span className="text-foreground">{formatMoney(calculatedTotalDebt, currency)}</span>
                   </div>
                   <div className="flex justify-between border-t border-border/30 pt-1 text-purple-400">
                     <span>Intereses totales del crédito:</span>
-                    <strong>+${calculatedInterestTotal.toFixed(2)} {currency}</strong>
+                    <strong>+{formatMoney(calculatedInterestTotal, currency)}</strong>
                   </div>
                   <div className="text-[10px] text-muted-foreground pt-0.5">
-                    Desglose aproximado por cuota: ${principalPerMonth.toFixed(2)} capital + ${interestPerMonth.toFixed(2)} intereses.
+                    Desglose aproximado por cuota: {formatMoney(principalPerMonth, currency)} capital + {formatMoney(interestPerMonth, currency)} intereses.
                   </div>
                 </div>
               )}

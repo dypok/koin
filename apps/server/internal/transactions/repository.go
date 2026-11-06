@@ -342,8 +342,8 @@ func (r *Repository) List(ctx context.Context, filter models.TransactionFilter) 
 	limit := filter.Limit
 	if limit <= 0 {
 		limit = 50
-	} else if limit > 200 {
-		limit = 200
+	} else if limit > 100000 {
+		limit = 100000
 	}
 
 	offset := filter.Offset

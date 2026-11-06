@@ -227,7 +227,7 @@ func (h *Handler) ExportJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Budgets
-	budgetItems, err := h.budgetRepo.ListByProfile(r.Context(), profileID)
+	budgetItems, err := h.budgetRepo.ListByProfile(r.Context(), profileID, "")
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "Error al exportar presupuestos")
 		return

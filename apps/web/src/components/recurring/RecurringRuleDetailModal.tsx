@@ -18,6 +18,7 @@ import {
 import { RecurringRuleDTO } from '@koin/shared';
 import { KoinIcon } from '../../lib/icons';
 import { ModalPortal } from '../common/ModalPortal';
+import { formatMoney } from '../../lib/currency';
 
 interface RecurringRuleDetailModalProps {
   isOpen: boolean;
@@ -175,7 +176,7 @@ export const RecurringRuleDetailModal: React.FC<RecurringRuleDetailModalProps> =
                   isIncome ? 'text-emerald-400' : 'text-foreground'
                 }`}
               >
-                {isIncome ? '+' : '-'}${parseFloat(rule.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                {isIncome ? '+' : '-'}{formatMoney(rule.amount, rule.currency)}
               </p>
               <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
                 {rule.currency} / {rule.frequency === 'monthly' ? 'Mensual' : rule.frequency}
@@ -222,25 +223,25 @@ export const RecurringRuleDetailModal: React.FC<RecurringRuleDetailModalProps> =
                 {rule.principalAmount && (
                   <div className="p-2 border border-border/30 bg-background/50">
                     <p className="text-[10px] text-muted-foreground uppercase">Capital Solicitado</p>
-                    <p className="font-bold text-foreground mt-0.5">${rule.principalAmount}</p>
+                    <p className="font-bold text-foreground mt-0.5">{formatMoney(rule.principalAmount, rule.currency)}</p>
                   </div>
                 )}
                 {rule.installmentPrincipal && (
                   <div className="p-2 border border-border/30 bg-background/50">
                     <p className="text-[10px] text-muted-foreground uppercase">Abono Capital / Mes</p>
-                    <p className="font-bold text-emerald-400 mt-0.5">${rule.installmentPrincipal}</p>
+                    <p className="font-bold text-emerald-400 mt-0.5">{formatMoney(rule.installmentPrincipal, rule.currency)}</p>
                   </div>
                 )}
                 {rule.installmentInterest && (
                   <div className="p-2 border border-border/30 bg-background/50">
                     <p className="text-[10px] text-muted-foreground uppercase">Interés / Mes</p>
-                    <p className="font-bold text-purple-400 mt-0.5">${rule.installmentInterest}</p>
+                    <p className="font-bold text-purple-400 mt-0.5">{formatMoney(rule.installmentInterest, rule.currency)}</p>
                   </div>
                 )}
                 {rule.totalInterestAmount && (
                   <div className="p-2 border border-border/30 bg-background/50">
                     <p className="text-[10px] text-muted-foreground uppercase">Interés Total Costo</p>
-                    <p className="font-bold text-purple-400 mt-0.5">${rule.totalInterestAmount}</p>
+                    <p className="font-bold text-purple-400 mt-0.5">{formatMoney(rule.totalInterestAmount, rule.currency)}</p>
                   </div>
                 )}
                 <div className="p-2 border border-border/30 bg-background/50">
@@ -249,7 +250,7 @@ export const RecurringRuleDetailModal: React.FC<RecurringRuleDetailModalProps> =
                 </div>
                 <div className="p-2 border border-border/30 bg-background/50">
                   <p className="text-[10px] text-muted-foreground uppercase">Saldo Pendiente</p>
-                  <p className="font-bold text-foreground mt-0.5">${remainingBalance} {rule.currency}</p>
+                  <p className="font-bold text-foreground mt-0.5">{formatMoney(remainingBalance, rule.currency)}</p>
                 </div>
               </div>
             </div>

@@ -9,6 +9,7 @@ import {
   Legend,
 } from 'recharts';
 import { MonthlyCashflowItemDTO } from '@koin/shared';
+import { formatMoney } from '../../lib/currency';
 
 interface CashflowBarChartProps {
   items: MonthlyCashflowItemDTO[];
@@ -16,15 +17,7 @@ interface CashflowBarChartProps {
 }
 
 export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({ items, currency }) => {
-  const formatMoney = (val: number | string) => {
-    const num = typeof val === 'string' ? parseFloat(val) : val;
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(isNaN(num) ? 0 : num);
-  };
+  const formatAmount = (val: number | string) => formatMoney(val, currency);
 
   const chartData = items.map((item) => ({
     period: item.monthPeriod,
@@ -70,7 +63,7 @@ export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({ items, curre
               tickLine={false}
               axisLine={{ stroke: 'var(--border)' }}
               tick={{ fill: 'var(--muted-foreground)', fontSize: 10, fontFamily: 'monospace' }}
-              tickFormatter={(val) => formatMoney(val)}
+              tickFormatter={(val) => formatAmount(val)}
             />
             <Tooltip
               content={({ active, payload, label }) => {
@@ -80,15 +73,15 @@ export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({ items, curre
                   <div className="bg-popover border border-border/40 p-2.5 shadow-md text-xs space-y-1">
                     <div className="font-semibold text-foreground font-mono">{label}</div>
                     <div className="text-emerald-500 font-mono">
-                      Ingresos: {formatMoney(d.income)}
+                      Ingresos: {formatAmount(d.income)}
                     </div>
                     <div className="text-rose-500 font-mono">
-                      Gastos: {formatMoney(d.expense)}
+                      Gastos: {formatAmount(d.expense)}
                     </div>
                     <div className="border-t border-border/40 pt-1 text-muted-foreground font-mono">
                       Ahorro Neto:{' '}
                       <span className={d.netSavings >= 0 ? 'text-emerald-500 font-medium' : 'text-rose-500 font-medium'}>
-                        {formatMoney(d.netSavings)}
+                        {formatAmount(d.netSavings)}
                       </span>
                     </div>
                     <div className="text-[11px] text-muted-foreground font-mono">
