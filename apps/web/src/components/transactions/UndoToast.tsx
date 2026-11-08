@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { RotateCcw, X, Check, AlertTriangle } from 'lucide-react';
 import { useTransactionStore } from '../../stores/transactionStore';
+import { formatMoney } from '../../lib/currency';
 
 export const UndoToast: React.FC = () => {
   const { recentToast, undoLastTransaction, dismissToast } = useTransactionStore();
@@ -47,17 +48,17 @@ export const UndoToast: React.FC = () => {
             <p className="font-medium text-foreground truncate">
               {isExpense && (
                 <>
-                  Gasto de <span className="font-semibold font-mono">{recentToast.currency} {recentToast.amount}</span> en <span className="font-semibold">{recentToast.categoryName}</span>
+                  Gasto de <span className="font-semibold font-mono">{formatMoney(recentToast.amount, recentToast.currency)}</span> en <span className="font-semibold">{recentToast.categoryName}</span>
                 </>
               )}
               {isIncome && (
                 <>
-                  Ingreso de <span className="font-semibold font-mono">{recentToast.currency} {recentToast.amount}</span> en <span className="font-semibold">{recentToast.categoryName}</span>
+                  Ingreso de <span className="font-semibold font-mono">{formatMoney(recentToast.amount, recentToast.currency)}</span> en <span className="font-semibold">{recentToast.categoryName}</span>
                 </>
               )}
               {isTransfer && (
                 <>
-                  Transferencia de <span className="font-semibold font-mono">{recentToast.currency} {recentToast.amount}</span> realizada
+                  Transferencia de <span className="font-semibold font-mono">{formatMoney(recentToast.amount, recentToast.currency)}</span> realizada
                 </>
               )}
             </p>

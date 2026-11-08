@@ -9,7 +9,8 @@ interface QuickEntryPadProps {
   disabled?: boolean;
 }
 
-const QUICK_CHIPS = [5, 10, 20, 50, 100];
+const STANDARD_CHIPS = [5, 10, 20, 50, 100];
+const PESO_CHIPS = [10000, 20000, 50000, 100000, 200000];
 
 export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
   amount,
@@ -18,6 +19,8 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
   className = '',
   disabled = false,
 }) => {
+  const isZeroDec = currency === 'COP' || currency === 'CLP';
+  const quickChips = isZeroDec ? PESO_CHIPS : STANDARD_CHIPS;
   // Tactile micro-vibration for touch devices
   const triggerHaptic = useCallback((ms = 22) => {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -57,7 +60,7 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
 
   // Handle decimal dot (.)
   const handleDot = useCallback(() => {
-    if (disabled) return;
+    if (disabled || isZeroDec) return;
     triggerHaptic(25);
 
     if (!amount) {
@@ -67,7 +70,7 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
     if (!amount.includes('.')) {
       onAmountChange(amount + '.');
     }
-  }, [amount, onAmountChange, triggerHaptic, disabled]);
+  }, [amount, onAmountChange, triggerHaptic, disabled, isZeroDec]);
 
   // Handle backspace (⌫)
   const handleBackspace = useCallback(() => {
@@ -111,7 +114,7 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
     <div className={`space-y-3 ${className}`}>
       {/* Quick Amount Increment Chips */}
       <div className="flex items-center justify-center gap-1.5 flex-wrap">
-        {QUICK_CHIPS.map((val) => (
+        {quickChips.map((val) => (
           <button
             key={val}
             type="button"
@@ -120,7 +123,7 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
             className="px-2.5 py-1 text-xs font-mono font-bold border border-border/80 bg-muted/15 hover:border-primary hover:bg-primary/10 hover:text-primary text-foreground transition-all active:scale-95 disabled:opacity-50"
             title={`Sumar ${val} ${currency}`}
           >
-            +{val}
+            +{val >= 1000 ? `${val / 1000}k` : val}
           </button>
         ))}
         <button
@@ -152,12 +155,16 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
         {/* Decimal Dot */}
         <button
           type="button"
-          disabled={disabled}
+          disabled={disabled || isZeroDec}
           onClick={handleDot}
-          className="h-11 sm:h-12 border border-border/70 bg-card hover:border-primary hover:bg-primary/5 active:bg-primary/20 text-foreground font-mono font-bold text-xl rounded-none transition-all active:scale-98 disabled:opacity-50 flex items-center justify-center select-none shadow-2xs"
-          title="Punto decimal"
+          className={`h-11 sm:h-12 border border-border/70 bg-card text-foreground font-mono font-bold text-xl rounded-none transition-all flex items-center justify-center select-none shadow-2xs ${
+            isZeroDec
+              ? 'opacity-20 cursor-not-allowed'
+              : 'hover:border-primary hover:bg-primary/5 active:bg-primary/20 active:scale-98 disabled:opacity-50'
+          }`}
+          title={isZeroDec ? 'Moneda sin centavos' : 'Punto decimal'}
         >
-          .
+          {isZeroDec ? '-' : '.'}
         </button>
 
         {/* Zero */}

@@ -11,6 +11,7 @@ import { useRecurringStore } from '../../stores/recurringStore';
 import { useAuthStore } from '../../stores/authStore';
 import { ModalPortal } from '../common/ModalPortal';
 import { formatMoney } from '../../lib/currency';
+import { CurrencyInput } from '../common/CurrencyInput';
 
 interface RecurringRuleModalProps {
   isOpen: boolean;
@@ -448,13 +449,12 @@ export const RecurringRuleModal: React.FC<RecurringRuleModalProps> = ({
                   <label className="text-[10px] text-muted-foreground font-semibold">
                     Capital Prestado / Valor Compra
                   </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    placeholder="0.00"
+                  <CurrencyInput
                     value={principalAmount}
-                    onChange={(e) => setPrincipalAmount(e.target.value)}
+                    onChange={(cleanVal) => setPrincipalAmount(cleanVal)}
+                    currency={currency}
+                    placeholder={currency === 'COP' || currency === 'CLP' ? '0' : '0.00'}
+                    required
                     className="w-full px-2.5 py-1.5 bg-background border border-border/60 text-foreground font-mono text-xs focus:outline-none focus:border-purple-500"
                   />
                 </div>
@@ -481,13 +481,12 @@ export const RecurringRuleModal: React.FC<RecurringRuleModalProps> = ({
                   <label className="text-[10px] text-muted-foreground font-semibold">
                     Cuota Mensual Pactada con el Banco ({currency})
                   </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    placeholder="0.00"
+                  <CurrencyInput
                     value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    onChange={(cleanVal) => setAmount(cleanVal)}
+                    currency={currency}
+                    placeholder={currency === 'COP' || currency === 'CLP' ? '0' : '0.00'}
+                    required
                     className="w-full px-2.5 py-1.5 bg-background border border-border/60 text-foreground font-mono text-xs focus:outline-none focus:border-purple-500"
                   />
                 </div>
@@ -538,13 +537,12 @@ export const RecurringRuleModal: React.FC<RecurringRuleModalProps> = ({
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Importe por Período ({currency})
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  placeholder="0.00"
+                <CurrencyInput
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(cleanVal) => setAmount(cleanVal)}
+                  currency={currency}
+                  placeholder={currency === 'COP' || currency === 'CLP' ? '0' : '0.00'}
+                  required
                   className="w-full px-3 py-2 bg-muted/20 border border-border/60 text-foreground font-mono text-xs focus:outline-none focus:border-primary transition-colors font-bold"
                 />
               </div>
