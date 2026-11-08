@@ -13,6 +13,7 @@ import { useAccountStore } from '../../stores/accountStore';
 import { useAuthStore } from '../../stores/authStore';
 import { ModalPortal } from '../common/ModalPortal';
 import { formatMoney } from '../../lib/currency';
+import { CurrencyInput } from '../common/CurrencyInput';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -418,13 +419,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   >
                     {balanceSign === 'negative' ? '-' : '+'}
                   </span>
-                  <input
-                    type="number"
-                    step="any"
-                    min="0"
+                  <CurrencyInput
                     value={initialBalance}
-                    onChange={(e) => setInitialBalance(e.target.value)}
-                    placeholder="0.00"
+                    onChange={(cleanVal) => setInitialBalance(cleanVal)}
+                    currency={currency}
+                    placeholder={currency === 'COP' || currency === 'CLP' ? '0' : '0.00'}
                     className={`w-full pl-7 pr-3 py-2 bg-muted/20 border text-foreground font-mono text-xs focus:outline-none transition-colors ${
                       balanceSign === 'negative'
                         ? 'border-rose-500/40 focus:border-rose-500'

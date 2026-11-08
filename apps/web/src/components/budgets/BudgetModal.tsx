@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Sliders } from 'lucide-react';
 import { BudgetDTO, CategoryWithUsageDTO } from '@koin/shared';
 import { KoinIcon } from '../../lib/icons';
+import { CurrencyInput } from '../common/CurrencyInput';
 
 interface BudgetModalProps {
   isOpen: boolean;
@@ -152,13 +153,11 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-mono">
                 {currency}
               </span>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
+              <CurrencyInput
                 value={limitAmount}
-                onChange={(e) => setLimitAmount(e.target.value)}
-                placeholder="0.00"
+                onChange={(cleanVal) => setLimitAmount(cleanVal)}
+                currency={currency}
+                placeholder={currency === 'COP' || currency === 'CLP' ? '0' : '0.00'}
                 className="w-full bg-background border border-border/40 pl-14 pr-3 py-2 text-xs font-mono focus:outline-none focus:border-primary"
                 autoFocus={!budget}
                 required

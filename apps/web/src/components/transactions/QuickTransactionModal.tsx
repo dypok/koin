@@ -23,6 +23,8 @@ import { KoinIcon } from '../../lib/icons';
 import { CategoryWithUsageDTO } from '@koin/shared';
 import { ModalPortal } from '../common/ModalPortal';
 import { QuickEntryPad } from './QuickEntryPad';
+import { formatMoney } from '../../lib/currency';
+import { CurrencyInput } from '../common/CurrencyInput';
 
 interface QuickTransactionModalProps {
   isOpen: boolean;
@@ -441,7 +443,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
                 >
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
-                      {acc.name} ({acc.currency} {acc.currentBalance})
+                      {acc.name} ({formatMoney(acc.currentBalance, acc.currency)})
                     </option>
                   ))}
                 </select>
@@ -461,7 +463,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
                     .filter((a) => a.id !== selectedAccountId)
                     .map((acc) => (
                       <option key={acc.id} value={acc.id}>
-                        {acc.name} ({acc.currency} {acc.currentBalance})
+                        {acc.name} ({formatMoney(acc.currentBalance, acc.currency)})
                       </option>
                     ))}
                 </select>
@@ -475,7 +477,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
                 </label>
                 {selectedAccount && (
                   <span className="text-[11px] font-mono text-muted-foreground">
-                    Saldo disponible: <strong className="text-foreground">{selectedAccount.currency} {selectedAccount.currentBalance}</strong>
+                    Saldo disponible: <strong className="text-foreground">{formatMoney(selectedAccount.currentBalance, selectedAccount.currency)}</strong>
                   </span>
                 )}
               </div>
@@ -486,7 +488,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
-                    {acc.name} ({acc.currency} {acc.currentBalance}) {acc.isShared ? '· Compartida' : ''}
+                    {acc.name} ({formatMoney(acc.currentBalance, acc.currency)}) {acc.isShared ? '· Compartida' : ''}
                   </option>
                 ))}
               </select>
@@ -559,7 +561,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
                         </p>
                       </div>
                       <span className="text-[11px] font-mono font-bold text-purple-400 shrink-0">
-                        ${parseFloat(r.amount).toFixed(2)}
+                        {formatMoney(r.amount, r.currency)}
                       </span>
                     </button>
                   ))}
@@ -574,18 +576,16 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
               <span className="text-2xl font-bold font-mono text-muted-foreground">
                 {selectedAccount?.currency || profileBaseCurrency}
               </span>
-              <input
+              <CurrencyInput
                 ref={amountInputRef}
-                type="number"
-                step="0.01"
-                min="0.01"
-                placeholder="0.00"
                 value={amount}
-                onChange={(e) => {
-                  setAmount(e.target.value);
+                currency={selectedAccount?.currency || profileBaseCurrency}
+                onChange={(cleanVal) => {
+                  setAmount(cleanVal);
                   if (amountError) setAmountError(false);
                 }}
-                className="w-48 text-4xl sm:text-5xl font-extrabold font-mono tracking-tight bg-transparent text-foreground placeholder:text-muted-foreground/30 focus:outline-none text-center"
+                placeholder={selectedAccount?.currency === 'COP' || selectedAccount?.currency === 'CLP' ? '0' : '0.00'}
+                className="w-56 sm:w-64 text-4xl sm:text-5xl font-extrabold font-mono tracking-tight bg-transparent text-foreground placeholder:text-muted-foreground/30 focus:outline-none text-center"
               />
             </div>
             {amountError && (
@@ -602,7 +602,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
                 </span>
                 {calculatedToAmount && (
                   <span className="text-foreground font-semibold">
-                    (Destino recibe: ~{selectedToAccount.currency} {calculatedToAmount})
+                    (Destino recibe: ~{formatMoney(calculatedToAmount, selectedToAccount.currency)})
                   </span>
                 )}
               </div>
@@ -616,7 +616,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
                   </span>
                   {calculatedBaseAmount && (
                     <span className="text-foreground font-semibold">
-                      (~{profileBaseCurrency} {calculatedBaseAmount})
+                      (~{formatMoney(calculatedBaseAmount, profileBaseCurrency)})
                     </span>
                   )}
                   <button
