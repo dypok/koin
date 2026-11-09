@@ -1,6 +1,6 @@
 {
   "name": "@koin/web",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,7 +12,10 @@
   },
   "dependencies": {
     "@capacitor/android": "^7.6.10",
+    "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^7.6.10",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
     "@koin/shared": "workspace:*",
     "@tanstack/react-query": "^5.66.9",
     "@tanstack/react-virtual": "^3.14.26",

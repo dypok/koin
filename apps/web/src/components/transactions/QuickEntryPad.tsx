@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { Delete, RotateCcw } from 'lucide-react';
+import { hapticFeedback } from '../../lib/haptics';
 
 interface QuickEntryPadProps {
   amount: string;
@@ -21,20 +22,11 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
 }) => {
   const isZeroDec = currency === 'COP' || currency === 'CLP';
   const quickChips = isZeroDec ? PESO_CHIPS : STANDARD_CHIPS;
-  // Tactile micro-vibration for touch devices
-  const triggerHaptic = useCallback((ms = 22) => {
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try {
-        navigator.vibrate(ms);
-      } catch (_) {}
-    }
-  }, []);
-
   // Handle digit press (0-9)
   const handleDigit = useCallback(
     (digit: string) => {
       if (disabled) return;
-      triggerHaptic(20);
+      hapticFeedback.light();
 
       // If empty or "0", replace with digit unless digit is "0"
       if (!amount || amount === '0') {
@@ -55,13 +47,13 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
 
       onAmountChange(amount + digit);
     },
-    [amount, onAmountChange, triggerHaptic, disabled]
+    [amount, onAmountChange, disabled]
   );
 
   // Handle decimal dot (.)
   const handleDot = useCallback(() => {
     if (disabled || isZeroDec) return;
-    triggerHaptic(25);
+    hapticFeedback.light();
 
     if (!amount) {
       onAmountChange('0.');
@@ -70,12 +62,12 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
     if (!amount.includes('.')) {
       onAmountChange(amount + '.');
     }
-  }, [amount, onAmountChange, triggerHaptic, disabled, isZeroDec]);
+  }, [amount, onAmountChange, disabled, isZeroDec]);
 
   // Handle backspace (⌫)
   const handleBackspace = useCallback(() => {
     if (disabled) return;
-    triggerHaptic(20);
+    hapticFeedback.medium();
 
     if (!amount) return;
     if (amount.length <= 1) {
@@ -83,20 +75,20 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
     } else {
       onAmountChange(amount.slice(0, -1));
     }
-  }, [amount, onAmountChange, triggerHaptic, disabled]);
+  }, [amount, onAmountChange, disabled]);
 
   // Handle clear (C)
   const handleClear = useCallback(() => {
     if (disabled) return;
-    triggerHaptic(30);
+    hapticFeedback.medium();
     onAmountChange('');
-  }, [onAmountChange, triggerHaptic, disabled]);
+  }, [onAmountChange, disabled]);
 
   // Handle quick amount increment chips (+5, +10, +20, etc.)
   const handleAddChip = useCallback(
     (value: number) => {
       if (disabled) return;
-      triggerHaptic(28);
+      hapticFeedback.light();
 
       const current = parseFloat(amount) || 0;
       const next = current + value;
@@ -107,7 +99,7 @@ export const QuickEntryPad: React.FC<QuickEntryPadProps> = ({
         onAmountChange(next.toFixed(2));
       }
     },
-    [amount, onAmountChange, triggerHaptic, disabled]
+    [amount, onAmountChange, disabled]
   );
 
   return (
