@@ -13,6 +13,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { CategoryDonutChart } from './CategoryDonutChart';
 import { CashflowBarChart } from './CashflowBarChart';
 import { formatMoney } from '../../lib/currency';
+import { hapticFeedback } from '../../lib/haptics';
 
 interface HomeDashboardViewProps {
   onGoToAccounts: () => void;
@@ -71,7 +72,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           {/* Month Selector */}
           <div className="flex items-center gap-1.5 border border-border/40 px-2.5 py-1 bg-card">
             <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
@@ -84,11 +85,15 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
           </div>
 
           <button
-            onClick={() => onNewTransaction('expense')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity"
+            onClick={() => {
+              hapticFeedback.light();
+              onNewTransaction('expense');
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 active:scale-95 transition-all shadow-2xs"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Registrar Movimiento</span>
+            <span className="hidden xs:inline">Registrar Movimiento</span>
+            <span className="xs:hidden">Registrar</span>
           </button>
         </div>
       </div>

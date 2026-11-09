@@ -29,6 +29,7 @@ import { UndoToast } from './components/transactions/UndoToast';
 import { BudgetsView } from './components/budgets/BudgetsView';
 import { HomeDashboardView } from './components/home/HomeDashboardView';
 import { getProfileAvatarStyle } from './lib/theme';
+import { hapticFeedback } from './lib/haptics';
 
 type NavigationTab =
   | 'home'
@@ -528,7 +529,7 @@ export default function App() {
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold truncate">{profile?.name}</span>
+                  <span className="text-xs font-semibold max-w-[110px] xs:max-w-[160px] truncate">{profile?.name}</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
                   <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
                 </div>
@@ -536,9 +537,33 @@ export default function App() {
               </div>
             </button>
 
-            <button onClick={logout} className="p-1.5 text-muted-foreground hover:text-destructive shrink-0">
-              <LogOut className="w-4 h-4" />
-            </button>
+            {/* Global Quick Action & Logout */}
+            <div className="flex items-center gap-1.5 xs:gap-2 shrink-0">
+              {activeTab !== 'history' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    hapticFeedback.light();
+                    setQuickTxConfig({ type: 'expense' });
+                    setIsQuickTxModalOpen(true);
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 active:scale-95 transition-all shadow-xs shrink-0"
+                  title="Registrar gasto, ingreso o transferencia puntual"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span className="hidden xs:inline">Nuevo Movimiento</span>
+                  <span className="xs:hidden">Nuevo</span>
+                </button>
+              )}
+
+              <button
+                onClick={logout}
+                className="p-1.5 text-muted-foreground hover:text-destructive shrink-0 transition-colors"
+                title="Cerrar sesión"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Mobile Movimientos Sub-view Dropdown (sole control for Movimientos sub-views) */}
@@ -752,6 +777,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => {
+                  hapticFeedback.light();
                   setQuickTxConfig({ type: 'expense' });
                   setIsQuickTxModalOpen(true);
                 }}
