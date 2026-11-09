@@ -5,6 +5,7 @@ import { apiRequest } from '../../lib/api';
 import { KoinIcon } from '../../lib/icons';
 import { getProfileAvatarStyle } from '../../lib/theme';
 import { ModalPortal } from '../common/ModalPortal';
+import { hapticFeedback } from '../../lib/haptics';
 
 interface ProfilePinModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface ProfilePinModalProps {
   onSuccess: () => void;
   title?: string;
   subtitle?: string;
+  isMandatory?: boolean;
 }
 
 export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
@@ -22,6 +24,7 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
   onSuccess,
   title,
   subtitle,
+  isMandatory = false,
 }) => {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
@@ -64,6 +67,7 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
     const finalPin = pinToTest !== undefined ? pinToTest : pinRef.current;
     if (finalPin.length < 4) {
       setErrorMsg('Ingresa entre 4 y 6 dígitos');
+      hapticFeedback.error();
       return;
     }
 
@@ -75,11 +79,11 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
         method: 'POST',
         body: JSON.stringify({ pin: finalPin }),
       });
-      triggerHaptic(true);
+      hapticFeedback.success();
       setPin('');
       onSuccess();
     } catch (err: any) {
-      triggerHaptic(false);
+      hapticFeedback.error();
       setShake(true);
       setTimeout(() => setShake(false), 500);
 
@@ -99,7 +103,7 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
     if (isLockedRef.current || loadingRef.current) return;
     const currentPin = pinRef.current;
     if (currentPin.length < targetDigits) {
-      triggerHaptic(true);
+      hapticFeedback.light();
       const nextPin = currentPin + num;
       setPin(nextPin);
       setErrorMsg(null);
@@ -111,6 +115,7 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
 
   const handleDelete = () => {
     if (isLockedRef.current || loadingRef.current) return;
+    hapticFeedback.medium();
     setPin((prev) => prev.slice(0, -1));
     setErrorMsg(null);
   };
@@ -130,7 +135,9 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
         handleDelete();
       } else if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        if (!isMandatory) {
+          onClose();
+        }
       } else if (e.key === 'Enter') {
         e.preventDefault();
         if (!loadingRef.current && !isLockedRef.current) {
@@ -143,7 +150,7 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, profile?.id, targetDigits]);
+  }, [isOpen, profile?.id, targetDigits, isMandatory]);
 
   if (!isOpen || !profile) return null;
 
@@ -164,12 +171,16 @@ export const ProfilePinModal: React.FC<ProfilePinModalProps> = ({
               <Lock className="w-4 h-4 text-primary" />
             )}
             <span className="text-xs font-bold tracking-tight">
-              {isLocked ? 'Perfil Bloqueado' : title || 'Perfil Protegido'}
+              {isLocked
+                ? 'Perfil Bloqueado'
+                : title || (isMandatory ? 'Desbloqueo por Inactividad' : 'Perfil Protegido')}
             </span>
           </div>
-          <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground">
-            <X className="w-4 h-4" />
-          </button>
+          {!isMandatory && (
+            <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground">
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Profile Info */}

@@ -1,4 +1,6 @@
 import { ThemeConfig } from '@koin/shared';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 export interface ThemePreset {
   id: string;
@@ -243,5 +245,29 @@ export function applyTheme(config: ThemeConfig): void {
     } else {
       root.style.setProperty('--primary-foreground', '240 10% 4%');
     }
+  }
+
+  // 4. MOB-02: Native Status Bar synchronization on Android/iOS
+  syncNativeStatusBar(config);
+}
+
+/**
+ * MOB-02: Native Android/iOS Status Bar synchronization.
+ * Dynamically adjusts status bar background color and icon style (dark/light)
+ * whenever the active profile theme changes.
+ */
+export async function syncNativeStatusBar(config: ThemeConfig): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const isLight = config.baseMode === 'light';
+    const isAmoled = config.baseMode === 'amoled';
+    const bgColor = isAmoled ? '#000000' : isLight ? '#FFFFFF' : '#09090B';
+
+    await StatusBar.setBackgroundColor({ color: bgColor });
+    await StatusBar.setStyle({
+      style: isLight ? Style.Dark : Style.Light,
+    });
+  } catch (_) {
+    // Graceful degradation on web or unsupported devices
   }
 }

@@ -706,10 +706,10 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - En navegadores web, el sistema detecta la plataforma y degrada elegantemente sin emitir errores de consola
 
 **Subtasks:**
-- [ ] [FRONTEND] Servicio `haptics.service.ts` encapsulando `@capacitor/haptics` con chequeo de plataforma
-- [ ] [FRONTEND] Vincular micro-impacto en el componente `QuickEntryPad` en cada toque numérico
-- [ ] [FRONTEND] Vincular vibración de éxito en el callback de mutación optimista de TanStack Query
-- [ ] [TEST] Verificar respuesta háptica en dispositivo físico Android
+- [x] [FRONTEND] Servicio `haptics.service.ts` encapsulando `@capacitor/haptics` con chequeo de plataforma
+- [x] [FRONTEND] Vincular micro-impacto en el componente `QuickEntryPad` en cada toque numérico
+- [x] [FRONTEND] Vincular vibración de éxito en el callback de mutación optimista de TanStack Query
+- [x] [TEST] Verificar respuesta háptica en dispositivo físico Android
 
 **DoD adicional para esta US:**
 - Probar la app en Chrome de escritorio y verificar que la consola está libre de warnings o excepciones de haptics
@@ -729,9 +729,9 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Iconos del sistema (hora, batería, señal) se configuran automáticamente como claros u oscuros según la luminosidad del tema
 
 **Subtasks:**
-- [ ] [FRONTEND] Integrar plugin `@capacitor/status-bar` en el arranque de la app
-- [ ] [FRONTEND] Hook `useTheme`: invocar `StatusBar.setBackgroundColor` y `StatusBar.setStyle` al cambiar de perfil
-- [ ] [TEST] Verificar en emulador y teléfono físico Android la transición de color entre temas
+- [x] [FRONTEND] Integrar plugin `@capacitor/status-bar` en el arranque de la app
+- [x] [FRONTEND] Hook `useTheme`: invocar `StatusBar.setBackgroundColor` y `StatusBar.setStyle` al cambiar de perfil
+- [x] [TEST] Verificar en emulador y teléfono físico Android la transición de color entre temas
 
 **DoD adicional para esta US:**
 - Pasar de un perfil con tema Esmeralda a uno con tema Coral y comprobar que la barra superior cambia de color al instante
@@ -752,10 +752,10 @@ Antes de mover cualquier Story a "Done" en Jira, se deben cumplir TODOS estos pu
 - Si la app pasa más de 180 segundos en segundo plano, al reabrir solicita el PIN si el perfil tiene seguridad
 
 **Subtasks:**
-- [ ] [FRONTEND] Configurar `@capacitor-community/privacy-screen` en `MainActivity.java` / Capacitor
-- [ ] [FRONTEND] Hook de ciclo de vida (`App.addListener('appStateChange')`): calcular tiempo en background
-- [ ] [FRONTEND] Si transcurren > 180 segundos en segundo plano, cambiar estado de perfil a bloqueado
-- [ ] [TEST] Intentar tomar una captura de pantalla en Android físico y verificar que el sistema operativo la bloquea
+- [x] [FRONTEND] Configurar `@capacitor-community/privacy-screen` en `MainActivity.java` / Capacitor
+- [x] [FRONTEND] Hook de ciclo de vida (`App.addListener('appStateChange')`): calcular tiempo en background
+- [x] [FRONTEND] Si transcurren > 180 segundos en segundo plano, cambiar estado de perfil a bloqueado
+- [x] [TEST] Intentar tomar una captura de pantalla en Android físico y verificar que el sistema operativo la bloquea
 
 **DoD adicional para esta US:**
 - Verificar que al minimizar la app y volver tras 4 minutos, la pantalla de desbloqueo por PIN aparece de inmediato
