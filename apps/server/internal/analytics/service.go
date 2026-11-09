@@ -15,8 +15,8 @@ func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) GetSummary(ctx context.Context, profileID uuid.UUID) (*models.AnalyticsSummary, error) {
-	return s.repo.GetSummary(ctx, profileID)
+func (s *Service) GetSummary(ctx context.Context, profileID uuid.UUID, month string) (*models.AnalyticsSummary, error) {
+	return s.repo.GetSummary(ctx, profileID, month)
 }
 
 func (s *Service) GetCategoryExpenses(ctx context.Context, profileID uuid.UUID, monthPeriod string) ([]models.CategoryExpenseItem, error) {

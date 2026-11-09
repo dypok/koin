@@ -7,6 +7,7 @@ import { CurrencyInput } from '../common/CurrencyInput';
 interface BudgetModalProps {
   isOpen: boolean;
   budget?: BudgetDTO | null;
+  preselectedCategoryId?: string;
   categories: CategoryWithUsageDTO[];
   existingCategoryIds: string[];
   currency: string;
@@ -22,6 +23,7 @@ interface BudgetModalProps {
 export const BudgetModal: React.FC<BudgetModalProps> = ({
   isOpen,
   budget,
+  preselectedCategoryId,
   categories,
   existingCategoryIds,
   currency,
@@ -48,7 +50,7 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
       setLimitAmount(budget.limitAmount);
       setAlertThresholdPercent(budget.alertThresholdPercent || 80);
     } else {
-      setCategoryId(availableCategories[0]?.id || '');
+      setCategoryId(preselectedCategoryId || availableCategories[0]?.id || '');
       setLimitAmount('');
       setAlertThresholdPercent(80);
     }

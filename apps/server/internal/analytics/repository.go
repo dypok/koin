@@ -54,7 +54,7 @@ func (r *Repository) GetExchangeRate(ctx context.Context, from, to string) (deci
 }
 
 // GetSummary calculates net worth, month income, month expense, net savings, and savings rate.
-func (r *Repository) GetSummary(ctx context.Context, profileID uuid.UUID) (*models.AnalyticsSummary, error) {
+func (r *Repository) GetSummary(ctx context.Context, profileID uuid.UUID, month string) (*models.AnalyticsSummary, error) {
 	// 1. Get profile base currency
 	var baseCurrency string
 	err := r.pool.QueryRow(ctx, `SELECT base_currency FROM koin_auth.profiles WHERE id = $1`, profileID).Scan(&baseCurrency)
@@ -106,8 +106,11 @@ func (r *Repository) GetSummary(ctx context.Context, profileID uuid.UUID) (*mode
 		netWorth = netWorth.Add(convertedBal)
 	}
 
-	// 3. Current month income and expenses
-	currentPeriod := time.Now().Format("2006-01")
+	// 3. Month income and expenses (dynamic or current)
+	currentPeriod := strings.TrimSpace(month)
+	if currentPeriod == "" {
+		currentPeriod = time.Now().Format("2006-01")
+	}
 	var monthIncome, monthExpense decimal.Decimal
 	txQuery := `
 		SELECT 

@@ -17,7 +17,7 @@ interface AnalyticsState {
   error: string | null;
 
   setSelectedMonth: (month: string) => void;
-  fetchSummary: (profileId?: string) => Promise<AnalyticsSummaryDTO | null>;
+  fetchSummary: (profileId?: string, month?: string) => Promise<AnalyticsSummaryDTO | null>;
   fetchCategoryExpenses: (month?: string, profileId?: string) => Promise<CategoryExpenseItemDTO[]>;
   fetchCashflow: (months?: number, profileId?: string) => Promise<MonthlyCashflowItemDTO[]>;
   clearError: () => void;
@@ -39,16 +39,17 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
   isLoadingCategories: false,
   isLoadingCashflow: false,
   error: null,
-
   setSelectedMonth: (month: string) => {
     set({ selectedMonth: month });
   },
 
-  fetchSummary: async (profileId?: string) => {
+  fetchSummary: async (profileId?: string, month?: string) => {
     set({ isLoadingSummary: true, error: null });
+    const targetMonth = month || get().selectedMonth || getCurrentMonthString();
     try {
       const headers = profileId ? { 'X-Profile-ID': profileId } : undefined;
-      const res = await apiRequest<any>('/analytics/summary', { headers });
+      const endpoint = `/analytics/summary?month=${encodeURIComponent(targetMonth)}`;
+      const res = await apiRequest<any>(endpoint, { headers });
       const summary: AnalyticsSummaryDTO = res.data || res;
       set({ summary, isLoadingSummary: false });
       return summary;

@@ -84,7 +84,8 @@ func (h *Handler) GetSummary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	summary, err := h.service.GetSummary(r.Context(), profileID)
+	month := strings.TrimSpace(r.URL.Query().Get("month"))
+	summary, err := h.service.GetSummary(r.Context(), profileID, month)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "Error al calcular el resumen analítico")
 		return
