@@ -25,6 +25,7 @@ import { ModalPortal } from '../common/ModalPortal';
 import { QuickEntryPad } from './QuickEntryPad';
 import { formatMoney } from '../../lib/currency';
 import { CurrencyInput } from '../common/CurrencyInput';
+import { hapticFeedback } from '../../lib/haptics';
 
 interface QuickTransactionModalProps {
   isOpen: boolean;
@@ -214,16 +215,13 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
       setAmountError(true);
+      hapticFeedback.error();
       amountInputRef.current?.focus();
       return;
     }
 
     // Android / Web Haptic Feedback
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try {
-        navigator.vibrate(35);
-      } catch (_) {}
-    }
+    hapticFeedback.success();
 
     // Immediate optimistic closure (<100ms)
     onClose();
@@ -251,6 +249,7 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
       setAmountError(true);
+      hapticFeedback.error();
       amountInputRef.current?.focus();
       return;
     }
@@ -261,10 +260,12 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
       if (mode === 'transfer') {
         if (!selectedToAccount || selectedToAccount.id === selectedAccount.id) {
           setSubmitError('Debes seleccionar una cuenta de destino diferente a la de origen');
+          hapticFeedback.error();
           setIsSubmitting(false);
           return;
         }
 
+        hapticFeedback.success();
         onClose();
 
         await createTransfer({
@@ -278,10 +279,12 @@ export const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
       } else {
         if (!selectedCategoryId) {
           setSubmitError('Por favor selecciona una categoría para clasificar el movimiento');
+          hapticFeedback.error();
           setIsSubmitting(false);
           return;
         }
 
+        hapticFeedback.success();
         onClose();
 
         if (selectedRecurringRuleId) {

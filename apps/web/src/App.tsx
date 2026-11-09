@@ -11,6 +11,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { ProfileDTO } from '@koin/shared';
+import { Capacitor } from '@capacitor/core';
 import { useAuthStore } from './stores/authStore';
 import { useRecurringStore } from './stores/recurringStore';
 import { AuthPage } from './components/auth/AuthPage';
@@ -133,6 +134,7 @@ export default function App() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isCreateProfileModalOpen, setIsCreateProfileModalOpen] = useState(false);
   const [pinModalProfile, setPinModalProfile] = useState<ProfileDTO | null>(null);
+  const [inactivityLockedProfile, setInactivityLockedProfile] = useState<ProfileDTO | null>(null);
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [isQuickTxModalOpen, setIsQuickTxModalOpen] = useState(false);
   const [quickTxConfig, setQuickTxConfig] = useState<{
@@ -286,6 +288,59 @@ export default function App() {
       fetchRules(profile.id);
     }
   }, [isAuthenticated, profile?.id, fetchRules]);
+
+  // MOB-03: Inactivity lockout after 180 seconds in background
+  useEffect(() => {
+    if (!isAuthenticated || !profile?.hasPin) return;
+
+    let backgroundTime: number | null = null;
+    const INACTIVITY_TIMEOUT_MS = 180 * 1000; // 180 seconds (3 minutes)
+
+    const handleBackground = () => {
+      backgroundTime = Date.now();
+    };
+
+    const handleForeground = () => {
+      if (backgroundTime) {
+        const elapsed = Date.now() - backgroundTime;
+        if (elapsed >= INACTIVITY_TIMEOUT_MS) {
+          setInactivityLockedProfile(profile);
+        }
+        backgroundTime = null;
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleBackground();
+      } else if (document.visibilityState === 'visible') {
+        handleForeground();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    let capListenerHandle: any = null;
+    if (Capacitor.isNativePlatform()) {
+      import('@capacitor/app').then(({ App: CapApp }) => {
+        CapApp.addListener('appStateChange', ({ isActive }) => {
+          if (!isActive) {
+            handleBackground();
+          } else {
+            handleForeground();
+          }
+        }).then((handle) => {
+          capListenerHandle = handle;
+        });
+      });
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (capListenerHandle && typeof capListenerHandle.remove === 'function') {
+        capListenerHandle.remove();
+      }
+    };
+  }, [isAuthenticated, profile?.id, profile?.hasPin]);
 
   if (isLoading) {
     return (
@@ -823,6 +878,17 @@ export default function App() {
             setActiveProfile(pinModalProfile);
             setPinModalProfile(null);
           }
+        }}
+      />
+
+      {/* MOB-03: Inactivity Lockout Modal (Mandatory PIN prompt) */}
+      <ProfilePinModal
+        isOpen={!!inactivityLockedProfile}
+        profile={inactivityLockedProfile}
+        isMandatory={true}
+        onClose={() => {}}
+        onSuccess={() => {
+          setInactivityLockedProfile(null);
         }}
       />
 
