@@ -194,3 +194,37 @@ export function parseDisplayToRaw(
 
   return result ? sign + result : '';
 }
+
+/**
+ * Formats monetary amounts compactly for chart axes and small indicators (e.g. $ 1.5M, $ 450k, $ 100).
+ */
+export function formatCompactMoney(
+  amount: number | string | undefined | null,
+  currencyCode: string = 'USD'
+): string {
+  const code = (currencyCode || 'USD').toUpperCase().trim();
+  const currDef = SUPPORTED_CURRENCIES[code];
+  const symbol = currDef?.symbol || '$';
+
+  let num = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (num === undefined || num === null || isNaN(num)) {
+    return `${symbol} 0`;
+  }
+
+  const abs = Math.abs(num);
+  const sign = num < 0 ? '-' : '';
+
+  if (abs >= 1_000_000_000) {
+    const val = abs / 1_000_000_000;
+    return `${sign}${symbol} ${val.toFixed(val % 1 === 0 ? 0 : 1)}B`;
+  }
+  if (abs >= 1_000_000) {
+    const val = abs / 1_000_000;
+    return `${sign}${symbol} ${val.toFixed(val % 1 === 0 ? 0 : 1)}M`;
+  }
+  if (abs >= 1_000) {
+    const val = abs / 1_000;
+    return `${sign}${symbol} ${val.toFixed(val % 1 === 0 ? 0 : 1)}k`;
+  }
+  return `${sign}${symbol} ${Math.round(abs)}`;
+}

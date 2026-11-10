@@ -15,6 +15,7 @@ import {
   Landmark,
   CreditCard,
   Banknote,
+  BarChart3,
 } from 'lucide-react';
 import { useAnalyticsStore } from '../../stores/analyticsStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -58,6 +59,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
   const { budgets, fetchBudgets } = useBudgetStore();
 
   const [recentTxFilter, setRecentTxFilter] = useState<'all' | 'expense' | 'income'>('all');
+  const [chartViewMode, setChartViewMode] = useState<'split' | 'cashflow' | 'categories'>('split');
 
   const baseCurrency = activeProfile?.baseCurrency || summary?.currency || 'USD';
 
@@ -265,17 +267,95 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
         {/* Columna Principal: Gráficos y Últimos Movimientos (8 cols)     */}
         {/* =============================================================== */}
         <div className="lg:col-span-8 space-y-6">
-          {/* Analytics Charts Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 6-Month Cashflow Chart (ANL-02) */}
-            <div>
-              <CashflowBarChart items={cashflow} currency={baseCurrency} />
+          {/* Analytics Charts Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-border/40 pb-2">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-primary" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Analítica Financiera
+                </span>
+              </div>
+
+              {/* View Switcher: Split / Cashflow / Categories */}
+              <div className="flex items-center border border-border/40 bg-muted/20 p-0.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setChartViewMode('split')}
+                  className={`px-2 py-0.5 transition-colors ${
+                    chartViewMode === 'split'
+                      ? 'bg-background text-foreground font-semibold shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Dividida
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartViewMode('cashflow')}
+                  className={`px-2 py-0.5 transition-colors ${
+                    chartViewMode === 'cashflow'
+                      ? 'bg-background text-foreground font-semibold shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Flujo de Caja
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartViewMode('categories')}
+                  className={`px-2 py-0.5 transition-colors ${
+                    chartViewMode === 'categories'
+                      ? 'bg-background text-foreground font-semibold shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Categorías
+                </button>
+              </div>
             </div>
 
-            {/* Category Expenses Donut Chart (ANL-01) */}
-            <div>
-              <CategoryDonutChart items={categoryExpenses} currency={baseCurrency} />
-            </div>
+            {/* Dynamic Chart Container */}
+            {chartViewMode === 'split' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="min-w-0">
+                  <CashflowBarChart
+                    items={cashflow}
+                    currency={baseCurrency}
+                    referenceMonth={selectedMonth}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <CategoryDonutChart
+                    items={categoryExpenses}
+                    currency={baseCurrency}
+                    monthPeriod={selectedMonth}
+                  />
+                </div>
+              </div>
+            )}
+
+            {chartViewMode === 'cashflow' && (
+              <div className="min-w-0">
+                <CashflowBarChart
+                  items={cashflow}
+                  currency={baseCurrency}
+                  referenceMonth={selectedMonth}
+                  expanded
+                />
+              </div>
+            )}
+
+            {chartViewMode === 'categories' && (
+              <div className="min-w-0">
+                <CategoryDonutChart
+                  items={categoryExpenses}
+                  currency={baseCurrency}
+                  monthPeriod={selectedMonth}
+                  expanded
+                />
+              </div>
+            )}
           </div>
 
           {/* Feed de Últimos Movimientos Recientes */}
