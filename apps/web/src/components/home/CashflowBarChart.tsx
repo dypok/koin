@@ -153,7 +153,7 @@ export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <BarChart
             data={chartData}
-            margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
+            margin={{ top: 12, right: 28, left: 0, bottom: 4 }}
             barGap={4}
           >
             <CartesianGrid
@@ -179,30 +179,45 @@ export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({
               tickFormatter={(val) => formatCompactMoney(val, currency)}
               dx={-2}
             />
+            <Bar
+              dataKey="income"
+              name="income"
+              fill="#10B981"
+              radius={[3, 3, 0, 0]}
+              maxBarSize={expanded ? 40 : 28}
+            />
+            <Bar
+              dataKey="expense"
+              name="expense"
+              fill="#F43F5E"
+              radius={[3, 3, 0, 0]}
+              maxBarSize={expanded ? 40 : 28}
+            />
             <Tooltip
-              cursor={{ fill: '#27272a', opacity: 0.2 }}
+              wrapperStyle={{ zIndex: 100, pointerEvents: 'none' }}
+              cursor={{ fill: '#27272a', opacity: 0.3 }}
               content={({ active, payload }) => {
                 if (!active || !payload || !payload.length) return null;
                 const d = payload[0].payload;
                 return (
-                  <div className="bg-popover border border-border/40 p-3 shadow-lg text-xs space-y-1.5 min-w-[180px]">
-                    <div className="font-semibold text-foreground font-mono border-b border-border/30 pb-1">
+                  <div className="bg-popover border border-border/80 p-3 shadow-2xl text-xs space-y-1.5 min-w-[210px] rounded-xs backdrop-blur-md">
+                    <div className="font-semibold text-foreground font-mono border-b border-border/40 pb-1.5">
                       {formatFullMonthLabel(d.period)}
                     </div>
-                    <div className="flex items-center justify-between font-mono">
-                      <span className="text-emerald-500">Ingresos:</span>
+                    <div className="flex items-center justify-between font-mono gap-4">
+                      <span className="text-emerald-500 font-medium">Ingresos:</span>
                       <span className="font-semibold text-emerald-500">
                         {formatMoney(d.income, currency)}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between font-mono">
-                      <span className="text-rose-500">Gastos:</span>
+                    <div className="flex items-center justify-between font-mono gap-4">
+                      <span className="text-rose-500 font-medium">Gastos:</span>
                       <span className="font-semibold text-rose-500">
                         {formatMoney(d.expense, currency)}
                       </span>
                     </div>
-                    <div className="border-t border-border/40 pt-1 flex items-center justify-between font-mono">
-                      <span className="text-muted-foreground">Ahorro Neto:</span>
+                    <div className="border-t border-border/40 pt-1.5 flex items-center justify-between font-mono gap-4">
+                      <span className="text-muted-foreground font-medium">Ahorro Neto:</span>
                       <span
                         className={
                           d.netSavings >= 0
@@ -213,29 +228,13 @@ export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({
                         {formatMoney(d.netSavings, currency)}
                       </span>
                     </div>
-                    <div className="text-[11px] text-muted-foreground font-mono flex items-center justify-between">
+                    <div className="text-[11px] text-muted-foreground font-mono flex items-center justify-between gap-4">
                       <span>Tasa de Ahorro:</span>
                       <span className="font-medium text-foreground">{d.savingsRate}%</span>
                     </div>
                   </div>
                 );
               }}
-            />
-            <Bar
-              dataKey="income"
-              name="income"
-              fill="#10B981"
-              radius={[3, 3, 0, 0]}
-              maxBarSize={expanded ? 40 : 28}
-              minPointSize={2}
-            />
-            <Bar
-              dataKey="expense"
-              name="expense"
-              fill="#F43F5E"
-              radius={[3, 3, 0, 0]}
-              maxBarSize={expanded ? 40 : 28}
-              minPointSize={2}
             />
           </BarChart>
         </ResponsiveContainer>
