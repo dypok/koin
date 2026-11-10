@@ -130,6 +130,52 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
     };
   }, [budgets]);
 
+  // Aggregate category distribution for income from transactions
+  const incomeCategories = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        categoryId: string;
+        categoryName: string;
+        categoryIcon: string;
+        categoryColor: string;
+        totalSpent: number;
+        count: number;
+      }
+    >();
+
+    transactions
+      .filter((t) => t.type === 'income')
+      .forEach((t) => {
+        const name = t.categoryName || 'Otros Ingresos';
+        const existing = map.get(name) || {
+          categoryId: t.categoryId || 'income',
+          categoryName: name,
+          categoryIcon: t.categoryIcon || 'TrendingUp',
+          categoryColor: t.categoryColor || '#10B981',
+          totalSpent: 0,
+          count: 0,
+        };
+        existing.totalSpent += parseFloat(t.baseAmount || t.amount || '0') || 0;
+        existing.count += 1;
+        map.set(name, existing);
+      });
+
+    const totalAll = Array.from(map.values()).reduce((acc, c) => acc + c.totalSpent, 0);
+
+    return Array.from(map.values()).map((c) => ({
+      categoryId: c.categoryId,
+      categoryName: c.categoryName,
+      categoryIcon: c.categoryIcon,
+      categoryColor: c.categoryColor,
+      monthPeriod: selectedMonth,
+      transactionCount: c.count,
+      totalSpent: String(c.totalSpent),
+      percentage: totalAll > 0 ? Math.round((c.totalSpent / totalAll) * 100) : 0,
+      averageTicket: String(c.count > 0 ? Math.round(c.totalSpent / c.count) : 0),
+    }));
+  }, [transactions, selectedMonth]);
+
   // Format date helper (Hoy, Ayer, o dd/mm)
   const formatTxDate = (dateStr: string) => {
     try {
@@ -282,18 +328,18 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setChartViewMode('split')}
-                  className={`px-2 py-0.5 transition-colors ${
+                  className={`px-2.5 py-0.5 transition-colors ${
                     chartViewMode === 'split'
                       ? 'bg-background text-foreground font-semibold shadow-2xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  Dividida
+                  Ambos
                 </button>
                 <button
                   type="button"
                   onClick={() => setChartViewMode('cashflow')}
-                  className={`px-2 py-0.5 transition-colors ${
+                  className={`px-2.5 py-0.5 transition-colors ${
                     chartViewMode === 'cashflow'
                       ? 'bg-background text-foreground font-semibold shadow-2xs'
                       : 'text-muted-foreground hover:text-foreground'
@@ -304,7 +350,7 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setChartViewMode('categories')}
-                  className={`px-2 py-0.5 transition-colors ${
+                  className={`px-2.5 py-0.5 transition-colors ${
                     chartViewMode === 'categories'
                       ? 'bg-background text-foreground font-semibold shadow-2xs'
                       : 'text-muted-foreground hover:text-foreground'
@@ -317,19 +363,22 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
 
             {/* Dynamic Chart Container */}
             {chartViewMode === 'split' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="min-w-0">
                   <CashflowBarChart
                     items={cashflow}
                     currency={baseCurrency}
                     referenceMonth={selectedMonth}
+                    expanded
                   />
                 </div>
                 <div className="min-w-0">
                   <CategoryDonutChart
                     items={categoryExpenses}
+                    incomeItems={incomeCategories}
                     currency={baseCurrency}
                     monthPeriod={selectedMonth}
+                    onNewTransaction={onNewTransaction}
                   />
                 </div>
               </div>
@@ -350,8 +399,10 @@ export const HomeDashboardView: React.FC<HomeDashboardViewProps> = ({
               <div className="min-w-0">
                 <CategoryDonutChart
                   items={categoryExpenses}
+                  incomeItems={incomeCategories}
                   currency={baseCurrency}
                   monthPeriod={selectedMonth}
+                  onNewTransaction={onNewTransaction}
                   expanded
                 />
               </div>

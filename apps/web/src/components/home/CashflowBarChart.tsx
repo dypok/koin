@@ -6,10 +6,10 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   CartesianGrid,
+  ReferenceLine,
 } from 'recharts';
-import { BarChart2 } from 'lucide-react';
+import { BarChart2, TrendingUp, TrendingDown } from 'lucide-react';
 import { MonthlyCashflowItemDTO } from '@koin/shared';
 import { formatMoney, formatCompactMoney } from '../../lib/currency';
 
@@ -57,7 +57,7 @@ export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({
         income: found ? parseFloat(found.totalIncome) || 0 : 0,
         expense: found ? parseFloat(found.totalExpense) || 0 : 0,
         netSavings: found ? parseFloat(found.netSavings) || 0 : 0,
-        savingsRate: found ? found.savingsRatePercent : 0,
+        savingsRate: found ? parseFloat(String(found.savingsRatePercent)) || 0 : 0,
       };
     });
   }, [items, referenceMonth]);
@@ -85,15 +85,18 @@ export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({
     };
   }, [chartData]);
 
-  // Format month tick for X Axis (e.g. "Jun", "Jul", "Nov")
+  // Format month tick for X Axis (e.g. "Jun", "Jul", "Sep", "Nov" - strictly 3 chars)
   const formatMonthTick = (period: string) => {
     try {
       const [yearStr, monthStr] = period.split('-');
       const y = parseInt(yearStr, 10);
       const m = parseInt(monthStr, 10);
       const date = new Date(y, m - 1, 1);
-      const monthShort = date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '');
-      return monthShort.charAt(0).toUpperCase() + monthShort.slice(1);
+      let monthShort = date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '');
+      if (monthShort.toLowerCase().startsWith('sep')) {
+        monthShort = 'Sep';
+      }
+      return monthShort.charAt(0).toUpperCase() + monthShort.slice(1, 3);
     } catch {
       return period;
     }
@@ -113,27 +116,10 @@ export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({
     }
   };
 
-  if (!totals.hasActivity) {
-    return (
-      <div className="border border-border/40 bg-card p-6 flex flex-col items-center justify-center text-center space-y-2.5 h-[340px]">
-        <div className="w-10 h-10 border border-border/40 flex items-center justify-center text-muted-foreground bg-muted/20">
-          <BarChart2 className="w-5 h-5 text-muted-foreground" />
-        </div>
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-foreground">Sin flujo de caja registrado</p>
-          <p className="text-[11px] text-muted-foreground max-w-xs">
-            A medida que registres ingresos y gastos, se graficará automáticamente la comparativa
-            continua de los últimos 6 meses en {currency}.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="border border-border/40 bg-card p-4 space-y-3 flex flex-col justify-between">
+    <div className="border border-border/40 bg-card p-4 space-y-4">
       {/* Header with Title and 6M Totals */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-2.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
         <div>
           <span className="text-xs font-semibold tracking-tight uppercase text-muted-foreground block">
             Flujo de Caja (6 Meses)
@@ -144,17 +130,17 @@ export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({
         </div>
 
         {/* 6M Aggregates */}
-        <div className="flex items-center gap-3 font-mono text-[11px] self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-3 font-mono text-xs self-start sm:self-auto">
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-2xs bg-emerald-500 shrink-0" />
-            <span className="text-muted-foreground">Ing:</span>
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+            <span className="text-muted-foreground text-[11px]">Ingresos:</span>
             <span className="font-semibold text-emerald-500">
               {formatCompactMoney(totals.totalIncome, currency)}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-2xs bg-rose-500 shrink-0" />
-            <span className="text-muted-foreground">Gas:</span>
+            <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
+            <span className="text-muted-foreground text-[11px]">Gastos:</span>
             <span className="font-semibold text-rose-500">
               {formatCompactMoney(totals.totalExpense, currency)}
             </span>
@@ -167,87 +153,89 @@ export const CashflowBarChart: React.FC<CashflowBarChartProps> = ({
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <BarChart
             data={chartData}
-            margin={{ top: 12, right: 12, left: 4, bottom: 4 }}
+            margin={{ top: 12, right: 12, left: 0, bottom: 4 }}
             barGap={4}
           >
             <CartesianGrid
               strokeDasharray="3 3"
               vertical={false}
-              stroke="var(--border)"
-              opacity={0.35}
+              stroke="#27272a"
+              opacity={0.6}
             />
+            <ReferenceLine y={0} stroke="#27272a" />
             <XAxis
               dataKey="period"
               tickLine={false}
-              axisLine={{ stroke: 'var(--border)' }}
-              tick={{ fill: 'var(--muted-foreground)', fontSize: 11, fontFamily: 'monospace' }}
+              axisLine={{ stroke: '#27272a' }}
+              tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'monospace' }}
               tickFormatter={formatMonthTick}
+              dy={6}
             />
             <YAxis
-              width={52}
+              width={54}
               tickLine={false}
-              axisLine={{ stroke: 'var(--border)' }}
-              tick={{ fill: 'var(--muted-foreground)', fontSize: 10, fontFamily: 'monospace' }}
+              axisLine={{ stroke: '#27272a' }}
+              tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'monospace' }}
               tickFormatter={(val) => formatCompactMoney(val, currency)}
+              dx={-2}
             />
             <Tooltip
+              cursor={{ fill: '#27272a', opacity: 0.2 }}
               content={({ active, payload }) => {
                 if (!active || !payload || !payload.length) return null;
                 const d = payload[0].payload;
                 return (
-                  <div className="bg-popover border border-border/40 p-2.5 shadow-md text-xs space-y-1">
-                    <div className="font-semibold text-foreground font-mono">
+                  <div className="bg-popover border border-border/40 p-3 shadow-lg text-xs space-y-1.5 min-w-[180px]">
+                    <div className="font-semibold text-foreground font-mono border-b border-border/30 pb-1">
                       {formatFullMonthLabel(d.period)}
                     </div>
-                    <div className="text-emerald-500 font-mono">
-                      Ingresos: {formatMoney(d.income, currency)}
+                    <div className="flex items-center justify-between font-mono">
+                      <span className="text-emerald-500">Ingresos:</span>
+                      <span className="font-semibold text-emerald-500">
+                        {formatMoney(d.income, currency)}
+                      </span>
                     </div>
-                    <div className="text-rose-500 font-mono">
-                      Gastos: {formatMoney(d.expense, currency)}
+                    <div className="flex items-center justify-between font-mono">
+                      <span className="text-rose-500">Gastos:</span>
+                      <span className="font-semibold text-rose-500">
+                        {formatMoney(d.expense, currency)}
+                      </span>
                     </div>
-                    <div className="border-t border-border/40 pt-1 text-muted-foreground font-mono">
-                      Ahorro Neto:{' '}
+                    <div className="border-t border-border/40 pt-1 flex items-center justify-between font-mono">
+                      <span className="text-muted-foreground">Ahorro Neto:</span>
                       <span
                         className={
                           d.netSavings >= 0
-                            ? 'text-emerald-500 font-medium'
-                            : 'text-rose-500 font-medium'
+                            ? 'text-emerald-500 font-semibold'
+                            : 'text-rose-500 font-semibold'
                         }
                       >
                         {formatMoney(d.netSavings, currency)}
                       </span>
                     </div>
-                    <div className="text-[11px] text-muted-foreground font-mono">
-                      Tasa de Ahorro: {d.savingsRate}%
+                    <div className="text-[11px] text-muted-foreground font-mono flex items-center justify-between">
+                      <span>Tasa de Ahorro:</span>
+                      <span className="font-medium text-foreground">{d.savingsRate}%</span>
                     </div>
                   </div>
                 );
               }}
-            />
-            <Legend
-              verticalAlign="top"
-              align="right"
-              iconType="square"
-              wrapperStyle={{ paddingBottom: '6px', fontSize: '11px' }}
-              formatter={(value) => (
-                <span className="text-xs text-muted-foreground capitalize">
-                  {value === 'income' ? 'Ingresos' : 'Gastos'}
-                </span>
-              )}
             />
             <Bar
               dataKey="income"
               name="income"
               fill="#10B981"
               radius={[3, 3, 0, 0]}
-              maxBarSize={expanded ? 36 : 24}
+              maxBarSize={expanded ? 40 : 28}
+              minPointSize={2}
             />
             <Bar
               dataKey="expense"
               name="expense"
               fill="#F43F5E"
               radius={[3, 3, 0, 0]}
-              maxBarSize={expanded ? 36 : 24}
+              maxBarSize={expanded ? 40 : 28}
+              minPointSize={2}
             />
           </BarChart>
         </ResponsiveContainer>
